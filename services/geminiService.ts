@@ -1,5 +1,4 @@
-
-// Gemini API has been disabled.
-export const generateNovelContent = async (): Promise<string> => {
-  return "AI features are currently disabled.";
-};
+// This service is deprecated and no longer used.
+// Keeping this file as an empty module to prevent import errors if it's referenced anywhere else,
+// though all references should have been removed.
+export {};
