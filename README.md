@@ -1,4 +1,4 @@
-# Bunsho Ari no Ana - Neo (文章の蟻の穴 Neo)
+# Bunsho Ari no Ana - Neo (文章の蟻の穴 Neo).
 
 2000年代中盤のテキストサイト・投稿サイトの雰囲気を再現したReactアプリケーションです。
 Supabaseによるバックエンド連携機能を搭載しています。
