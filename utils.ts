@@ -1,3 +1,4 @@
+
 // Simulating Perl's localtime formatting
 export const formatDate = (isoDate: string): string => {
   const d = new Date(isoDate);
@@ -6,8 +7,12 @@ export const formatDate = (isoDate: string): string => {
   const day = String(d.getDate()).padStart(2, '0');
   const hours = String(d.getHours()).padStart(2, '0');
   const minutes = String(d.getMinutes()).padStart(2, '0');
-  // 2005/05/24 12:34 format
-  return `${year}/${month}/${day} ${hours}:${minutes}`;
+  
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  const weekDay = weekDays[d.getDay()];
+
+  // 2005/05/24(火) 12:34 format
+  return `${year}/${month}/${day}(${weekDay}) ${hours}:${minutes}`;
 };
 
 // Mock tripcode generation

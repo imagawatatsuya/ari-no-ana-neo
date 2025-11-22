@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Novel, Comment } from '../types';
 import { calculateScore, formatDate } from '../utils';
@@ -21,7 +22,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
             <th className="border border-gray-500 px-2 py-1 text-left">タイトル</th>
             <th className="border border-gray-500 px-2 py-1 w-32">作者</th>
             <th className="border border-gray-500 px-2 py-1 w-24">得点</th>
-            <th className="border border-gray-500 px-2 py-1 w-32">投稿日</th>
+            <th className="border border-gray-500 px-2 py-1 w-40">投稿日</th>
           </tr>
         </thead>
         <tbody>
@@ -53,8 +54,8 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
                 <td className={`border border-gray-500 px-2 py-1 text-center font-mono ${isNegative ? 'text-red-600 font-bold' : 'text-blue-800'}`}>
                   {scoreDisplay}
                 </td>
-                <td className="border border-gray-500 px-2 py-1 text-xs text-center">
-                  {formatDate(novel.date).split(' ')[0]}
+                <td className="border border-gray-500 px-2 py-1 text-xs text-center whitespace-nowrap">
+                  {formatDate(novel.date)}
                 </td>
               </tr>
             );
