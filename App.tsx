@@ -9,27 +9,27 @@ import { supabase } from './services/supabaseClient';
 const SEED_NOVELS: Novel[] = [
   {
     id: '1',
-    title: 'The Melancholy of a Perl Monk',
+    title: 'Perl僧侶の憂鬱',
     author: 'Kyuu',
     trip: '◆LEGEND05',
-    body: `This is a story about a man who refused to use 'use strict'.\n\nIt was a dark and stormy night in the server room. The error logs were filling up at an alarming rate. "Premature end of script headers," he muttered, lighting a cigarette despite the strict no-smoking policy.\n\n(To be continued...)`,
+    body: `これは 'use strict' の使用を断固として拒んだ男の物語である。\n\nサーバー室は暗く、外は嵐が吹き荒れていた。エラーログは驚くべき速度で埋め尽くされていく。「Premature end of script headers...」彼は呟き、厳格な禁煙ポリシーを無視してタバコに火をつけた。\n\n（続く...）`,
     date: new Date(2005, 4, 23, 14, 30).toISOString(),
     viewCount: 1543,
   },
   {
     id: '2',
-    title: 'Isekai Reincarnation as a Regular Expression',
+    title: '正規表現に転生した件について',
     author: 'RegExWizard',
     date: new Date(2005, 4, 24, 9, 15).toISOString(),
-    body: `When I woke up, I wasn't human anymore. I was split into capture groups.\n\n/([a-z]+)@([a-z]+)/\n\nMy life is now purely pattern matching.`,
+    body: `目が覚めると、私はもはや人間ではなかった。私はキャプチャグループに分割されていたのだ。\n\n/([a-z]+)@([a-z]+)/\n\n私の人生は今や、純粋なパターンマッチングに過ぎない。`,
     viewCount: 890,
   }
 ];
 
 const SEED_COMMENTS: Comment[] = [
-  { id: 'c1', novelId: '1', name: 'Fan', text: 'Update soon!', date: new Date(2005, 4, 23, 15, 0).toISOString(), vote: 2 },
-  { id: 'c2', novelId: '1', name: 'Critic', text: 'Too short.', date: new Date(2005, 4, 23, 16, 20).toISOString(), vote: -1 },
-  { id: 'c3', novelId: '2', name: '774', text: 'Interesting concept.', date: new Date(2005, 4, 24, 10, 0).toISOString(), vote: 1 }
+  { id: 'c1', novelId: '1', name: 'ファン', text: '更新はよ！', date: new Date(2005, 4, 23, 15, 0).toISOString(), vote: 2 },
+  { id: 'c2', novelId: '1', name: '辛口評論家', text: '短すぎる。', date: new Date(2005, 4, 23, 16, 20).toISOString(), vote: -1 },
+  { id: 'c3', novelId: '2', name: '774', text: '興味深いコンセプトだ。', date: new Date(2005, 4, 24, 10, 0).toISOString(), vote: 1 }
 ];
 
 const App: React.FC = () => {
@@ -104,7 +104,7 @@ const App: React.FC = () => {
       setComments(mappedComments);
     } catch (err: any) {
       console.error("Supabase Error:", err);
-      setErrorMsg("Failed to connect to the database. Displaying offline mode.");
+      setErrorMsg("データベースへの接続に失敗しました。オフラインモードで表示します。");
       loadFromLocalStorage(); // Fallback on error
     } finally {
       setIsLoading(false);
@@ -159,7 +159,7 @@ const App: React.FC = () => {
       setIsLoading(false);
       
       if (error) {
-        alert('Error posting novel: ' + error.message);
+        alert('文章の投稿中にエラーが発生しました: ' + error.message);
         return;
       }
       // Refetch to be safe or just update local
@@ -183,7 +183,7 @@ const App: React.FC = () => {
       }]);
 
       if (error) {
-        alert('Error posting comment: ' + error.message);
+        alert('コメントの投稿中にエラーが発生しました: ' + error.message);
         return;
       }
       setComments(prev => [...prev, comment]);
@@ -201,27 +201,27 @@ const App: React.FC = () => {
         
         {isLoading && (
           <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
-            <div className="text-[#800000] font-bold text-lg animate-pulse">Accessing Datastore...</div>
+            <div className="text-[#800000] font-bold text-lg animate-pulse">データストアにアクセス中...</div>
           </div>
         )}
 
         {/* Header Area */}
         <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-[#800000] tracking-wide">
-            Novel Submission Hole (Neo)
+            文章の蟻の穴 (Neo)
           </h1>
           <p className="text-xs mt-1 text-gray-600">
-            [ <a href="#" onClick={(e) => { e.preventDefault(); setView('list'); }}>TOP</a> ] 
-            [ <a href="#" onClick={(e) => { e.preventDefault(); setView('post'); }}>POST NEW</a> ] 
-            [ <a href="#" onClick={(e) => e.preventDefault()}>SEARCH</a> ]
+            [ <a href="#" onClick={(e) => { e.preventDefault(); setView('list'); }}>トップ</a> ] 
+            [ <a href="#" onClick={(e) => { e.preventDefault(); setView('post'); }}>新規投稿</a> ] 
+            [ <a href="#" onClick={(e) => e.preventDefault()}>検索</a> ]
           </p>
           <div className="mt-2 text-xs text-right text-gray-500">
-            Admin: <b>ReactMaster</b> | Mode: {isSupabaseMode ? 'Online (Supabase)' : 'Offline (LocalStorage)'}
+            管理人: <b>ReactMaster</b> | モード: {isSupabaseMode ? 'オンライン (Supabase)' : 'オフライン (LocalStorage)'}
             <button 
               onClick={() => setShowHelp(true)} 
               className="ml-2 text-blue-600 underline hover:text-red-600 cursor-pointer"
             >
-              [Settings / Help]
+              [ 設定 / ヘルプ ]
             </button>
           </div>
           {errorMsg && (
@@ -258,7 +258,7 @@ const App: React.FC = () => {
         {/* Footer */}
         <div className="mt-8 border-t border-gray-400 pt-2 text-center text-xs text-gray-600">
           <p>
-            Bunsho Ari no Ana (Clone) &copy; 2005-2025 All rights reserved.<br/>
+            文章の蟻の穴 (Clone) &copy; 2005-2025 All rights reserved.<br/>
             Script by <a href="#">LegendaryPerlCoder</a>.<br/>
             Running on React 18 + {isSupabaseMode ? 'Supabase DB' : 'LocalStorage'}.
           </p>
@@ -272,25 +272,25 @@ const App: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowHelp(false)}>
             <div className="bg-[#D4D0C8] border-2 border-white border-b-black border-r-black p-1 max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
               <div className="bg-[#000080] text-white px-2 py-1 font-bold text-sm flex justify-between items-center">
-                <span>System Configuration Helper</span>
+                <span>システム設定ヘルパー</span>
                 <button onClick={() => setShowHelp(false)} className="bg-[#D4D0C8] text-black px-1 border border-gray-500 text-xs font-bold">X</button>
               </div>
               <div className="p-4 text-sm text-black font-sans">
-                <p className="mb-2 font-bold">How to enable the Online Database:</p>
+                <p className="mb-2 font-bold">オンラインデータベースの有効化手順:</p>
                 
                 <div className="mb-3 border border-gray-400 p-2 bg-white">
-                  <p className="font-bold text-blue-800 mb-1">Step 1: Setup Supabase</p>
+                  <p className="font-bold text-blue-800 mb-1">手順 1: Supabaseのセットアップ</p>
                   <ul className="list-disc pl-5 text-xs space-y-1">
-                    <li>Create a project at <b>supabase.com</b></li>
-                    <li>Copy the SQL from <code>supabase_schema.sql</code></li>
-                    <li>Run it in the Supabase <b>SQL Editor</b></li>
-                    <li>Get <b>Project URL</b> and <b>Anon Public Key</b></li>
+                    <li><b>supabase.com</b> でプロジェクトを作成</li>
+                    <li><code>supabase_schema.sql</code> のSQLをコピー</li>
+                    <li>Supabaseの <b>SQL Editor</b> で実行</li>
+                    <li><b>Project URL</b> と <b>Anon Public Key</b> を取得</li>
                   </ul>
                 </div>
 
                 <div className="mb-3 border border-gray-400 p-2 bg-white">
-                  <p className="font-bold text-green-800 mb-1">Step 2A: Local Testing</p>
-                  <p className="text-xs mb-1">Create a <code>.env</code> file locally:</p>
+                  <p className="font-bold text-green-800 mb-1">手順 2A: ローカルでのテスト</p>
+                  <p className="text-xs mb-1">ローカルに <code>.env</code> ファイルを作成:</p>
                   <code className="block bg-gray-100 p-1 text-[10px] border border-gray-300">
                     VITE_SUPABASE_URL=...<br/>
                     VITE_SUPABASE_ANON_KEY=...
@@ -298,9 +298,9 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="mb-3 border border-gray-400 p-2 bg-white">
-                  <p className="font-bold text-purple-800 mb-1">Step 2B: Publish to Internet (GitHub)</p>
+                  <p className="font-bold text-purple-800 mb-1">手順 2B: インターネット公開 (GitHub)</p>
                   <p className="text-xs mb-1">
-                    Go to <b>Settings &gt; Secrets and variables &gt; Actions</b> on GitHub and add these Secrets:
+                    GitHubの <b>Settings &gt; Secrets and variables &gt; Actions</b> に以下のSecretを追加:
                   </p>
                   <ul className="list-disc pl-5 text-xs font-mono">
                     <li>VITE_SUPABASE_URL</li>

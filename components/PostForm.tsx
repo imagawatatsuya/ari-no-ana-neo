@@ -15,7 +15,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, onCancel }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !body) {
-      alert('Title and Body are required!');
+      alert('タイトルと本文は必須です！');
       return;
     }
 
@@ -37,13 +37,13 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, onCancel }) => {
   return (
     <div className="w-full">
       <div className="bg-[#800000] text-white font-bold p-1 px-2 text-sm mb-2">
-        ■ NEW SUBMISSION
+        ■ 新規投稿
       </div>
 
       <form onSubmit={handleSubmit} className="bg-[#EFEFEF] border border-gray-500 p-4 text-sm">
         
         <div className="mb-2">
-          <label className="block font-bold text-gray-700 mb-1">Title</label>
+          <label className="block font-bold text-gray-700 mb-1">タイトル</label>
           <input 
             type="text" 
             className="w-full border border-gray-600 p-1" 
@@ -53,7 +53,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, onCancel }) => {
         </div>
 
         <div className="mb-2">
-          <label className="block font-bold text-gray-700 mb-1">Name (Tripcode support: Name#pass)</label>
+          <label className="block font-bold text-gray-700 mb-1">名前 (トリップ対応: 名前#パスワード)</label>
           <input 
             type="text" 
             className="w-full border border-gray-600 p-1 max-w-xs"
@@ -64,7 +64,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, onCancel }) => {
 
         <div className="mb-2">
           <div className="flex justify-between items-center mb-1">
-            <label className="block font-bold text-gray-700">Body</label>
+            <label className="block font-bold text-gray-700">本文</label>
           </div>
 
           <textarea 
@@ -79,22 +79,22 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, onCancel }) => {
             type="submit" 
             className="bg-[#DDDDDD] border-2 border-gray-500 px-6 py-1 font-bold active:bg-[#AAAAAA] hover:bg-[#EAEAEA]"
           >
-            POST NOVEL
+            文章を投稿する
           </button>
           <button 
             type="button" 
             onClick={onCancel}
             className="text-red-800 underline text-xs self-center"
           >
-            Cancel
+            キャンセル
           </button>
         </div>
       </form>
 
       <div className="mt-4 text-xs text-gray-600">
-        * HTML tags are not allowed.<br/>
-        * Please do not post offensive content.<br/>
-        * The administrator is not responsible for lost data.
+        * HTMLタグは使用できません。<br/>
+        * 公序良俗に反する内容は投稿しないでください。<br/>
+        * 管理人はデータ消失の責任を負いません。
       </div>
     </div>
   );

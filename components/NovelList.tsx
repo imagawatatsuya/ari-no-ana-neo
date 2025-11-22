@@ -12,17 +12,17 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments, onRead }
   return (
     <div className="w-full">
       <div className="bg-[#EEEEEE] border border-gray-400 p-1 mb-2 text-xs font-bold text-[#800000]">
-        ■ NOVEL LIST
+        ■ 投稿文章一覧
       </div>
 
       <table className="w-full border-collapse border border-gray-500 text-sm">
         <thead className="bg-[#E0E0E0]">
           <tr>
             <th className="border border-gray-500 px-2 py-1 w-12">No.</th>
-            <th className="border border-gray-500 px-2 py-1 text-left">Title</th>
-            <th className="border border-gray-500 px-2 py-1 w-32">Author</th>
-            <th className="border border-gray-500 px-2 py-1 w-24">Score</th>
-            <th className="border border-gray-500 px-2 py-1 w-32">Date</th>
+            <th className="border border-gray-500 px-2 py-1 text-left">タイトル</th>
+            <th className="border border-gray-500 px-2 py-1 w-32">作者</th>
+            <th className="border border-gray-500 px-2 py-1 w-24">得点</th>
+            <th className="border border-gray-500 px-2 py-1 w-32">投稿日</th>
           </tr>
         </thead>
         <tbody>
@@ -47,7 +47,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments, onRead }
                     {novel.title}
                   </a>
                   {/* New tag simulation */}
-                  {index < 2 && <span className="text-red-600 text-[10px] ml-1 font-normal blink">NEW!</span>}
+                  {index < 2 && <span className="text-red-600 text-[10px] ml-1 font-normal blink">新着!</span>}
                 </td>
                 <td className="border border-gray-500 px-2 py-1 truncate">
                   {novel.author}
@@ -64,7 +64,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments, onRead }
           {novels.length === 0 && (
             <tr>
               <td colSpan={5} className="border border-gray-500 p-4 text-center text-gray-500">
-                No novels found in the database.
+                データベースに小説が見つかりません。
               </td>
             </tr>
           )}
