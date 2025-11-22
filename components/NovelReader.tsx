@@ -112,10 +112,10 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onBac
               <td className="align-top pt-1">評価:</td>
               <td>
                 <div className="flex gap-2 items-center text-xs">
-                  <label><input type="radio" name="vote" checked={vote === 2} onChange={() => setVote(2)} /> 傑作(+2)</label>
-                  <label><input type="radio" name="vote" checked={vote === 1} onChange={() => setVote(1)} /> 良作(+1)</label>
+                  <label><input type="radio" name="vote" checked={vote === 2} onChange={() => setVote(2)} /> とても良い(+2)</label>
+                  <label><input type="radio" name="vote" checked={vote === 1} onChange={() => setVote(1)} /> 良い(+1)</label>
                   <label><input type="radio" name="vote" checked={vote === 0} onChange={() => setVote(0)} /> 普通(0)</label>
-                  <label><input type="radio" name="vote" checked={vote === -1} onChange={() => setVote(-1)} /> 駄作(-1)</label>
+                  <label><input type="radio" name="vote" checked={vote === -1} onChange={() => setVote(-1)} /> 良くない(-1)</label>
                   <label><input type="radio" name="vote" checked={vote === -2} onChange={() => setVote(-2)} /> 最悪(-2)</label>
                 </div>
               </td>
