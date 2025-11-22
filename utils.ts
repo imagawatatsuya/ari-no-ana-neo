@@ -14,7 +14,7 @@ export const formatDate = (isoDate: string): string => {
 // In Perl this was usually crypt(pass, salt)
 export const generateTrip = (nameInput: string): { name: string; trip?: string } => {
   const parts = nameInput.split('#');
-  const name = parts[0] || 'Nanashi';
+  const name = parts[0] || '名無し';
   let trip: string | undefined = undefined;
 
   if (parts.length > 1 && parts[1]) {
