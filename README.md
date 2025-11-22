@@ -3,8 +3,11 @@
 Supabaseによるバックエンド連携機能を搭載しています。  
 
 ## デモサイト
-https://imagawatatsuya.github.io/ari-no-ana-neo/  
+https\://imagawatatsuya.github.io/ari-no-ana-neo/  
 削除機能は未実装　※2025年11月22日現在
+
+## 本家 2ch文章アリの穴（`http://ana.vis.ne.jp/ali/`）跡地  
+https://web.archive.org/web/20130729143317/http://ana.vis.ne.jp/ali/  
 
 ## 機能
 - トリップ機能（パスワードによる個人識別記号列を表示できる）  
