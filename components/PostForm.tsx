@@ -83,7 +83,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
             type="submit" 
             className="bg-[#DDDDDD] border-2 border-gray-500 px-6 py-1 font-bold active:bg-[#AAAAAA] hover:bg-[#EAEAEA]"
           >
-            小説を投稿する
+            文章を投稿する
           </button>
           <button 
             type="button" 
