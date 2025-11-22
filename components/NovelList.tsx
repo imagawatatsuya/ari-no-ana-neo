@@ -5,14 +5,13 @@ import { calculateScore, formatDate } from '../utils';
 interface NovelListProps {
   novels: Novel[];
   comments: Comment[];
-  onRead: (id: string) => void;
 }
 
-export const NovelList: React.FC<NovelListProps> = ({ novels, comments, onRead }) => {
+export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
   return (
     <div className="w-full">
       <div className="bg-[#EEEEEE] border border-gray-400 p-1 mb-2 text-xs font-bold text-[#800000]">
-        ■ 投稿文章一覧
+        ■ 投稿小説一覧
       </div>
 
       <table className="w-full border-collapse border border-gray-500 text-sm">
@@ -40,8 +39,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments, onRead }
                 </td>
                 <td className="border border-gray-500 px-2 py-1">
                   <a 
-                    href={`#read/${novel.id}`} 
-                    onClick={(e) => { e.preventDefault(); onRead(novel.id); }}
+                    href={`#read/${novel.id}`}
                     className="font-bold text-blue-800 hover:text-red-600 no-underline hover:underline"
                   >
                     {novel.title}

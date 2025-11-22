@@ -53,6 +53,39 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Hash Routing Listener
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#read/')) {
+        const id = hash.replace('#read/', '');
+        setActiveNovelId(id);
+        setView('read');
+      } else if (hash === '#post') {
+        setView('post');
+        setActiveNovelId(null);
+      } else {
+        // Default to list for #list, empty hash, or unknown hash
+        setView('list');
+        setActiveNovelId(null);
+      }
+    };
+
+    // Initial check
+    handleHashChange();
+
+    // Listen for changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Increment View Count when opening a novel (detected by activeNovelId change)
+  useEffect(() => {
+    if (view === 'read' && activeNovelId) {
+      incrementViewCount(activeNovelId);
+    }
+  }, [activeNovelId, view]);
+
   const loadFromLocalStorage = () => {
     const savedNovels = localStorage.getItem('bunsho_novels_v2');
     const savedComments = localStorage.getItem('bunsho_comments_v2');
@@ -124,18 +157,18 @@ const App: React.FC = () => {
     }
   }, [comments, isSupabaseMode]);
 
-  const handleRead = async (id: string) => {
-    setActiveNovelId(id);
-    setView('read');
-
+  const incrementViewCount = async (id: string) => {
     // Optimistic update for UI
     setNovels(prev => prev.map(n => n.id === id ? { ...n, viewCount: n.viewCount + 1 } : n));
 
     // DB Update
     if (isSupabaseMode && supabase) {
+      // We need to find the current count to increment it safely if not using RPC, 
+      // but for this simple app, we will just use the optimistic value or re-fetch approach?
+      // Best effort: fetch current single novel to get real count, then increment.
+      // To save calls, we'll just rely on the mapped update or previous state.
       const currentNovel = novels.find(n => n.id === id);
       if (currentNovel) {
-        // Increment view count safely (best effort without RPC)
         await supabase
           .from('novels')
           .update({ view_count: currentNovel.viewCount + 1 })
@@ -159,16 +192,15 @@ const App: React.FC = () => {
       setIsLoading(false);
       
       if (error) {
-        alert('文章の投稿中にエラーが発生しました: ' + error.message);
+        alert('小説の投稿中にエラーが発生しました: ' + error.message);
         return;
       }
-      // Refetch to be safe or just update local
-      // In a real app we might refetch, but pushing to local state is faster
       setNovels([novel, ...novels]);
     } else {
       setNovels([novel, ...novels]);
     }
-    setView('list');
+    // Navigate back to list using hash
+    window.location.hash = '';
   };
 
   const handleComment = async (comment: Comment) => {
@@ -208,11 +240,11 @@ const App: React.FC = () => {
         {/* Header Area */}
         <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-[#800000] tracking-wide">
-            文章アリの穴NEO
+            文章の蟻の穴 (Neo)
           </h1>
           <p className="text-xs mt-1 text-gray-600">
-            [ <a href="#" onClick={(e) => { e.preventDefault(); setView('list'); }}>トップ</a> ] 
-            [ <a href="#" onClick={(e) => { e.preventDefault(); setView('post'); }}>新規投稿</a> ] 
+            [ <a href="#">トップ</a> ] 
+            [ <a href="#post">新規投稿</a> ] 
             [ <a href="#" onClick={(e) => e.preventDefault()}>検索</a> ]
           </p>
           <div className="mt-2 text-xs text-right text-gray-500">
@@ -238,19 +270,17 @@ const App: React.FC = () => {
           <NovelList 
             novels={novels} 
             comments={comments}
-            onRead={handleRead} 
           />
         )}
 
         {view === 'post' && (
-          <PostForm onPost={handlePost} onCancel={() => setView('list')} />
+          <PostForm onPost={handlePost} />
         )}
 
         {view === 'read' && activeNovel && (
           <NovelReader 
             novel={activeNovel}
             comments={comments.filter(c => c.novelId === activeNovel.id)}
-            onBack={() => setView('list')} 
             onComment={handleComment}
           />
         )}
@@ -258,12 +288,12 @@ const App: React.FC = () => {
         {/* Footer */}
         <div className="mt-8 border-t border-gray-400 pt-2 text-center text-xs text-gray-600">
           <p>
-            アリの穴NEO &copy; 2025-2025 All rights reserved.<br/>
-            Script by <a href="#">LegendaryPerlCoder</a>.<br/>
-            Running on React 18 + {isSupabaseMode ? 'Supabase DB' : 'LocalStorage'}.
+            文章の蟻の穴 (Clone) &copy; 2005-2025 All rights reserved.<br/>
+            制作: <a href="#">LegendaryPerlCoder</a><br/>
+            稼働環境: React 18 + {isSupabaseMode ? 'Supabase DB' : 'LocalStorage'}
           </p>
           <p className="mt-2">
-            Total Access: {10000 + novels.reduce((acc, n) => acc + n.viewCount, 0)} hits.
+            総アクセス数: {10000 + novels.reduce((acc, n) => acc + n.viewCount, 0)} hits.
           </p>
         </div>
         

@@ -5,13 +5,12 @@ import { calculateScore, formatDate, generateTrip } from '../utils';
 interface NovelReaderProps {
   novel: Novel;
   comments: Comment[];
-  onBack: () => void;
   onComment: (comment: Comment) => void;
 }
 
 const MAX_COMMENT_LENGTH = 500;
 
-export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onBack, onComment }) => {
+export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onComment }) => {
   const [commentName, setCommentName] = useState('');
   const [commentText, setCommentText] = useState('');
   const [vote, setVote] = useState<number>(0);
@@ -44,7 +43,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onBac
   return (
     <div className="w-full">
       <div className="mb-4 text-sm">
-        <a href="#" onClick={(e) => { e.preventDefault(); onBack(); }}>&laquo; 一覧に戻る</a>
+        <a href="#">&laquo; 一覧に戻る</a>
       </div>
 
       {/* Title Block */}
@@ -112,10 +111,10 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onBac
               <td className="align-top pt-1">評価:</td>
               <td>
                 <div className="flex gap-2 items-center text-xs">
-                  <label><input type="radio" name="vote" checked={vote === 2} onChange={() => setVote(2)} /> とても良い(+2)</label>
-                  <label><input type="radio" name="vote" checked={vote === 1} onChange={() => setVote(1)} /> 良い(+1)</label>
+                  <label><input type="radio" name="vote" checked={vote === 2} onChange={() => setVote(2)} /> 傑作(+2)</label>
+                  <label><input type="radio" name="vote" checked={vote === 1} onChange={() => setVote(1)} /> 良作(+1)</label>
                   <label><input type="radio" name="vote" checked={vote === 0} onChange={() => setVote(0)} /> 普通(0)</label>
-                  <label><input type="radio" name="vote" checked={vote === -1} onChange={() => setVote(-1)} /> 良くない(-1)</label>
+                  <label><input type="radio" name="vote" checked={vote === -1} onChange={() => setVote(-1)} /> 駄作(-1)</label>
                   <label><input type="radio" name="vote" checked={vote === -2} onChange={() => setVote(-2)} /> 最悪(-2)</label>
                 </div>
               </td>

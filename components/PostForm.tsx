@@ -4,10 +4,9 @@ import { generateTrip } from '../utils';
 
 interface PostFormProps {
   onPost: (novel: Novel) => void;
-  onCancel: () => void;
 }
 
-export const PostForm: React.FC<PostFormProps> = ({ onPost, onCancel }) => {
+export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
   const [title, setTitle] = useState('');
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
@@ -32,6 +31,11 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, onCancel }) => {
     };
 
     onPost(newNovel);
+  };
+
+  const handleCancel = () => {
+    // Go back to list
+    window.location.hash = '';
   };
 
   return (
@@ -79,11 +83,11 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, onCancel }) => {
             type="submit" 
             className="bg-[#DDDDDD] border-2 border-gray-500 px-6 py-1 font-bold active:bg-[#AAAAAA] hover:bg-[#EAEAEA]"
           >
-            文章を投稿する
+            小説を投稿する
           </button>
           <button 
             type="button" 
-            onClick={onCancel}
+            onClick={handleCancel}
             className="text-red-800 underline text-xs self-center"
           >
             キャンセル
