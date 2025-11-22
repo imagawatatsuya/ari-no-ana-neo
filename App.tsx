@@ -239,8 +239,8 @@ const App: React.FC = () => {
 
         {/* Header Area */}
         <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold text-[#800000] tracking-wide">
-            文章の蟻の穴 (Neo)
+          <h1 className="text-2xl font-bold tracking-wide">
+            <a href="#" className="text-[#800000] no-underline hover:text-red-600">アリの穴NEO</a>
           </h1>
           <p className="text-xs mt-1 text-gray-600">
             [ <a href="#">トップ</a> ] 
@@ -288,7 +288,7 @@ const App: React.FC = () => {
         {/* Footer */}
         <div className="mt-8 border-t border-gray-400 pt-2 text-center text-xs text-gray-600">
           <p>
-            文章の蟻の穴 (Clone) &copy; 2005-2025 All rights reserved.<br/>
+            アリの穴NEO &copy; 2025-2025 All rights reserved.<br/>
             制作: <a href="#">LegendaryPerlCoder</a><br/>
             稼働環境: React 18 + {isSupabaseMode ? 'Supabase DB' : 'LocalStorage'}
           </p>
