@@ -61,6 +61,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
           <input 
             type="text" 
             className="w-full border border-gray-600 p-1 max-w-xs"
+            placeholder="名無し"
             value={name}
             onChange={e => setName(e.target.value)} 
           />
