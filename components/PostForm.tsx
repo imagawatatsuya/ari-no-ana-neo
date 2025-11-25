@@ -57,7 +57,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
         </div>
 
         <div className="mb-2">
-          <label className="block font-bold text-gray-700 mb-1">名前 (トリップ対応: 名前#パスワード)</label>
+          <label className="block font-bold text-gray-700 mb-1">名前 (トリップ対応: 名前#パスワード 入力しない場合は「名無し」に)</label>
           <input 
             type="text" 
             className="w-full border border-gray-600 p-1 max-w-xs"
