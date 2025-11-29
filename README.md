@@ -1,47 +1,104 @@
-# アリの穴NEO
-2000年代中盤のテキストサイト・投稿サイトの雰囲気を再現したReactアプリケーションです。  
-Supabaseによるバックエンド連携機能を搭載しています。  
+# ari-no-ana-neo
 
-## デモサイト
-🔗 https\://imagawatatsuya.github.io/ari-no-ana-neo/  
-削除機能は未実装　※2025年11月22日現在  
+2000年代中盤のテキストサイト・投稿サイトの懐かしい雰囲気を再現したReactアプリケーション。
 
-## 本家 2ch文章アリの穴（`http://ana.vis.ne.jp/ali/`）跡地  
-🔗 https://web.archive.org/web/20130729143317/http://ana.vis.ne.jp/ali/  
+🔗 **Live Demo:** https://imagawatatsuya.github.io/ari-no-ana-neo/
 
-## 機能
-- トリップ機能（パスワードによる個人識別記号列を表示できる）  
-- 評価機能（5段階評価）  
+## 概要
 
-## セットアップ手順 (How to Setup)
+このプロジェクトは、かつてのインターネット文化の象徴であったテキストサイトや投稿サイトの風情をモダンなWeb技術で蘇らせたものです。Supabaseをバックエンドとして利用し、リアルタイムでのデータ連携を実現しています。
 
-このリポジトリにはAPIキーなどの機密情報は含まれていません。
-ローカルで実行するには、以下の手順で環境変数を設定してください。
+## 主な機能
 
-### 1. 依存関係のインストール
+- **トリップ機能** — パスワードから個人識別記号列を生成し、ユーザーを識別
+- **評価機能** — 投稿に対して5段階評価を付与
+- **Supabaseバックエンド連携** — クラウドベースのデータベース管理
+
+※ 削除機能は現在未実装です
+
+## 技術スタック
+
+- **Frontend:** React
+- **Backend:** Supabase
+- **Deployment:** GitHub Pages (GitHub Actions)
+- **Build Tool:** Vite
+
+## インストール・セットアップ
+
+### 1. リポジトリをクローン
+
+```bash
+git clone https://github.com/imagawatatsuya/ari-no-ana-neo.git
+cd ari-no-ana-neo
+```
+
+### 2. 依存パッケージのインストール
+
 ```bash
 npm install
 ```
 
-### 2. 環境変数の設定
-プロジェクトルートに `.env.local` ファイルを作成し、以下の内容を記述してください。
+### 3. 環境変数を設定
 
-```ini
-# Supabase Configuration (データベース接続用)
+プロジェクトルートに `.env.local` ファイルを作成し、以下の内容を記述してください：
+
+```env
+# Supabase Configuration
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### 3. データベースの準備 (Supabaseを使用する場合)
-1. Supabaseで新しいプロジェクトを作成します。
-2. `supabase_schema.sql` の内容をコピーし、Supabaseの SQL Editor で実行してテーブルを作成してください。
+### 4. Supabaseの初期設定
 
-### 4. 開発サーバーの起動
+1. [Supabase](https://supabase.com/) で新しいプロジェクトを作成
+2. `supabase_schema.sql` の内容をコピー
+3. Supabaseの SQL Editor で実行してテーブルを作成
+
+### 5. ローカル開発サーバーを起動
+
 ```bash
 npm run dev
 ```
 
+ブラウザで http://localhost:5173 にアクセスして実行を確認できます。
+
 ## デプロイ
 
-GitHub Actionsを使用してGitHub Pagesへデプロイする設定が含まれています (`.github/workflows/deploy.yml`)。
-GitHubのリポジトリ設定 (Settings > Secrets and variables > Actions) に上記の環境変数を登録する必要があります。
+このプロジェクトはGitHub Actionsを使用してGitHub Pagesへ自動デプロイされます。
+
+### デプロイ設定
+
+`.github/workflows/deploy.yml` に設定が含まれています。
+
+### 環境変数の登録
+
+GitHub上でデプロイするには、以下の手順で環境変数を登録してください：
+
+1. リポジトリの **Settings** にアクセス
+2. **Secrets and variables > Actions** を選択
+3. 以下の変数を新規作成：
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+## セキュリティに関する注意
+
+このリポジトリにはAPIキーなどの機密情報は含まれていません。必ず環境変数を通じて設定してください。本番環境ではSupabaseの行レベルセキュリティ（RLS）の設定を確認してください。
+
+## 参考
+
+このプロジェクトのインスピレーション元となった「アリの穴」は、以下のアーカイブで確認できます：
+
+🔗 [Web Archive - アリの穴](https://web.archive.org/web/20130729143317/http://ana.vis.ne.jp/ali/)
+
+## ライセンス
+
+詳細はリポジトリを参照してください。
+
+## 今後の予定
+
+- [ ] 削除機能／編集機能の実装
+- 他の機能拡張
+
+---
+
+**最終更新:** 2025年11月
