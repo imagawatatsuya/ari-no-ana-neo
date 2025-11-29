@@ -4,6 +4,31 @@ import { NovelList } from './components/NovelList';
 import { NovelReader } from './components/NovelReader';
 import { PostForm } from './components/PostForm';
 import { supabase } from './services/supabaseClient';
+// 1. ファイルの上部でインポートを追加
+import { FootnoteRenderer } from './components/FootnoteRenderer';
+
+// ...
+
+function YourComponent() {
+  // ...
+
+  return (
+    <div>
+      {/* ... タイトルなどの表示 ... */}
+
+      {/* 
+         【変更前】 これまでは単純にテキストを表示していたはずです
+         <p>{post.content}</p> 
+         または
+         <div className="whitespace-pre-wrap">{post.content}</div>
+      */}
+
+      {/* 【変更後】 FootnoteRenderer に置き換えます */}
+      <FootnoteRenderer content={post.content} />
+
+    </div>
+  );
+}
 
 // Separated Seed Data to simulate relational DB (Fallback for Local/Demo mode)
 const SEED_NOVELS: Novel[] = [
