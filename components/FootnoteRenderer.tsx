@@ -18,7 +18,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
     const footnotesMap = new Map<string, string>();
     const footnoteOrder: string[] = [];
     
-    // 1. 注釈定義 [^1]: ... を抽出して削除
+    // 1. 脚注定義 [^1]: ... を抽出して削除
     // 【修正箇所】引数の match を _ に変更しました
     const cleanedContent = normalizedContent.replace(
       /^\s*\[\^(.+?)\]:\s*(.*(?:\n(?!\s*\[\^.+?\]:).*)*)/gm,
@@ -57,7 +57,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
         const id = match[1].trim();
         const footnote = footnotes.find(f => f.id === id);
         if (footnote) {
-          // 注釈リンク
+          // 脚注リンク
           return (
             <sup key={index} id={`footnote-ref-${footnote.index}`}>
               <a 
@@ -96,7 +96,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
       
       {footnotes.length > 0 && (
         <div className="mt-8 pt-4 border-t border-gray-400">
-          <p className="font-bold text-sm mb-2 text-[#800000]">注釈</p>
+          <p className="font-bold text-sm mb-2 text-[#800000]">脚注</p>
           <ol className="list-decimal pl-5 text-sm text-gray-700">
             {footnotes.map(note => (
               <li key={note.index} id={`footnote-${note.index}`} className="mb-1 pl-1">
