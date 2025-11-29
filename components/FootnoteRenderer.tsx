@@ -5,24 +5,32 @@ type FootnoteRendererProps = {
 };
 
 export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) => {
-  // 本文と注釈を解析・分離するロジック
   const { mainContent, footnotes } = useMemo(() => {
     if (!content) return { mainContent: '', footnotes: [] };
+
+    // 全角の「［＾１］」などを半角の「[^1]」に統一する前処理
+    let normalizedContent = content
+      .replace(/［/g, '[')
+      .replace(/］/g, ']')
+      .replace(/＾/g, '^')
+      .replace(/：/g, ':');
 
     const footnotesMap = new Map<string, string>();
     const footnoteOrder: string[] = [];
     
     // 1. 注釈定義 [^1]: ... を抽出して削除
-    const cleanedContent = content.replace(
-      /^\[\^(.+?)\]:\s*(.*(?:\n(?!\[\^.+?\]:).*)*)/gm,
-      (match, id, text) => {
+    // 【修正箇所】引数の match を _ に変更しました
+    const cleanedContent = normalizedContent.replace(
+      /^\s*\[\^(.+?)\]:\s*(.*(?:\n(?!\s*\[\^.+?\]:).*)*)/gm,
+      (_, id, text) => {
         footnotesMap.set(id.trim(), text.trim());
         return '';
       }
     ).trim();
 
     // 2. 本文中の参照 [^1] を探して順序を記録
-    cleanedContent.replace(/\[\^(.+?)\]/g, (match, id) => {
+    // 【修正箇所】ここも引数の match を _ に変更しました
+    cleanedContent.replace(/\[\^(.+?)\]/g, (_, id) => {
       const trimmedId = id.trim();
       if (footnotesMap.has(trimmedId) && !footnoteOrder.includes(trimmedId)) {
         footnoteOrder.push(trimmedId);
@@ -40,8 +48,8 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
     return { mainContent: cleanedContent, footnotes: notes };
   }, [content]);
 
-  // 本文を描画する関数
   const renderContent = () => {
+    // 分割してレンダリング
     const parts = mainContent.split(/(\[\^.+?\])/g);
     return parts.map((part, index) => {
       const match = part.match(/\[\^(.+?)\]/);
@@ -49,12 +57,12 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
         const id = match[1].trim();
         const footnote = footnotes.find(f => f.id === id);
         if (footnote) {
-          // 注釈へのリンク
+          // 注釈リンク
           return (
             <sup key={index} id={`footnote-ref-${footnote.index}`}>
               <a 
                 href={`#footnote-${footnote.index}`}
-                style={{ textDecoration: 'none', color: '#dc2626', fontWeight: 'bold', marginLeft: '2px' }}
+                className="text-red-600 font-bold ml-0.5 no-underline hover:underline"
                 onClick={(e) => {
                   e.preventDefault();
                   document.getElementById(`footnote-${footnote.index}`)?.scrollIntoView({ behavior: 'smooth' });
@@ -66,7 +74,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
           );
         }
       }
-      // 通常テキスト（改行対応）
+      // 通常テキスト
       return (
         <React.Fragment key={index}>
           {part.split('\n').map((line, i) => (
@@ -82,12 +90,10 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
 
   return (
     <div className="footnote-container">
-      {/* 本文エリア */}
-      <div className="text-base leading-relaxed whitespace-pre-wrap">
+      <div className="leading-relaxed">
         {renderContent()}
       </div>
       
-      {/* 注釈リストエリア */}
       {footnotes.length > 0 && (
         <div className="mt-8 pt-4 border-t border-gray-400">
           <p className="font-bold text-sm mb-2 text-[#800000]">注釈</p>
@@ -97,7 +103,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
                 {note.text}{' '}
                 <a 
                   href={`#footnote-ref-${note.index}`} 
-                  className="no-underline text-blue-600 hover:text-red-600 cursor-pointer select-none"
+                  className="no-underline text-blue-600 hover:text-red-600 cursor-pointer ml-1"
                   onClick={(e) => {
                     e.preventDefault();
                     document.getElementById(`footnote-ref-${note.index}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
