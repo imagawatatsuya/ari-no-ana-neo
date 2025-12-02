@@ -1,13 +1,31 @@
-import React, { useMemo, Fragment } from 'react'; // 【修正】Fragment を追加
+import React, { useMemo, Fragment } from 'react';
 
 type FootnoteRendererProps = {
   content: string;
 };
 
+// =====================================================================
+// 【設定】リンク化を禁止するURLパターン（正規表現リスト）
+// 以下の正規表現のいずれかにマッチするURLは、リンクにならず黒文字のまま表示されます。
+// =====================================================================
+const BLOCKED_PATTERNS: RegExp[] = [
+  // 1. "example" ドメインを含むものを全ブロック (.com, .net, .org など全て)
+  // 例: https://example.com, https://example.net/page, https://www.example.org
+  /^https:\/\/(www\.)?example\.[a-z]+(\/|$)/,
+
+  // 2. 具体的な危険ドメインの部分一致（サブドメインも含む）
+  // 例: https://bad-site.com, https://phishing.bad-site.com
+  /bad-site\.com/,
+
+  // 3. ローカルホストやプライベートIP（誤ってリンク化させないため）
+  /^https:\/\/localhost/,
+  /^https:\/\/192\.168\./,
+  /^https:\/\/10\./,
+];
+
 // テキスト内のhttpsリンクを検出して<a>タグに変換する関数
 const renderTextWithLinks = (text: string) => {
-  // 【修正】URLの区切りとして、空白(\s)に加え、" < > も除外対象に追加しました。
-  // これにより href="https://..." のような記述でも " の手前で正しくURLが途切れます。
+  // 空白・"・<・> を区切り文字として認識
   const parts = text.split(/(https:\/\/[^\s"<>]+)/g);
 
   return (
@@ -18,12 +36,23 @@ const renderTextWithLinks = (text: string) => {
           let suffix = '';
           
           // 末尾の除外対象記号（句読点など）を判定
-          // URLの末尾が . や ) で終わるケースを救済するための削り処理
           const invalidSuffixRegex = /[。、.,)\]\}!?:;"'）］｝><]$/;
           
           while (url.length > 8 && invalidSuffixRegex.test(url)) {
             suffix = url.slice(-1) + suffix;
             url = url.slice(0, -1);
+          }
+
+          // 【修正】ブロックリスト（正規表現）によるチェック
+          // 登録されたパターンのいずれかにマッチした場合、リンク化を中止します
+          const isBlocked = BLOCKED_PATTERNS.some(pattern => pattern.test(url));
+
+          if (isBlocked) {
+            return (
+              <Fragment key={index}>
+                {url}{suffix}
+              </Fragment>
+            );
           }
 
           return (
