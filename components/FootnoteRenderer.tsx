@@ -16,11 +16,10 @@ const renderTextWithLinks = (text: string) => {
           let url = part;
           let suffix = '';
           
-          // 末尾の除外対象記号（句読点や括弧など）を判定
-          // URLの末尾がこれらの文字だった場合、URLから切り離して通常のテキストに戻します
-          const invalidSuffixRegex = /[。、.,)\]\}!?:;"'）］｝]$/;
+          // 【修正点】末尾の除外対象記号に '<' と '>' を追加しました
+          // これにより <http://...> や href="http://..."> のようなケースで括弧がリンクに含まれなくなります
+          const invalidSuffixRegex = /[。、.,)\]\}!?:;"'）］｝><]$/;
           
-          // "https://" (8文字) より長く、かつ末尾が除外対象ならループで削る
           while (url.length > 8 && invalidSuffixRegex.test(url)) {
             suffix = url.slice(-1) + suffix;
             url = url.slice(0, -1);
@@ -32,7 +31,7 @@ const renderTextWithLinks = (text: string) => {
                 href={url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline break-all" // 青文字＋ホバー下線
+                className="text-blue-600 hover:underline break-all"
               >
                 {url}
               </a>
@@ -40,7 +39,6 @@ const renderTextWithLinks = (text: string) => {
             </React.Fragment>
           );
         }
-        // 通常テキスト
         return <React.Fragment key={index}>{part}</React.Fragment>;
       })}
     </>
