@@ -6,8 +6,9 @@ type FootnoteRendererProps = {
 
 // テキスト内のhttpsリンクを検出して<a>タグに変換する関数
 const renderTextWithLinks = (text: string) => {
-  // https:// から始まる文字列（空白が来るまで）で分割
-  const parts = text.split(/(https:\/\/[^\s]+)/g);
+  // 【修正】URLの区切りとして、空白(\s)に加え、" < > も除外対象に追加しました。
+  // これにより href="https://..." のような記述でも " の手前で正しくURLが途切れます。
+  const parts = text.split(/(https:\/\/[^\s"<>]+)/g);
 
   return (
     <>
@@ -16,24 +17,22 @@ const renderTextWithLinks = (text: string) => {
           let url = part;
           let suffix = '';
           
-          // 末尾の除外対象記号（句読点や括弧、タグの閉じ括弧など）を判定
-          // 【修正】ここに '<' と '>' を追加し、HTMLタグの誤判定を防いでいます
+          // 末尾の除外対象記号（句読点など）を判定
+          // URLの末尾が . や ) で終わるケースを救済するための削り処理
           const invalidSuffixRegex = /[。、.,)\]\}!?:;"'）］｝><]$/;
           
-          // "https://" (8文字) より長く、かつ末尾が除外対象ならループで削る
           while (url.length > 8 && invalidSuffixRegex.test(url)) {
             suffix = url.slice(-1) + suffix;
             url = url.slice(0, -1);
           }
 
           return (
-            // 【修正】React.Fragment ではなく Fragment を使用
             <Fragment key={index}>
               <a 
                 href={url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline break-all" // 青文字＋ホバー下線
+                className="text-blue-600 hover:underline break-all"
               >
                 {url}
               </a>
@@ -42,7 +41,6 @@ const renderTextWithLinks = (text: string) => {
           );
         }
         // 通常テキスト
-        // 【修正】React.Fragment ではなく Fragment を使用
         return <Fragment key={index}>{part}</Fragment>;
       })}
     </>
