@@ -193,7 +193,7 @@ const App: React.FC = () => {
       setIsLoading(false);
       
       if (error) {
-        alert('小説の投稿中にエラーが発生しました: ' + error.message);
+        alert('文章の投稿中にエラーが発生しました: ' + error.message);
         return;
       }
       setNovels([novel, ...novels]);
@@ -249,7 +249,7 @@ const App: React.FC = () => {
             [ <a href="#" onClick={(e) => e.preventDefault()}>検索</a> ]
           </p>
           <div className="mt-2 text-xs text-right text-gray-500">
-            管理人: <b>ReactMaster</b> | モード: {isSupabaseMode ? 'オンライン (Supabase)' : 'オフライン (LocalStorage)'}
+            管理人: <b>アリOB</b> | モード: {isSupabaseMode ? 'オンライン' : 'オフライン (LocalStorage)'}
             <button 
               onClick={() => setShowHelp(true)} 
               className="ml-2 text-blue-600 underline hover:text-red-600 cursor-pointer"
@@ -294,7 +294,7 @@ const App: React.FC = () => {
             稼働環境: React 18 + {isSupabaseMode ? 'Supabase DB' : 'LocalStorage'}
           </p>
           <p className="mt-2">
-            総アクセス数: {10000 + novels.reduce((acc, n) => acc + n.viewCount, 0)} hits.
+            総アクセス数: {0 + novels.reduce((acc, n) => acc + n.viewCount, 0)} hits.
           </p>
         </div>
         

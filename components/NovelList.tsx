@@ -12,7 +12,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
   return (
     <div className="w-full">
       <div className="bg-[#EEEEEE] border border-gray-400 p-1 mb-2 text-xs font-bold text-[#800000]">
-        ■ 投稿小説一覧
+        ■ 投稿文章一覧
       </div>
 
       <table className="w-full border-collapse border border-gray-500 text-sm">
@@ -63,7 +63,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
           {novels.length === 0 && (
             <tr>
               <td colSpan={5} className="border border-gray-500 p-4 text-center text-gray-500">
-                データベースに小説が見つかりません。
+                データベースに文章が見つかりません。
               </td>
             </tr>
           )}
