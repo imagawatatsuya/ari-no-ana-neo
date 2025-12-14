@@ -95,7 +95,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
         footnotesMap.set(id.trim(), text.trim());
         return '';
       }
-    ).trim();
+    );
 
     cleanedContent.replace(/\[\^(.+?)\]/g, (_, id) => {
       const trimmedId = id.trim();
