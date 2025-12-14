@@ -88,13 +88,13 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
 
     const footnotesMap = new Map<string, string>();
     const footnoteOrder: string[] = [];
-    
+
     const cleanedContent = normalizedContent.replace(
-      /^\s*\[\^(.+?)\]:\s*(.*(?:\n(?!\s*\[\^.+?\]:).*)*)/gm,
-      (_, id, text) => {
-        footnotesMap.set(id.trim(), text.trim());
+      /^\[\^(.+?)\]:\s*(.*(?:\n(?!\[\^.+?\]:).*)*)/gm,
+       (_, id, text) => {
+        footnotesMap.set(id.trim(), text);
         return '';
-      }
+       }
     );
 
     cleanedContent.replace(/\[\^(.+?)\]/g, (_, id) => {

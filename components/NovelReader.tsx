@@ -57,10 +57,8 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
       </div>
 
       {/* Body Text */}
-      <div 
-        className="bg-white border-l-4 border-gray-300 p-4 mb-8 min-h-[200px]"
-        style={{ whiteSpace: 'pre-wrap' }}
-      >
+      <div className="bg-white border-l-4 border-gray-300 p-4 mb-8 min-h-[200px]">
+        {/* ここを書き換えました */}
         <FootnoteRenderer content={novel.body} />
       </div>
 
