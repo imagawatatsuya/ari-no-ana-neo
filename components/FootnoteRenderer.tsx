@@ -154,7 +154,8 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
 
   return (
     <div className="footnote-container">
-      <div className="leading-relaxed">
+    // 修正後（whitespace-pre-wrap を追加）
+    <div className="leading-relaxed whitespace-pre-wrap">
         {renderContent()}
       </div>
       
