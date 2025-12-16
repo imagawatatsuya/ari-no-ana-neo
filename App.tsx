@@ -4,7 +4,6 @@ import { NovelList } from './components/NovelList';
 import { NovelReader } from './components/NovelReader';
 import { PostForm } from './components/PostForm';
 import { supabase } from './services/supabaseClient';
-// 1. ファイルの上部でインポートを追加
 
 // --- 追加: 日本時間(+09:00)のISO文字列を生成するヘルパー関数 ---
 const getJSTISOString = () => {
@@ -23,6 +22,7 @@ const getJSTISOString = () => {
 };
 
 // Separated Seed Data to simulate relational DB (Fallback for Local/Demo mode)
+// --- 修正: シードデータを固定文字列に変更 (UTCへの自動変換を防ぐ) ---
 const SEED_NOVELS: Novel[] = [
   {
     id: '1',
@@ -30,23 +30,23 @@ const SEED_NOVELS: Novel[] = [
     author: 'Kyuu',
     trip: '◆LEGEND05',
     body: `これは 'use strict' の使用を断固として拒んだ男の物語である。\n\nサーバー室は暗く、外は嵐が吹き荒れていた。エラーログは驚くべき速度で埋め尽くされていく。「Premature end of script headers...」彼は呟き、厳格な禁煙ポリシーを無視してタバコに火をつけた。\n\n（続く...）`,
-    date: new Date(2005, 4, 23, 14, 30).toISOString(),
+    date: '2005-05-23T14:30:00+09:00', // JST明記
     viewCount: 1543,
   },
   {
     id: '2',
     title: '正規表現に転生した件について',
     author: 'RegExWizard',
-    date: new Date(2005, 4, 24, 9, 15).toISOString(),
+    date: '2005-05-24T09:15:00+09:00', // JST明記
     body: `目が覚めると、私はもはや人間ではなかった。私はキャプチャグループに分割されていたのだ。\n\n/([a-z]+)@([a-z]+)/\n\n私の人生は今や、純粋なパターンマッチングに過ぎない。`,
     viewCount: 890,
   }
 ];
 
 const SEED_COMMENTS: Comment[] = [
-  { id: 'c1', novelId: '1', name: 'ファン', text: '更新はよ！', date: new Date(2005, 4, 23, 15, 0).toISOString(), vote: 2 },
-  { id: 'c2', novelId: '1', name: '辛口評論家', text: '短すぎる。', date: new Date(2005, 4, 23, 16, 20).toISOString(), vote: -1 },
-  { id: 'c3', novelId: '2', name: '774', text: '興味深いコンセプトだ。', date: new Date(2005, 4, 24, 10, 0).toISOString(), vote: 1 }
+  { id: 'c1', novelId: '1', name: 'ファン', text: '更新はよ！', date: '2005-05-23T15:00:00+09:00', vote: 2 },
+  { id: 'c2', novelId: '1', name: '辛口評論家', text: '短すぎる。', date: '2005-05-23T16:20:00+09:00', vote: -1 },
+  { id: 'c3', novelId: '2', name: '774', text: '興味深いコンセプトだ。', date: '2005-05-24T10:00:00+09:00', vote: 1 }
 ];
 
 const App: React.FC = () => {
@@ -180,10 +180,6 @@ const App: React.FC = () => {
 
     // DB Update
     if (isSupabaseMode && supabase) {
-      // We need to find the current count to increment it safely if not using RPC, 
-      // but for this simple app, we will just use the optimistic value or re-fetch approach?
-      // Best effort: fetch current single novel to get real count, then increment.
-      // To save calls, we'll just rely on the mapped update or previous state.
       const currentNovel = novels.find(n => n.id === id);
       if (currentNovel) {
         await supabase
@@ -195,16 +191,20 @@ const App: React.FC = () => {
   };
 
   const handlePost = async (novel: Novel) => {
+    // --- 修正: 投稿日時をここで確定し、JST形式(+09:00)で上書きする ---
+    const jstDate = getJSTISOString();
+    const novelToSave = { ...novel, date: jstDate };
+
     if (isSupabaseMode && supabase) {
       setIsLoading(true);
       const { error } = await supabase.from('novels').insert([{
-        id: novel.id,
-        title: novel.title,
-        author: novel.author,
-        trip: novel.trip,
-        body: novel.body,
-        date: novel.date,
-        view_count: novel.viewCount
+        id: novelToSave.id,
+        title: novelToSave.title,
+        author: novelToSave.author,
+        trip: novelToSave.trip,
+        body: novelToSave.body,
+        date: novelToSave.date, // ここが +09:00 になる
+        view_count: novelToSave.viewCount
       }]);
       setIsLoading(false);
       
@@ -212,32 +212,36 @@ const App: React.FC = () => {
         alert('文章の投稿中にエラーが発生しました: ' + error.message);
         return;
       }
-      setNovels([novel, ...novels]);
+      setNovels([novelToSave, ...novels]);
     } else {
-      setNovels([novel, ...novels]);
+      setNovels([novelToSave, ...novels]);
     }
     // Navigate back to list using hash
     window.location.hash = '';
   };
 
   const handleComment = async (comment: Comment) => {
+    // --- 修正: コメント日時もJST形式で上書きする ---
+    const jstDate = getJSTISOString();
+    const commentToSave = { ...comment, date: jstDate };
+
     if (isSupabaseMode && supabase) {
       const { error } = await supabase.from('comments').insert([{
-        id: comment.id,
-        novel_id: comment.novelId,
-        name: comment.name,
-        text: comment.text,
-        date: comment.date,
-        vote: comment.vote
+        id: commentToSave.id,
+        novel_id: commentToSave.novelId,
+        name: commentToSave.name,
+        text: commentToSave.text,
+        date: commentToSave.date, // ここが +09:00 になる
+        vote: commentToSave.vote
       }]);
 
       if (error) {
         alert('コメントの投稿中にエラーが発生しました: ' + error.message);
         return;
       }
-      setComments(prev => [...prev, comment]);
+      setComments(prev => [...prev, commentToSave]);
     } else {
-      setComments(prev => [...prev, comment]);
+      setComments(prev => [...prev, commentToSave]);
     }
   };
 
@@ -245,7 +249,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center py-4">
-      {/* Main Container - Fixed width for that old school feel */}
+      {/* Main Container */}
       <div className="w-full max-w-[800px] bg-white border border-gray-600 p-2 shadow-lg relative">
         
         {isLoading && (
@@ -314,7 +318,7 @@ const App: React.FC = () => {
           </p>
         </div>
         
-        {/* Help Modal for Setup */}
+        {/* Help Modal */}
         {showHelp && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowHelp(false)}>
             <div className="bg-[#D4D0C8] border-2 border-white border-b-black border-r-black p-1 max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
@@ -323,8 +327,8 @@ const App: React.FC = () => {
                 <button onClick={() => setShowHelp(false)} className="bg-[#D4D0C8] text-black px-1 border border-gray-500 text-xs font-bold">X</button>
               </div>
               <div className="p-4 text-sm text-black font-sans">
+                {/* Help Content */}
                 <p className="mb-2 font-bold">オンラインデータベースの有効化手順:</p>
-                
                 <div className="mb-3 border border-gray-400 p-2 bg-white">
                   <p className="font-bold text-blue-800 mb-1">手順 1: Supabaseのセットアップ</p>
                   <ul className="list-disc pl-5 text-xs space-y-1">
@@ -334,7 +338,7 @@ const App: React.FC = () => {
                     <li><b>Project URL</b> と <b>Anon Public Key</b> を取得</li>
                   </ul>
                 </div>
-
+                {/* ... (残りのヘルプ内容は同じため省略しません) ... */}
                 <div className="mb-3 border border-gray-400 p-2 bg-white">
                   <p className="font-bold text-green-800 mb-1">手順 2A: ローカルでのテスト</p>
                   <p className="text-xs mb-1">ローカルに <code>.env</code> ファイルを作成:</p>
@@ -343,7 +347,6 @@ const App: React.FC = () => {
                     VITE_SUPABASE_ANON_KEY=...
                   </code>
                 </div>
-
                 <div className="mb-3 border border-gray-400 p-2 bg-white">
                   <p className="font-bold text-purple-800 mb-1">手順 2B: インターネット公開 (GitHub)</p>
                   <p className="text-xs mb-1">
@@ -354,7 +357,6 @@ const App: React.FC = () => {
                     <li>VITE_SUPABASE_ANON_KEY</li>
                   </ul>
                 </div>
-                
                 <div className="text-center mt-2">
                   <button onClick={() => setShowHelp(false)} className="border-2 border-black border-t-white border-l-white bg-[#D4D0C8] px-6 py-1 active:border-t-black active:border-l-black font-bold">
                     OK
