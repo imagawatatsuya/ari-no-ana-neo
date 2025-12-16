@@ -6,6 +6,22 @@ import { PostForm } from './components/PostForm';
 import { supabase } from './services/supabaseClient';
 // 1. ファイルの上部でインポートを追加
 
+// --- 追加: 日本時間(+09:00)のISO文字列を生成するヘルパー関数 ---
+const getJSTISOString = () => {
+  // どの環境で実行されても、強制的に日本時間の時刻を取得
+  const jstDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  
+  const year = jstDate.getFullYear();
+  const month = String(jstDate.getMonth() + 1).padStart(2, '0');
+  const day = String(jstDate.getDate()).padStart(2, '0');
+  const hours = String(jstDate.getHours()).padStart(2, '0');
+  const minutes = String(jstDate.getMinutes()).padStart(2, '0');
+  const seconds = String(jstDate.getSeconds()).padStart(2, '0');
+
+  // 必ず +09:00 を付けて返す
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+09:00`;
+};
+
 // Separated Seed Data to simulate relational DB (Fallback for Local/Demo mode)
 const SEED_NOVELS: Novel[] = [
   {
