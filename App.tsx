@@ -55,7 +55,7 @@ const App: React.FC = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [view, setView] = useState<ViewMode>('list');
   const [activeNovelId, setActiveNovelId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -210,8 +210,6 @@ const App: React.FC = () => {
   return (
     <div className="site-shell">
       <div className="site-panel">
-        {isLoading && <div className="overlay">データストアへ接続中...</div>}
-
         <h1 className="site-title">
           <a href="#" style={{ color: '#7a0000', textDecoration: 'none' }}>文章アリの穴NEO</a>
         </h1>
