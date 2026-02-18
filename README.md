@@ -64,6 +64,28 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 4. Supabase Auth で管理者ユーザーを作成（Email+Password）
 5. 作成したユーザーID（auth.users.id）を `admin_users` に登録
 
+### 管理画面（Supabase Auth）にログインできないとき
+
+このアプリの管理画面は「サインアップ画面」ではなく、**既存の Supabase Auth ユーザーでログインする画面**です。
+
+1. Supabase Dashboard で **Authentication → Users → Add user** から Email/Password のユーザーを作成
+2. そのユーザーの UUID（`auth.users.id`）を控える
+3. SQL Editor で次を実行して `admin_users` に登録する
+
+```sql
+insert into public.admin_users (user_id)
+values ('YOUR_AUTH_USER_UUID')
+on conflict (user_id) do nothing;
+```
+
+4. アプリの `#admin` 画面で、作成した Email/Password でログイン
+
+よくある原因:
+
+- `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` が別プロジェクトの値になっている
+- Auth ユーザーは作成したが `admin_users` への登録をしていない（編集・削除でRLSに拒否される）
+- パスワードの打ち間違い、または Dashboard 側でユーザーが無効化されている
+
 ### 5. ローカル開発サーバーを起動
 
 ```bash
