@@ -291,6 +291,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
+      {editingId && (
+        <div className="admin-edit-box">
+          <div className="section-title" style={{ marginBottom: 8 }}>■ 投稿を編集</div>
+          <table className="classic-table">
+            <tbody>
+              <tr>
+                <td className="form-label">タイトル</td>
+                <td><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%' }} /></td>
+              </tr>
+              <tr>
+                <td className="form-label">名前</td>
+                <td><input type="text" value={author} onChange={(e) => setAuthor(e.target.value)} style={{ width: 300, maxWidth: '100%' }} /></td>
+              </tr>
+              <tr>
+                <td className="form-label">トリップ</td>
+                <td><input type="text" value={trip} onChange={(e) => setTrip(e.target.value)} style={{ width: 300, maxWidth: '100%' }} /></td>
+              </tr>
+              <tr>
+                <td className="form-label">本文</td>
+                <td><textarea value={body} onChange={(e) => setBody(e.target.value)} style={{ minHeight: 200 }} /></td>
+              </tr>
+              <tr>
+                <td />
+                <td>
+                  <button type="button" className="classic-button" onClick={handleSave} disabled={isSaving}>{isSaving ? '保存中...' : '保存'}</button>{' '}
+                  <button type="button" className="classic-button" onClick={cancelEdit} disabled={isSaving}>キャンセル</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <table className="classic-table">
         <thead>
           <tr>
