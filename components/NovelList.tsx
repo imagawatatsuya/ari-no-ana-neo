@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Novel, Comment } from '../types';
 import { calculateScore, formatDate } from '../utils';
@@ -10,60 +9,48 @@ interface NovelListProps {
 
 export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
   return (
-    <div className="w-full">
-      <div className="bg-[#EEEEEE] border border-gray-400 p-1 mb-2 text-xs font-bold text-[#800000]">
-        ■ 投稿文章一覧
-      </div>
+    <div>
+      <div className="section-title">■ 投稿文章一覧</div>
+      <div className="legend-box">テキストサイト時代の見た目を再現した一覧テーブルです。タイトルをクリックすると本文へ移動します。</div>
 
-      <table className="w-full border-collapse border border-gray-500 text-sm">
-        <thead className="bg-[#E0E0E0]">
+      <table className="classic-table">
+        <thead>
           <tr>
-            <th className="border border-gray-500 px-2 py-1 w-12">No.</th>
-            <th className="border border-gray-500 px-2 py-1 text-left">タイトル</th>
-            <th className="border border-gray-500 px-2 py-1 w-32">作者</th>
-            <th className="border border-gray-500 px-2 py-1 w-24">得点</th>
-            <th className="border border-gray-500 px-2 py-1 w-40">投稿日</th>
+            <th style={{ width: 56 }}>No.</th>
+            <th>タイトル</th>
+            <th style={{ width: 150 }}>作者</th>
+            <th style={{ width: 100 }}>得点/票</th>
+            <th style={{ width: 170 }}>投稿日</th>
           </tr>
         </thead>
         <tbody>
           {novels.map((novel, index) => {
-            // Filter comments for this novel to calculate score
-            const novelComments = comments.filter(c => c.novelId === novel.id);
+            const novelComments = comments.filter((c) => c.novelId === novel.id);
             const { total, count } = calculateScore(novelComments);
-            const scoreDisplay = count > 0 ? `${total}/${count}` : '-';
-            const isNegative = total < 0;
 
             return (
-              <tr key={novel.id} className="hover:bg-[#F8F8F8]">
-                <td className="border border-gray-500 px-2 py-1 text-center">
-                  {novels.length - index}
-                </td>
-                <td className="border border-gray-500 px-2 py-1">
-                  <a 
-                    href={`#read/${novel.id}`}
-                    className="font-bold text-blue-800 hover:text-red-600 no-underline hover:underline"
-                  >
+              <tr key={novel.id}>
+                <td style={{ textAlign: 'center' }}>{novels.length - index}</td>
+                <td>
+                  <a href={`#read/${novel.id}`} className="novel-title">
                     {novel.title}
                   </a>
-                  {/* New tag simulation */}
-                  {index < 2 && <span className="text-red-600 text-[10px] ml-1 font-normal blink">新着!</span>}
+                  {index < 2 && <span className="new-badge">NEW!</span>}
                 </td>
-                <td className="border border-gray-500 px-2 py-1 truncate">
-                  {novel.author}
+                <td>{novel.author}</td>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={total < 0 ? 'score-neg' : 'score-pos'}>
+                    {total}/{count}
+                  </span>
                 </td>
-                <td className={`border border-gray-500 px-2 py-1 text-center font-mono ${isNegative ? 'text-red-600 font-bold' : 'text-blue-800'}`}>
-                  {scoreDisplay}
-                </td>
-                <td className="border border-gray-500 px-2 py-1 text-xs text-center whitespace-nowrap">
-                  {formatDate(novel.date)}
-                </td>
+                <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{formatDate(novel.date)}</td>
               </tr>
             );
           })}
           {novels.length === 0 && (
             <tr>
-              <td colSpan={5} className="border border-gray-500 p-4 text-center text-gray-500">
-                データベースに文章が見つかりません。
+              <td colSpan={5} style={{ textAlign: 'center', padding: 18 }}>
+                投稿がありません。
               </td>
             </tr>
           )}
