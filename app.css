@@ -51,7 +51,15 @@ a:hover, a:active { color: #cc0000; }
   font-size: 14px;
 }
 
+
 .site-meta { margin-top: 2px; color: #444; }
+
+.live-deploy-dot {
+  color: #1f61ff;
+  margin-left: 8px;
+  font-size: 14px;
+  line-height: 1;
+}
 .top-rule { border: 0; border-top: 1px solid var(--line); margin: 6px 0 8px; }
 
 .marquee-box {
