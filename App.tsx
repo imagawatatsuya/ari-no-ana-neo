@@ -25,7 +25,21 @@ const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
 const localAdminUsername = process.env.VITE_ADMIN_USERNAME?.trim() || '';
 const localAdminPassword = process.env.VITE_ADMIN_PASSWORD?.trim() || '';
 
-const LATEST_DEPLOYED_AT_JST = '2026/02/19(木) 02:03:13 日本時刻';
+const LATEST_DEPLOYED_AT_ISO = '2026-02-19T02:03:13+09:00';
+const DEPLOY_HIGHLIGHT_DURATION_MS = 1000 * 60 * 2;
+const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
+
+const formatJSTWithWeekday = (isoDate: string) => {
+  const date = new Date(isoDate);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const weekday = WEEKDAYS_JA[date.getDay()];
+  return `${year}/${month}/${day}(${weekday}) ${hours}:${minutes}:${seconds} 日本時刻`;
+};
 
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
@@ -40,6 +54,7 @@ const App: React.FC = () => {
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPassInput, setAdminPassInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const isSupabaseMode = !!supabase;
 
@@ -119,6 +134,16 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(HIDDEN_IDS_STORAGE_KEY, JSON.stringify(hiddenNovelIds));
   }, [hiddenNovelIds]);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, []);
 
   const loadFromLocalStorage = () => {
     const savedNovels = localStorage.getItem('bunsho_novels_v2');
@@ -308,6 +333,13 @@ const App: React.FC = () => {
     [novels, hiddenNovelIds],
   );
 
+  const latestDeployedAtText = useMemo(
+    () => formatJSTWithWeekday(LATEST_DEPLOYED_AT_ISO),
+    [],
+  );
+  const deployElapsedMs = Math.max(0, nowMs - new Date(LATEST_DEPLOYED_AT_ISO).getTime());
+  const isFreshDeploy = deployElapsedMs < DEPLOY_HIGHLIGHT_DURATION_MS;
+
   const activeNovel = visibleNovels.find((n) => n.id === activeNovelId);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -370,7 +402,10 @@ const App: React.FC = () => {
         <div className="header-links">[ <a href="#">トップ</a> ] [ <a href="#post">投稿する</a> ] [ <a href="#admin">管理</a> ] [ <a href="#" onClick={(e) => e.preventDefault()}>検索</a> ] [ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>ヘルプ</button> ] {isAdminAuthenticated && <button type="button" className="help-link-btn" onClick={handleAdminLogout}>[ 管理ログアウト ]</button>}</div>
 
         <div className="site-meta">管理人: <b>アリOB</b> / モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 投稿数: {visibleNovels.length}（全{novels.length}）</div>
-        <div className="site-meta">最新デプロイ: <b>{LATEST_DEPLOYED_AT_JST}</b></div>
+        <div className="site-meta">
+          最新デプロイ: <b>{latestDeployedAtText}</b>
+          {isFreshDeploy && <span className="live-deploy-dot" aria-label="デプロイ直後" title="デプロイ直後（2分間）">●</span>}
+        </div>
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
 
