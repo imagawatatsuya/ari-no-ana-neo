@@ -43,6 +43,10 @@ npm install
 
 プロジェクトルートに `.env.local` ファイルを作成し、以下の内容を記述してください：
 
+```bash
+cp .env.example .env.local
+```
+
 ```env
 # Supabase Configuration
 VITE_SUPABASE_URL=your_supabase_project_url
