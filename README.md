@@ -13,8 +13,9 @@
 - **トリップ機能** — パスワードから個人識別記号列を生成し、ユーザーを識別
 - **評価機能** — 投稿に対して5段階評価を付与
 - **Supabaseバックエンド連携** — クラウドベースのデータベース管理
+- **管理ダッシュボード** — 編集 / 削除 / 非表示（`VITE_ADMIN_PASSWORD` でログイン保護）
 
-※ 削除機能は現在未実装です
+> ⚠️ 管理画面のパスワード保護はフロントエンド上の保護です。実運用では、SupabaseのRLSと権限分離を必ず設定してください。
 
 ## 技術スタック
 
@@ -46,6 +47,7 @@ npm install
 # Supabase Configuration
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_ADMIN_PASSWORD=your_admin_password
 ```
 
 ### 4. Supabaseの初期設定
@@ -79,6 +81,7 @@ GitHub上でデプロイするには、以下の手順で環境変数を登録�
 3. 以下の変数を新規作成：
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_ADMIN_PASSWORD`
 
 ## セキュリティに関する注意
 

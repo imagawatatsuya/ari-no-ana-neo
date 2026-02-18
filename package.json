@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "node --test tests.utils.test.mjs",
+    "test": "node --test",
     "preview:static": "python3 -m http.server 4173"
   },
   "dependencies": {
