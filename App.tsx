@@ -22,7 +22,7 @@ const getJSTISOString = () => {
 const HIDDEN_IDS_STORAGE_KEY = 'bunsho_hidden_novel_ids_v1';
 const ADMIN_AUTH_STORAGE_KEY = 'bunsho_admin_auth_v1';
 const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
-const adminPassword = process.env.VITE_ADMIN_PASSWORD?.trim() || '';
+const localAdminPassword = process.env.VITE_ADMIN_PASSWORD?.trim() || '';
 
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
@@ -33,6 +33,7 @@ const App: React.FC = () => {
   const [, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPassInput, setAdminPassInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
@@ -54,13 +55,27 @@ const App: React.FC = () => {
       }
     }
 
+    if (isSupabaseMode && supabase) {
+      supabase.auth.getSession().then(({ data }) => {
+        setIsAdminAuthenticated(!!data.session);
+      });
+
+      const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsAdminAuthenticated(!!session);
+      });
+
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    }
+
     const authAt = Number(sessionStorage.getItem(ADMIN_AUTH_STORAGE_KEY) || 0);
     if (authAt && Date.now() - authAt < ADMIN_AUTH_TTL_MS) {
       setIsAdminAuthenticated(true);
     } else {
       sessionStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
     }
-  }, []);
+  }, [isSupabaseMode]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -72,8 +87,8 @@ const App: React.FC = () => {
         setView('post');
         setActiveNovelId(null);
       } else if (hash === '#admin') {
-        if (!adminPassword) {
-          setErrorMsg('管理画面は無効です。VITE_ADMIN_PASSWORD を設定してください。');
+        if (!isSupabaseMode && !localAdminPassword) {
+          setErrorMsg('管理画面は無効です。オフライン運用では VITE_ADMIN_PASSWORD を設定してください。');
           setView('list');
           window.location.hash = '';
           return;
@@ -89,7 +104,7 @@ const App: React.FC = () => {
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [isSupabaseMode]);
 
   useEffect(() => {
     if (view === 'read' && activeNovelId) {
@@ -160,8 +175,7 @@ const App: React.FC = () => {
     setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, viewCount: n.viewCount + 1 } : n)));
 
     if (isSupabaseMode && supabase) {
-      const currentNovel = novels.find((n) => n.id === id);
-      if (currentNovel) await supabase.from('novels').update({ view_count: currentNovel.viewCount + 1 }).eq('id', id);
+      await supabase.rpc('increment_novel_view', { target_novel_id: id });
     }
   };
 
@@ -292,13 +306,30 @@ const App: React.FC = () => {
 
   const activeNovel = visibleNovels.find((n) => n.id === activeNovelId);
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adminPassword) {
+
+    if (isSupabaseMode && supabase) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: adminEmailInput.trim(),
+        password: adminPassInput,
+      });
+      if (error) {
+        alert(`管理ログインに失敗しました: ${error.message}`);
+        return;
+      }
+
+      setIsAdminAuthenticated(true);
+      setAdminEmailInput('');
+      setAdminPassInput('');
+      return;
+    }
+
+    if (!localAdminPassword) {
       alert('管理画面が無効です。環境変数 VITE_ADMIN_PASSWORD を設定してください。');
       return;
     }
-    if (adminPassInput !== adminPassword) {
+    if (adminPassInput !== localAdminPassword) {
       alert('管理パスワードが違います。');
       return;
     }
@@ -308,9 +339,13 @@ const App: React.FC = () => {
     setAdminPassInput('');
   };
 
-  const handleAdminLogout = () => {
+  const handleAdminLogout = async () => {
+    if (isSupabaseMode && supabase) {
+      await supabase.auth.signOut();
+    }
     sessionStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
     setIsAdminAuthenticated(false);
+    setAdminEmailInput('');
     setAdminPassInput('');
   };
 
@@ -335,12 +370,26 @@ const App: React.FC = () => {
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
             <div className="section-title">■ 管理者ログイン</div>
-            <div className="legend-box">管理画面はパスワードで保護されています。認証後、編集・削除・非表示が可能です。</div>
+            <div className="legend-box">{isSupabaseMode ? 'Supabase Auth でログインすると管理機能が有効になります。運用時はRLSで管理者権限を制御してください。' : '管理画面はパスワードで保護されています。認証後、編集・削除・非表示が可能です。'}</div>
             <form onSubmit={handleAdminLogin}>
               <table className="classic-table">
                 <tbody>
+                  {isSupabaseMode && (
+                    <tr>
+                      <td className="form-label">Email</td>
+                      <td>
+                        <input
+                          type="email"
+                          value={adminEmailInput}
+                          onChange={(e) => setAdminEmailInput(e.target.value)}
+                          autoComplete="username"
+                          style={{ width: 280, maxWidth: '100%' }}
+                        />
+                      </td>
+                    </tr>
+                  )}
                   <tr>
-                    <td className="form-label">管理PW</td>
+                    <td className="form-label">{isSupabaseMode ? 'Password' : '管理PW'}</td>
                     <td>
                       <input
                         type="password"
@@ -386,9 +435,9 @@ const App: React.FC = () => {
               <div className="help-body">
                 <p><b>Supabase利用時の設定</b></p>
                 <ol>
-                  <li><code>supabase_schema.sql</code> を SQL Editor で実行</li>
+                  <li><code>supabase_schema_v2.sql</code> を SQL Editor で実行</li>
                   <li><code>.env</code> に URL / ANON KEY を設定</li>
-                  <li><code>VITE_ADMIN_PASSWORD</code> を設定して管理画面を有効化</li>
+                  <li>本番は <code>supabase.auth</code> とRLSで管理者のみ更新・削除を許可</li>
                   <li>GitHub Actions の Secrets に同値を設定</li>
                 </ol>
                 <div style={{ textAlign: 'center' }}>
