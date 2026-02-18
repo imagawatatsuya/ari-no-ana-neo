@@ -182,16 +182,6 @@ textarea { width: 100%; }
   font-size: 13px;
 }
 
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.75);
-  display: grid;
-  place-items: center;
-  color: #7a0000;
-  font-weight: bold;
-}
-
 .help-backdrop {
   position: fixed;
   inset: 0;
