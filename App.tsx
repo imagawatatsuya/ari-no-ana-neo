@@ -7,17 +7,8 @@ import { PostForm } from './components/PostForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { supabase } from './services/supabaseClient';
 import { deleteNovelAndComments, editNovelInList, toggleHiddenNovelId } from './adminOps';
+import { formatDateWithWeekdayAndSecondsJST, toJSTISOString } from './utils';
 
-const getJSTISOString = () => {
-  const jstDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-  const year = jstDate.getFullYear();
-  const month = String(jstDate.getMonth() + 1).padStart(2, '0');
-  const day = String(jstDate.getDate()).padStart(2, '0');
-  const hours = String(jstDate.getHours()).padStart(2, '0');
-  const minutes = String(jstDate.getMinutes()).padStart(2, '0');
-  const seconds = String(jstDate.getSeconds()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+09:00`;
-};
 
 const HIDDEN_IDS_STORAGE_KEY = 'bunsho_hidden_novel_ids_v1';
 const ADMIN_AUTH_STORAGE_KEY = 'bunsho_admin_auth_v1';
@@ -27,20 +18,6 @@ const localAdminPassword = process.env.VITE_ADMIN_PASSWORD?.trim() || '';
 
 const LATEST_DEPLOYED_AT_ISO = '2026-02-19T02:03:13+09:00';
 const DEPLOY_HIGHLIGHT_DURATION_MS = 1000 * 60 * 2;
-const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
-
-const formatJSTWithWeekday = (isoDate: string) => {
-  const date = new Date(isoDate);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  const weekday = WEEKDAYS_JA[date.getDay()];
-  return `${year}/${month}/${day}(${weekday}) ${hours}:${minutes}:${seconds} 日本時刻`;
-};
-
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -209,7 +186,7 @@ const App: React.FC = () => {
   };
 
   const handlePost = async (novel: Novel) => {
-    const novelToSave = { ...novel, date: getJSTISOString() };
+    const novelToSave = { ...novel, date: toJSTISOString(new Date()) };
     if (isSupabaseMode && supabase) {
       setIsLoading(true);
       const { error } = await supabase.from('novels').insert([
@@ -234,7 +211,7 @@ const App: React.FC = () => {
   };
 
   const handleComment = async (comment: Comment) => {
-    const commentToSave = { ...comment, date: getJSTISOString() };
+    const commentToSave = { ...comment, date: toJSTISOString(new Date()) };
     if (isSupabaseMode && supabase) {
       const { error } = await supabase.from('comments').insert([
         {
@@ -334,7 +311,7 @@ const App: React.FC = () => {
   );
 
   const latestDeployedAtText = useMemo(
-    () => formatJSTWithWeekday(LATEST_DEPLOYED_AT_ISO),
+    () => formatDateWithWeekdayAndSecondsJST(LATEST_DEPLOYED_AT_ISO),
     [],
   );
   const deployElapsedMs = Math.max(0, nowMs - new Date(LATEST_DEPLOYED_AT_ISO).getTime());
