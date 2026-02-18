@@ -22,7 +22,10 @@ const getJSTISOString = () => {
 const HIDDEN_IDS_STORAGE_KEY = 'bunsho_hidden_novel_ids_v1';
 const ADMIN_AUTH_STORAGE_KEY = 'bunsho_admin_auth_v1';
 const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
+const localAdminUsername = process.env.VITE_ADMIN_USERNAME?.trim() || '';
 const localAdminPassword = process.env.VITE_ADMIN_PASSWORD?.trim() || '';
+
+const LATEST_DEPLOYED_AT_JST = '2026/02/19(木) 02:03:13 日本時刻';
 
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
@@ -33,6 +36,7 @@ const App: React.FC = () => {
   const [, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [adminIdInput, setAdminIdInput] = useState('');
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPassInput, setAdminPassInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -321,12 +325,17 @@ const App: React.FC = () => {
 
       setIsAdminAuthenticated(true);
       setAdminEmailInput('');
+      setAdminIdInput('');
       setAdminPassInput('');
       return;
     }
 
     if (!localAdminPassword) {
       alert('管理画面が無効です。環境変数 VITE_ADMIN_PASSWORD を設定してください。');
+      return;
+    }
+    if (localAdminUsername && adminIdInput.trim() !== localAdminUsername) {
+      alert('管理IDが違います。');
       return;
     }
     if (adminPassInput !== localAdminPassword) {
@@ -336,6 +345,7 @@ const App: React.FC = () => {
 
     setIsAdminAuthenticated(true);
     sessionStorage.setItem(ADMIN_AUTH_STORAGE_KEY, String(Date.now()));
+    setAdminIdInput('');
     setAdminPassInput('');
   };
 
@@ -345,6 +355,7 @@ const App: React.FC = () => {
     }
     sessionStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
     setIsAdminAuthenticated(false);
+    setAdminIdInput('');
     setAdminEmailInput('');
     setAdminPassInput('');
   };
@@ -359,6 +370,7 @@ const App: React.FC = () => {
         <div className="header-links">[ <a href="#">トップ</a> ] [ <a href="#post">投稿する</a> ] [ <a href="#admin">管理</a> ] [ <a href="#" onClick={(e) => e.preventDefault()}>検索</a> ] [ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>ヘルプ</button> ] {isAdminAuthenticated && <button type="button" className="help-link-btn" onClick={handleAdminLogout}>[ 管理ログアウト ]</button>}</div>
 
         <div className="site-meta">管理人: <b>アリOB</b> / モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 投稿数: {visibleNovels.length}（全{novels.length}）</div>
+        <div className="site-meta">最新デプロイ: <b>{LATEST_DEPLOYED_AT_JST}</b></div>
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
 
@@ -370,7 +382,7 @@ const App: React.FC = () => {
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
             <div className="section-title">■ 管理者ログイン</div>
-            <div className="legend-box">{isSupabaseMode ? 'Supabase Auth でログインすると管理機能が有効になります。運用時はRLSで管理者権限を制御してください。' : '管理画面はパスワードで保護されています。認証後、編集・削除・非表示が可能です。'}</div>
+            <div className="legend-box">{isSupabaseMode ? 'Supabase Auth でログインすると管理機能が有効になります。運用時はRLSで管理者権限を制御してください。' : '管理画面はIDとパスワードで保護できます（IDは任意設定）。認証後、編集・削除・非表示が可能です。'}</div>
             <form onSubmit={handleAdminLogin}>
               <table className="classic-table">
                 <tbody>
@@ -383,6 +395,21 @@ const App: React.FC = () => {
                           value={adminEmailInput}
                           onChange={(e) => setAdminEmailInput(e.target.value)}
                           autoComplete="username"
+                          style={{ width: 280, maxWidth: '100%' }}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  {!isSupabaseMode && (
+                    <tr>
+                      <td className="form-label">管理ID</td>
+                      <td>
+                        <input
+                          type="text"
+                          value={adminIdInput}
+                          onChange={(e) => setAdminIdInput(e.target.value)}
+                          autoComplete="username"
+                          placeholder={localAdminUsername ? '管理IDを入力' : '未設定（任意）'}
                           style={{ width: 280, maxWidth: '100%' }}
                         />
                       </td>
