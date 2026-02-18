@@ -25,6 +25,8 @@ const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
 const localAdminUsername = process.env.VITE_ADMIN_USERNAME?.trim() || '';
 const localAdminPassword = process.env.VITE_ADMIN_PASSWORD?.trim() || '';
 
+const LATEST_DEPLOYED_AT_JST = '2026/02/19(木) 02:03:13 日本時刻';
+
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -368,6 +370,7 @@ const App: React.FC = () => {
         <div className="header-links">[ <a href="#">トップ</a> ] [ <a href="#post">投稿する</a> ] [ <a href="#admin">管理</a> ] [ <a href="#" onClick={(e) => e.preventDefault()}>検索</a> ] [ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>ヘルプ</button> ] {isAdminAuthenticated && <button type="button" className="help-link-btn" onClick={handleAdminLogout}>[ 管理ログアウト ]</button>}</div>
 
         <div className="site-meta">管理人: <b>アリOB</b> / モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 投稿数: {visibleNovels.length}（全{novels.length}）</div>
+        <div className="site-meta">最新デプロイ: <b>{LATEST_DEPLOYED_AT_JST}</b></div>
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
 

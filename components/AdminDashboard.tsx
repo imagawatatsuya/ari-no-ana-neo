@@ -291,6 +291,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
+      <div className="legend-box" style={{ marginBottom: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+          <span>一括操作（選択中: {selectedNovelIds.length}件）:</span>
+          <label><input type="radio" name="bulkAction" checked={bulkAction === 'hide'} onChange={() => setBulkAction('hide')} /> 非表示</label>
+          <label><input type="radio" name="bulkAction" checked={bulkAction === 'show'} onChange={() => setBulkAction('show')} /> 公開</label>
+          <label><input type="radio" name="bulkAction" checked={bulkAction === 'delete'} onChange={() => setBulkAction('delete')} /> 削除</label>
+          <button type="button" className="classic-button" onClick={handleBulkExecute} disabled={selectedNovelIds.length === 0}>一括実行</button>
+          <button type="button" className="classic-button" onClick={() => setSelectedNovelIds([])} disabled={selectedNovelIds.length === 0}>選択クリア</button>
+        </div>
+      </div>
+
       {editingId && (
         <div className="admin-edit-box">
           <div className="section-title" style={{ marginBottom: 8 }}>■ 投稿を編集</div>
