@@ -16,7 +16,7 @@ const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
 const localAdminUsername = process.env.VITE_ADMIN_USERNAME?.trim() || '';
 const localAdminPassword = process.env.VITE_ADMIN_PASSWORD?.trim() || '';
 
-const LATEST_DEPLOYED_AT_ISO = '2026-02-19T02:03:13+09:00';
+const latestDeployedAtIso = (import.meta.env.VITE_LATEST_DEPLOYED_AT_ISO ?? '').trim();
 const DEPLOY_HIGHLIGHT_DURATION_MS = 1000 * 60 * 2;
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
@@ -310,12 +310,21 @@ const App: React.FC = () => {
     [novels, hiddenNovelIds],
   );
 
+  const latestDeployedAtMs = useMemo(() => {
+    if (!latestDeployedAtIso) return null;
+    const parsedMs = Date.parse(latestDeployedAtIso);
+    return Number.isNaN(parsedMs) ? null : parsedMs;
+  }, [latestDeployedAtIso]);
+
   const latestDeployedAtText = useMemo(
-    () => formatDateWithWeekdayAndSecondsJST(LATEST_DEPLOYED_AT_ISO),
-    [],
+    () => (latestDeployedAtMs === null ? '不明' : formatDateWithWeekdayAndSecondsJST(latestDeployedAtIso)),
+    [latestDeployedAtIso, latestDeployedAtMs],
   );
-  const deployElapsedMs = Math.max(0, nowMs - new Date(LATEST_DEPLOYED_AT_ISO).getTime());
-  const isFreshDeploy = deployElapsedMs < DEPLOY_HIGHLIGHT_DURATION_MS;
+
+  const isFreshDeploy =
+    latestDeployedAtMs !== null &&
+    nowMs >= latestDeployedAtMs &&
+    nowMs - latestDeployedAtMs < DEPLOY_HIGHLIGHT_DURATION_MS;
 
   const activeNovel = visibleNovels.find((n) => n.id === activeNovelId);
 
