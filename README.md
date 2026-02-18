@@ -53,8 +53,21 @@ VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # 任意: Supabase未使用のローカル運用でのみ管理画面PWを使う場合
+# VITE_ADMIN_USERNAME=your_local_admin_id
 # VITE_ADMIN_PASSWORD=your_local_admin_password
 ```
+
+
+#### オフライン管理ログイン（ダミーID/ダミーパスワード）例
+
+Supabaseを使わずローカル確認する場合は、次を `.env.local` に設定します。
+
+```env
+VITE_ADMIN_USERNAME=dummy-admin
+VITE_ADMIN_PASSWORD=dummy-pass
+```
+
+`#admin` で **管理ID: `dummy-admin` / 管理PW: `dummy-pass`** を入力すると、管理ダッシュボードに入れます。
 
 ### 4. Supabaseの初期設定
 
@@ -63,6 +76,13 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 3. Supabaseの SQL Editor で実行してテーブル / RLS / policy / RPC を作成
 4. Supabase Auth で管理者ユーザーを作成（Email+Password）
 5. 作成したユーザーID（auth.users.id）を `admin_users` に登録
+
+### 管理ログイン手順（クイック版）
+
+- 管理画面（`#admin`）は **サインアップ機能なし**。既存ユーザーでのみログインできます。
+- 先に Supabase 側で Email/Password ユーザーを作成してください。
+- そのユーザーの `auth.users.id` を `admin_users.user_id` に登録してください。
+- ここまで完了して初めて、投稿の編集 / 削除が RLS で許可されます。
 
 ### 管理画面（Supabase Auth）にログインできないとき
 
