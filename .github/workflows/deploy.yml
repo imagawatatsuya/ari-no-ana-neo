@@ -34,7 +34,9 @@ jobs:
         run: npm install
         
       - name: Build
-        run: npm run build
+        run: |
+          export VITE_LATEST_DEPLOYED_AT_ISO="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          npm run build
         env:
           # GitHubのリポジトリSettings > Secrets and variables > Actions に
           # 以下の名前でSecretを登録してください。

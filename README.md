@@ -132,6 +132,9 @@ GitHub上でデプロイするには、以下の手順で環境変数を登録�
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
 
+補足:
+- `VITE_LATEST_DEPLOYED_AT_ISO` は GitHub Actions の Build step で UTC の ISO8601 文字列を自動注入するため、手動設定は不要です。
+
 ## セキュリティに関する注意
 
 このリポジトリにはAPIキーなどの機密情報は含まれていません。必ず環境変数を通じて設定してください。本番環境ではSupabaseの行レベルセキュリティ（RLS）の設定を確認してください。
