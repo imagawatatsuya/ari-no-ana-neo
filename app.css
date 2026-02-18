@@ -1,0 +1,227 @@
+:root {
+  --page-bg: #d7d7d7;
+  --panel-bg: #fff;
+  --line: #7a7a7a;
+  --line-soft: #a6a6a6;
+  --header-bg: #ececec;
+  --title-red: #7a0000;
+  --title-blue: #0b2c8a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: #111;
+  font-family: "MS PGothic", "Osaka", "Hiragino Kaku Gothic Pro", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+a { color: #0000ee; text-decoration: underline; }
+a:visited { color: #551a8b; }
+a:hover, a:active { color: #cc0000; }
+
+.site-shell { min-height: 100vh; padding: 0; }
+
+.site-panel {
+  width: 100%;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-left: 0;
+  border-right: 0;
+  background: var(--panel-bg);
+  padding: 6px 10px 10px;
+  position: relative;
+}
+
+.site-title {
+  margin: 0;
+  text-align: center;
+  font-size: 34px;
+  letter-spacing: 1px;
+  line-height: 1.05;
+}
+
+.header-links,
+.site-meta,
+.site-footer {
+  text-align: center;
+  font-size: 12px;
+}
+
+.site-meta { margin-top: 2px; color: #444; }
+.top-rule { border: 0; border-top: 1px solid var(--line); margin: 6px 0 8px; }
+
+.marquee-box {
+  border: 1px solid var(--line-soft);
+  background: #f8f8f8;
+  font-size: 11px;
+  padding: 3px 5px;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  border: 1px solid var(--line);
+  background: var(--header-bg);
+  color: var(--title-red);
+  font-weight: bold;
+  padding: 3px 6px;
+  margin: 0 0 5px;
+}
+
+.classic-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.classic-table th,
+.classic-table td {
+  border: 1px solid var(--line-soft);
+  padding: 3px 5px;
+  vertical-align: top;
+}
+
+.classic-table th {
+  background: #e2e2e2;
+  text-align: center;
+  font-weight: bold;
+}
+
+.novel-title { font-weight: bold; }
+.new-badge { color: #d20000; font-size: 10px; margin-left: 4px; font-weight: bold; }
+.score-pos { color: #003bb3; font-weight: bold; }
+.score-neg { color: #b10000; font-weight: bold; }
+
+.read-title-box {
+  border: 1px solid var(--line);
+  background: #e7e8f4;
+  padding: 7px;
+  margin-bottom: 7px;
+}
+
+.read-title { margin: 0 0 3px; color: var(--title-blue); font-size: 24px; }
+.read-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: #444; }
+
+.body-box {
+  border: 1px solid var(--line-soft);
+  background: #fff;
+  padding: 9px;
+  min-height: 220px;
+  margin-bottom: 7px;
+}
+
+.stat-bar {
+  border: 1px solid var(--line-soft);
+  background: #f1f1f1;
+  text-align: center;
+  padding: 5px;
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+
+.comment-item {
+  border: 1px dotted var(--line);
+  background: #fafafa;
+  padding: 5px;
+  margin-bottom: 5px;
+}
+.comment-name { color: #004d00; font-weight: bold; }
+.comment-text { white-space: pre-wrap; }
+
+.form-label { width: 100px; font-weight: bold; font-size: 11px; }
+
+input[type='text'], textarea {
+  border: 1px solid #666;
+  padding: 3px;
+  font-family: inherit;
+  font-size: 12px;
+  background: #fff;
+}
+
+textarea { width: 100%; }
+
+.classic-button {
+  border: 1px solid #888;
+  background: #e5e5e5;
+  padding: 1px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.classic-button:active { background: #d7d7d7; }
+
+.help-link-btn {
+  border: 0;
+  background: transparent;
+  color: #0000ee;
+  text-decoration: underline;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.help-link-btn:hover { color: #cc0000; }
+
+.site-footer {
+  border-top: 1px solid var(--line-soft);
+  margin-top: 12px;
+  padding-top: 5px;
+}
+
+.footer-hit { margin-top: 4px; }
+
+.error-box {
+  margin-top: 4px;
+  border: 1px solid #d08080;
+  background: #fff1f1;
+  color: #900;
+  padding: 3px 5px;
+  font-size: 11px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  display: grid;
+  place-items: center;
+  color: #7a0000;
+  font-weight: bold;
+}
+
+.help-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: grid;
+  place-items: center;
+  z-index: 20;
+}
+
+.help-box {
+  width: min(92vw, 540px);
+  background: #f0f0f0;
+  border: 1px solid #666;
+  box-shadow: 2px 2px 0 #999;
+}
+
+.help-head {
+  background: #bfbfbf;
+  border-bottom: 1px solid #666;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.help-body { padding: 8px; font-size: 12px; }
+
+@media (max-width: 640px) {
+  .site-title { font-size: 29px; }
+  .read-sub { display: block; }
+}

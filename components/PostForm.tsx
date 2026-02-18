@@ -14,13 +14,12 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !body) {
-      alert('タイトルと本文は必須です！');
+      alert('タイトルと本文は必須です。');
       return;
     }
 
     const { name: authorName, trip } = generateTrip(name);
-
-    const newNovel: Novel = {
+    onPost({
       id: Date.now().toString(),
       title,
       author: authorName,
@@ -28,78 +27,52 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
       body,
       date: new Date().toISOString(),
       viewCount: 0,
-    };
-
-    onPost(newNovel);
-  };
-
-  const handleCancel = () => {
-    // Go back to list
-    window.location.hash = '';
+    });
   };
 
   return (
-    <div className="w-full">
-      <div className="bg-[#800000] text-white font-bold p-1 px-2 text-sm mb-2">
-        ■ 新規投稿
-      </div>
-
-      <form onSubmit={handleSubmit} className="bg-[#EFEFEF] border border-gray-500 p-4 text-sm">
-        
-        <div className="mb-2">
-          <label className="block font-bold text-gray-700 mb-1">タイトル</label>
-          <input 
-            type="text" 
-            className="w-full border border-gray-600 p-1" 
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-2">
-          <label className="block font-bold text-gray-700 mb-1">名前 (トリップ対応: 名前#パスワード 入力しない場合は「名無し」に)</label>
-          <input 
-            type="text" 
-            className="w-full border border-gray-600 p-1 max-w-xs"
-            placeholder="名無し"
-            value={name}
-            onChange={e => setName(e.target.value)} 
-          />
-        </div>
-
-        <div className="mb-2">
-          <div className="flex justify-between items-center mb-1">
-            <label className="block font-bold text-gray-700">本文</label>
-          </div>
-
-          <textarea 
-            className="w-full h-64 border border-gray-600 p-2 font-mono text-sm leading-normal"
-            value={body}
-            onChange={e => setBody(e.target.value)}
-          ></textarea>
-        </div>
-
-        <div className="flex justify-center gap-4 mt-4">
-          <button 
-            type="submit" 
-            className="bg-[#DDDDDD] border-2 border-gray-500 px-6 py-1 font-bold active:bg-[#AAAAAA] hover:bg-[#EAEAEA]"
-          >
-            文章を投稿する
-          </button>
-          <button 
-            type="button" 
-            onClick={handleCancel}
-            className="text-red-800 underline text-xs self-center"
-          >
-            キャンセル
-          </button>
-        </div>
+    <div>
+      <div className="section-title">■ 新規投稿フォーム</div>
+      <form onSubmit={handleSubmit}>
+        <table className="classic-table">
+          <tbody>
+            <tr>
+              <td className="form-label">タイトル</td>
+              <td>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%' }} />
+              </td>
+            </tr>
+            <tr>
+              <td className="form-label">名前</td>
+              <td>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="名無し（トリップ: 名前#pass）"
+                  style={{ width: '360px', maxWidth: '100%' }}
+                />
+              </td>
+            </tr>
+            <tr>
+              <td className="form-label">本文</td>
+              <td>
+                <textarea value={body} onChange={(e) => setBody(e.target.value)} style={{ minHeight: 260 }} />
+              </td>
+            </tr>
+            <tr>
+              <td />
+              <td>
+                <button type="submit" className="classic-button">投稿する</button>{' '}
+                <a href="#">キャンセル</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </form>
 
-      <div className="mt-4 text-xs text-gray-600">
-        * HTMLタグは使用できません。<br/>
-        * 公序良俗に反する内容は投稿しないでください。<br/>
-        * 管理人はデータ消失の責任を負いません。
+      <div className="legend-box" style={{ marginTop: 10 }}>
+        ※ HTMLタグは使えません。改行はそのまま保持されます。
       </div>
     </div>
   );
