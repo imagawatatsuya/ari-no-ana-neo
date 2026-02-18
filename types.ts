@@ -17,7 +17,7 @@ export interface Novel {
   viewCount: number;
 }
 
-export type ViewMode = 'list' | 'post' | 'read';
+export type ViewMode = 'list' | 'post' | 'read' | 'admin';
 
 export enum VoteValue {
   BEST = 2,
