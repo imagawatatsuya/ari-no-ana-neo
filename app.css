@@ -54,6 +54,16 @@ a:hover, a:active { color: #cc0000; }
 
 .site-meta { margin-top: 2px; color: #444; }
 
+.active-link { color: #cc0000; font-weight: bold; }
+
+.breadcrumb-box {
+  border: 1px solid var(--line-soft);
+  background: #f7f7f7;
+  font-size: 13px;
+  padding: 3px 6px;
+  margin-top: 4px;
+}
+
 .live-deploy-dot {
   color: #1f61ff;
   margin-left: 8px;
@@ -199,6 +209,19 @@ textarea { width: 100%; }
   font-size: 13px;
 }
 
+.flash-box {
+  margin-top: 4px;
+  border: 1px solid #8ea7d8;
+  background: #f2f7ff;
+  color: #123b84;
+  padding: 3px 5px;
+  font-size: 13px;
+}
+
+.recent-row td {
+  background: #fffce8;
+}
+
 .help-backdrop {
   position: fixed;
   inset: 0;
@@ -231,6 +254,8 @@ textarea { width: 100%; }
 @media (max-width: 640px) {
   .site-title { font-size: 29px; }
   .read-sub { display: block; }
+  .classic-table th,
+  .classic-table td { padding: 7px 6px; }
 }
 
 .admin-edit-box {

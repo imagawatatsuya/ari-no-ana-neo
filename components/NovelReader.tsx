@@ -15,15 +15,17 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
   const [commentName, setCommentName] = useState('');
   const [commentText, setCommentText] = useState('');
   const [vote, setVote] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const { total, count } = calculateScore(comments);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (commentText.length > MAX_COMMENT_LENGTH) {
-      alert(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
+      setError(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
       return;
     }
+    setError(null);
 
     const { name, trip } = generateTrip(commentName);
     onComment({
@@ -37,7 +39,6 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
 
     setCommentText('');
     setVote(0);
-    alert('感想を受け付けました。');
   };
 
   return (
@@ -90,6 +91,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
               <td className="form-label">名前</td>
               <td>
                 <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し" style={{ width: 280, maxWidth: '100%' }} />
+                <div style={{ fontSize: 12, color: '#666' }}>※ トリップを使う場合は「名前#pass」で入力</div>
               </td>
             </tr>
             <tr>
@@ -118,6 +120,10 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
           </tbody>
         </table>
       </form>
+      {error && <div className="error-box">{error}</div>}
+      <div style={{ marginTop: 12, fontSize: 12 }}>
+        <a href="#">&lt;&lt; 一覧へ戻る</a>
+      </div>
     </div>
   );
 };
