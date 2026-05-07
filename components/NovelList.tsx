@@ -5,9 +5,10 @@ import { calculateScore, formatDate } from '../utils';
 interface NovelListProps {
   novels: Novel[];
   comments: Comment[];
+  recentPostedId?: string | null;
 }
 
-export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
+export const NovelList: React.FC<NovelListProps> = ({ novels, comments, recentPostedId = null }) => {
   return (
     <div>
       <div className="section-title">■ 投稿文章一覧</div>
@@ -29,7 +30,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
             const { total, count } = calculateScore(novelComments);
 
             return (
-              <tr key={novel.id}>
+              <tr key={novel.id} className={recentPostedId === novel.id ? 'recent-row' : undefined}>
                 <td style={{ textAlign: 'center' }}>{novels.length - index}</td>
                 <td>
                   <a href={`#read/${novel.id}`} className="novel-title">

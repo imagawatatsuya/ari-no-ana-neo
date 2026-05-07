@@ -32,6 +32,8 @@ const App: React.FC = () => {
   const [adminPassInput, setAdminPassInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [flashMsg, setFlashMsg] = useState<string | null>(null);
+  const [recentPostedId, setRecentPostedId] = useState<string | null>(null);
 
   const isSupabaseMode = !!supabase;
 
@@ -207,6 +209,8 @@ const App: React.FC = () => {
       }
     }
     setNovels([novelToSave, ...novels]);
+    setRecentPostedId(novelToSave.id);
+    setFlashMsg(`>>> 「${novelToSave.title}」を投稿しました。`);
     window.location.hash = '';
   };
 
@@ -229,6 +233,7 @@ const App: React.FC = () => {
       }
     }
     setComments((prev) => [...prev, commentToSave]);
+    setFlashMsg('>>> 感想を受け付けました。');
   };
 
   const handleEditNovel = async (id: string, patch: Pick<Novel, 'title' | 'author' | 'trip' | 'body'>) => {
@@ -327,6 +332,26 @@ const App: React.FC = () => {
     nowMs - latestDeployedAtMs < DEPLOY_HIGHLIGHT_DURATION_MS;
 
   const activeNovel = visibleNovels.find((n) => n.id === activeNovelId);
+  const currentPathLabel = view === 'list'
+    ? 'トップ > 一覧'
+    : view === 'post'
+      ? 'トップ > 新規投稿'
+      : view === 'admin'
+        ? 'トップ > 管理'
+        : `トップ > 一覧 > ${activeNovel?.title ?? '閲覧中'}`;
+
+
+  useEffect(() => {
+    if (!recentPostedId) return;
+    const timer = window.setTimeout(() => setRecentPostedId(null), 15000);
+    return () => window.clearTimeout(timer);
+  }, [recentPostedId]);
+
+  useEffect(() => {
+    if (!flashMsg) return;
+    const timer = window.setTimeout(() => setFlashMsg(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [flashMsg]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -385,7 +410,8 @@ const App: React.FC = () => {
           <a href="#" style={{ color: '#7a0000', textDecoration: 'none' }}>文章アリの穴NEO</a>
         </h1>
 
-        <div className="header-links">[ <a href="#">トップ</a> ] [ <a href="#post">投稿する</a> ] [ <a href="#admin">管理</a> ] [ <a href="#" onClick={(e) => e.preventDefault()}>検索</a> ] [ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>ヘルプ</button> ] {isAdminAuthenticated && <button type="button" className="help-link-btn" onClick={handleAdminLogout}>[ 管理ログアウト ]</button>}</div>
+        <div className="header-links">[ <a href="#" className={view === 'list' ? 'active-link' : undefined}>トップ</a> ] [ <a href="#post" className={view === 'post' ? 'active-link' : undefined}>投稿する</a> ] [ <a href="#admin" className={view === 'admin' ? 'active-link' : undefined}>管理</a> ] [ <a href="#" onClick={(e) => e.preventDefault()} aria-disabled="true" title="検索機能は準備中です">検索(準備中)</a> ] [ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>ヘルプ</button> ] {isAdminAuthenticated && <button type="button" className="help-link-btn" onClick={handleAdminLogout}>[ 管理ログアウト ]</button>}</div>
+        <div className="breadcrumb-box">現在地: {currentPathLabel}</div>
 
         <div className="site-meta">管理人: <b>アリOB</b> / モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 投稿数: {visibleNovels.length}（全{novels.length}）</div>
         <div className="site-meta">
@@ -394,11 +420,12 @@ const App: React.FC = () => {
         </div>
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
+        {flashMsg && <div className="flash-box" role="status" aria-live="polite">{flashMsg}</div>}
 
         <hr className="top-rule" />
         <div className="marquee-box">2005年のテキスト投稿サイトをオマージュして再現中。感想・評価の書き込み歓迎です。</div>
 
-        {view === 'list' && <NovelList novels={visibleNovels} comments={comments} />}
+        {view === 'list' && <NovelList novels={visibleNovels} comments={comments} recentPostedId={recentPostedId} />}
         {view === 'post' && <PostForm onPost={handlePost} />}
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
