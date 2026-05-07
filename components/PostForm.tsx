@@ -10,13 +10,16 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
   const [title, setTitle] = useState('');
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const MAX_BODY_LENGTH = 4000;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !body) {
-      alert('タイトルと本文は必須です。');
+      setError('タイトルと本文は必須です。');
       return;
     }
+    setError(null);
 
     const { name: authorName, trip } = generateTrip(name);
     onPost({
@@ -57,7 +60,8 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
             <tr>
               <td className="form-label">本文</td>
               <td>
-                <textarea value={body} onChange={(e) => setBody(e.target.value)} style={{ minHeight: 260 }} />
+                <textarea value={body} onChange={(e) => setBody(e.target.value)} style={{ minHeight: 260 }} maxLength={MAX_BODY_LENGTH} />
+                <div style={{ textAlign: 'right', fontSize: 12, color: '#666' }}>{body.length}/{MAX_BODY_LENGTH}</div>
               </td>
             </tr>
             <tr>
@@ -70,6 +74,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
           </tbody>
         </table>
       </form>
+      {error && <div className="error-box">{error}</div>}
 
       <div className="legend-box" style={{ marginTop: 10 }}>
         ※ HTMLタグは使えません。改行はそのまま保持されます。
