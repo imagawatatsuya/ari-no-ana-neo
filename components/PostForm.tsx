@@ -33,8 +33,8 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
   return (
     <div>
       <div className="section-title">新規投稿</div>
-      <form onSubmit={handleSubmit}>
-        <table className="classic-table">
+      <form onSubmit={handleSubmit} style={{ marginTop: 6 }}>
+        <table className="form-table">
           <tbody>
             <tr>
               <td className="form-label">Title</td>
@@ -71,7 +71,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
         </table>
       </form>
 
-      <div style={{ marginTop: 6, fontSize: 12, color: '#666' }}>
+      <div style={{ marginTop: 6, fontSize: 12 }}>
         ※ HTMLタグは使えません。改行はそのまま保持されます。
       </div>
     </div>

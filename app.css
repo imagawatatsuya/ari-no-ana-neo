@@ -1,252 +1,359 @@
-/* 文章アリの穴NEO - 2005年オリジナルデザイン完全模倣 */
+/* 文章アリの穴NEO - 2005年オリジナル "Anthology V1.7" デザイン完全再現 */
 
 :root {
-  --page-bg: #ffffff;
-  --text: #000000;
-  --link: #0000ee;
-  --link-visited: #551a8b;
-  --link-hover: #cc0000;
-  --table-border: #999999;
-  --table-header-bg: #d4d4d4;
-  --table-cell-border: #bbbbbb;
-  --section-bg: #e8e8e8;
-  --title-box-bg: #f0f0f0;
+  --body-bg: #F2F2E8;
+  --text: #333333;
+  --title-color: #444444;
+  --link: #3D3832;
+  --table-border: #D3CEC0;
+  --table-bg: #FCFCFC;
+  --th-bg: #CCCCCC;
+  --comment-border: #C0BAAF;
+  --stars-on: #598AAF;
+  --stars-off: #E3E3D9;
+  --point-gray: #AAAAAA;
+  --hr-color: #808080;
+  --subtitle-bg: #D3CEC0;
+  --badge-pink: #E9BAB8;
+  --badge-gray: #D8D8D8;
+  --comment-num: #999999;
+  --pagination-dot: #C0BAAF;
 }
 
 * { box-sizing: border-box; }
 
 body {
-  margin: 0;
+  margin: 8px;
   padding: 0;
-  background: var(--page-bg);
+  background: var(--body-bg);
   color: var(--text);
-  font-family: "MS PGothic", "Osaka", "Hiragino Kaku Gothic Pro", "ＭＳ Ｐゴシック", sans-serif;
+  font-family: "Times New Roman", "MS PGothic", "Osaka", serif;
   font-size: 16px;
   line-height: 1.5;
 }
 
-a { color: var(--link); text-decoration: underline; }
-a:visited { color: var(--link-visited); }
-a:hover, a:active { color: var(--link-hover); }
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
 
-/* === Shell / Panel === */
+/* === Shell === */
 .site-shell {
-  min-height: 100vh;
+  width: 610px;
+  max-width: 100%;
+  margin: 0;
   padding: 0;
 }
 
 .site-panel {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 8px 12px 16px;
-  background: #fff;
+  width: 100%;
+  padding: 0;
 }
 
-/* === Title === */
-.site-title {
-  margin: 4px 0 2px;
+/* === Top nav (right-aligned) === */
+.top-nav {
+  text-align: right;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.top-nav a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+/* === Title area (centered) === */
+.site-pretitle {
   text-align: center;
-  font-size: 32px;
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--text);
+}
+
+.site-title {
+  margin: 0;
+  text-align: center;
+  font-size: 38px;
   font-weight: bold;
-  letter-spacing: 2px;
+  color: var(--title-color);
   line-height: 1.2;
 }
 
 .site-title a {
-  color: #000;
+  color: var(--title-color);
   text-decoration: none;
 }
-.site-title a:hover {
-  color: var(--link-hover);
+
+.site-subtitle {
+  text-align: center;
+  font-size: 16px;
+  color: var(--text);
+  padding-bottom: 4px;
 }
 
-/* === Header links / meta === */
-.header-links {
-  text-align: center;
+/* === Stats row === */
+.stats-row {
   font-size: 14px;
-  margin-bottom: 2px;
-}
-
-.site-meta {
-  text-align: center;
-  font-size: 13px;
-  color: #333;
+  padding: 1px 0;
   margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.top-rule {
-  border: 0;
-  border-top: 1px solid #999;
-  margin: 6px 0 8px;
-}
-
-/* === Marquee / info box === */
-.marquee-box {
-  font-size: 13px;
-  color: #333;
-  text-align: center;
-  margin-bottom: 8px;
-  padding: 2px 0;
-}
-
-/* === Section title (gray bar) === */
-.section-title {
-  background: var(--section-bg);
-  border: 1px solid var(--table-border);
-  color: #000;
-  font-weight: bold;
-  font-size: 14px;
-  padding: 3px 6px;
-  margin: 8px 0 4px;
-}
-
-/* === Legend / description box === */
-.legend-box {
-  font-size: 13px;
-  color: #333;
-  padding: 4px 6px;
-  margin: 0 0 6px;
-  border: 1px solid #ccc;
-  background: #fafafa;
+.stats-row a {
+  color: var(--link);
 }
 
 /* === Main table (list) === */
 .classic-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   border: 1px solid var(--table-border);
-  font-size: 14px;
-  margin-bottom: 8px;
+  background: var(--table-bg);
+  font-size: 16px;
+  margin-bottom: 0;
 }
 
-.classic-table th,
+.classic-table th {
+  background: var(--th-bg);
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  padding: 3px 0;
+  color: var(--text);
+  border: none;
+}
+
 .classic-table td {
-  border: 1px solid var(--table-cell-border);
+  border: none;
   padding: 4px 6px;
   vertical-align: top;
 }
 
-.classic-table th {
-  background: var(--table-header-bg);
-  text-align: center;
-  font-weight: bold;
-  font-size: 13px;
+/* === List entry rows === */
+.entry-title-row td {
+  padding: 6px 4px 2px;
 }
 
-.classic-table td {
-  background: #fff;
-}
-
-/* === Novel list specific === */
-.novel-title {
+.entry-title-link {
   font-weight: bold;
   color: var(--link);
+  text-decoration: none;
+  font-size: 16px;
+}
+.entry-title-link:hover {
+  text-decoration: underline;
 }
 
-.new-badge {
-  color: #ff0000;
-  font-size: 11px;
-  font-weight: bold;
-  margin-left: 4px;
-}
-
-.score-pos { color: #0000cc; font-weight: bold; }
-.score-neg { color: #cc0000; font-weight: bold; }
-
-.star-rating {
-  color: #cc8800;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.star-score {
+.entry-date {
   font-size: 12px;
-  color: #333;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.entry-comments {
+  font-size: 12px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.entry-point {
+  font-size: 12px;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.stars-on {
+  color: var(--stars-on);
+}
+
+.stars-off {
+  color: var(--stars-off);
+}
+
+.point-score {
+  color: var(--point-gray);
+  font-size: 12px;
+}
+
+.entry-meta-row td {
+  padding: 0 4px 6px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.entry-separator {
+  border: 0;
+  border-top: 1px solid var(--hr-color);
+  margin: 0 10px;
+  height: 0;
+}
+
+/* === Section header (TH-style gray bar) === */
+.section-title {
+  background: var(--th-bg);
+  border: 1px solid var(--comment-border);
+  color: var(--text);
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  padding: 3px 10px;
+  margin: 8px 0 0;
 }
 
 /* === Article / Reader page === */
-.read-title-box {
+.article-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
   border: 1px solid var(--table-border);
-  background: var(--title-box-bg);
-  padding: 8px 10px;
-  margin-bottom: 6px;
-  text-align: center;
+  background: var(--table-bg);
+  margin: 0 0 8px;
 }
 
-.read-title {
-  margin: 0 0 4px;
-  font-size: 22px;
+.article-table td {
+  padding: 8px;
+  border: none;
+}
+
+.article-title {
+  font-size: 38px;
   font-weight: bold;
-  color: #000;
+  color: var(--title-color);
+  text-align: center;
+  padding: 8px;
 }
 
-.read-sub {
-  font-size: 13px;
-  color: #333;
+.article-subtitle {
+  background: var(--subtitle-bg);
+  padding: 8px;
+  font-size: 16px;
 }
 
-.body-box {
-  border: 1px solid #ccc;
-  background: #fff;
-  padding: 10px 12px;
-  min-height: 200px;
-  margin-bottom: 8px;
+.article-body {
+  padding: 8px;
+  font-size: 16px;
+  line-height: 24px;
   white-space: pre-wrap;
-  line-height: 1.7;
-  font-size: 15px;
 }
 
-.stat-bar {
-  border: 1px solid var(--table-border);
-  background: var(--section-bg);
-  text-align: center;
-  padding: 5px 8px;
-  margin-bottom: 8px;
-  font-size: 14px;
+.article-date {
+  font-size: 16px;
+  padding: 4px 8px;
 }
 
-.vote-breakdown {
-  font-size: 13px;
-  color: #333;
-  text-align: center;
-  margin-top: 3px;
+.article-author {
+  font-size: 16px;
+  padding: 4px 8px;
 }
 
-/* === Comments === */
-.comment-item {
-  border-bottom: 1px solid #ddd;
-  padding: 6px 4px;
-  margin-bottom: 0;
-}
-
-.comment-item:last-child {
-  border-bottom: none;
-}
-
-.comment-name {
-  font-size: 13px;
-  color: #006600;
+.article-author b {
   font-weight: bold;
+}
+
+.article-author-msg {
+  margin-left: 3%;
+  font-size: 16px;
+}
+
+/* === Point box === */
+.point-box {
+  border: 1px solid var(--comment-border);
+  background: #FFFFFF;
+  padding: 10px;
+  margin: 8px 30px;
+  text-align: center;
+}
+
+.point-box .point-value {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.point-breakdown {
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* === Comments section === */
+.comment-block {
+  border: 1px solid var(--comment-border);
+  background: var(--table-bg);
+  padding: 10px;
+  margin-bottom: 4px;
 }
 
 .comment-text {
   white-space: pre-wrap;
-  font-size: 14px;
-  margin-top: 2px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.comment-footer {
+  text-align: right;
+  font-size: 13px;
+  margin-top: 4px;
 }
 
 .comment-number {
-  color: #666;
-  font-size: 12px;
-  font-weight: normal;
+  color: var(--comment-num);
+  font-weight: bold;
+}
+
+.comment-badge {
+  display: inline-block;
+  font-size: 13px;
+  padding: 1px 4px;
+  color: #fff;
+  margin: 0 2px;
+}
+
+.comment-badge-negative {
+  background: var(--badge-pink);
+}
+
+.comment-badge-positive {
+  background: var(--badge-gray);
+}
+
+.comment-badge-neutral {
+  background: var(--badge-gray);
+}
+
+.comment-host {
+  color: var(--text);
+}
+
+.comment-date {
+  color: var(--text);
 }
 
 /* === Forms === */
+.form-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--table-border);
+  background: var(--table-bg);
+}
+
+.form-table td {
+  padding: 4px 6px;
+  border: none;
+  vertical-align: top;
+}
+
 .form-label {
   width: 90px;
   font-weight: bold;
-  font-size: 13px;
-  background: #f0f0f0;
+  font-size: 14px;
 }
 
 input[type='text'],
@@ -256,56 +363,61 @@ textarea {
   border: 1px solid #666;
   padding: 2px 4px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px;
   background: #fff;
 }
 
-textarea { width: 100%; }
+textarea {
+  width: 100%;
+}
+
+select {
+  font-family: inherit;
+  font-size: 14px;
+}
 
 .classic-button {
-  border: 1px solid #666;
-  background: #e0e0e0;
-  padding: 2px 10px;
-  font-size: 13px;
+  border: 2px outset #ccc;
+  background: #F0F0F0;
+  padding: 2px 8px;
+  font-size: 14px;
   cursor: pointer;
   font-family: inherit;
 }
-.classic-button:hover { background: #d0d0d0; }
-.classic-button:active { background: #c0c0c0; }
-.classic-button:disabled { cursor: default; opacity: 0.6; }
+.classic-button:active {
+  border-style: inset;
+}
+.classic-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
 
-/* === Help button in nav === */
+/* === Help link button === */
 .help-link-btn {
   border: 0;
   background: transparent;
   color: var(--link);
-  text-decoration: underline;
-  font-size: 14px;
+  text-decoration: none;
+  font-size: 16px;
   cursor: pointer;
   padding: 0;
   font-family: inherit;
 }
-.help-link-btn:hover { color: var(--link-hover); }
+.help-link-btn:hover {
+  text-decoration: underline;
+}
 
 /* === Footer === */
 .site-footer {
-  border-top: 1px solid #999;
-  margin-top: 14px;
-  padding-top: 6px;
-  text-align: center;
+  margin-top: 10px;
+  padding-top: 4px;
   font-size: 12px;
-  color: #555;
-}
-
-.footer-hit {
-  margin-top: 3px;
-  font-size: 12px;
+  color: var(--text);
 }
 
 .footer-script {
-  margin-top: 4px;
-  font-size: 11px;
-  color: #888;
+  font-size: 12px;
+  color: var(--text);
 }
 
 /* === Error box === */
@@ -330,13 +442,13 @@ textarea { width: 100%; }
 
 .help-box {
   width: min(92vw, 520px);
-  background: #f5f5f5;
-  border: 1px solid #666;
+  background: var(--body-bg);
+  border: 1px solid var(--comment-border);
 }
 
 .help-head {
-  background: #d4d4d4;
-  border-bottom: 1px solid #666;
+  background: var(--th-bg);
+  border-bottom: 1px solid var(--comment-border);
   padding: 4px 8px;
   font-size: 14px;
   font-weight: bold;
@@ -345,41 +457,39 @@ textarea { width: 100%; }
   align-items: center;
 }
 
-.help-body { padding: 10px; font-size: 13px; }
+.help-body {
+  padding: 10px;
+  font-size: 14px;
+}
 
 /* === Admin === */
 .admin-edit-box {
   margin-top: 10px;
   border: 1px solid var(--table-border);
-  background: #f8f8f8;
+  background: var(--table-bg);
   padding: 8px;
 }
 
-/* === Pagination style === */
-.pagination-bar {
-  text-align: center;
+/* === Legend box === */
+.legend-box {
   font-size: 13px;
-  margin: 6px 0;
-  color: #333;
+  color: var(--text);
+  padding: 4px 6px;
+  margin: 0 0 6px;
 }
 
-.pagination-bar a {
-  margin: 0 1px;
-}
-
-/* === Bottom controls (submit/search) === */
-.bottom-controls {
-  text-align: center;
+/* === HR general === */
+.hr-standard {
+  border: 0;
+  border-top: 1px solid var(--hr-color);
   margin: 8px 0;
-  font-size: 13px;
 }
 
 /* === Responsive === */
 @media (max-width: 640px) {
-  .site-title { font-size: 24px; }
-  .site-panel { padding: 6px 6px 12px; }
-  .classic-table { font-size: 12px; }
-  .classic-table th,
-  .classic-table td { padding: 3px 4px; }
-  .read-sub { display: block; }
+  body { margin: 4px; }
+  .site-shell { width: 100%; }
+  .site-title { font-size: 28px; }
+  .article-title { font-size: 28px; }
+  .point-box { margin: 8px 10px; }
 }

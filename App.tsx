@@ -352,31 +352,36 @@ const App: React.FC = () => {
   return (
     <div className="site-shell">
       <div className="site-panel">
-        <h1 className="site-title">
-          <a href="#">文章アリの穴NEO</a>
-        </h1>
-        <div className="site-meta">あなたがテキストを置く場所。投稿・人気投票の広場</div>
-
-        <div className="header-links">
-          [ <a href="#">トップ</a> ] [ <a href="#post">新規投稿</a> ] [ <a href="#admin">管理者用</a> ] [ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>ヘルプ</button> ]{isAdminAuthenticated && <> [ <button type="button" className="help-link-btn" onClick={handleAdminLogout}>管理ログアウト</button> ]</>}
+        {/* 上部ナビ (右寄せ) */}
+        <div className="top-nav">
+          <a href="#post">&gt;&gt;新規投稿</a> ｜ <a href="#admin">&gt;&gt;管理者用</a> ｜ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>&gt;&gt;ヘルプ</button>{isAdminAuthenticated && <> ｜ <button type="button" className="help-link-btn" onClick={handleAdminLogout}>&gt;&gt;ログアウト</button></>}
         </div>
 
-        <div className="site-meta">
-          {visibleNovels.length}タイトル [ 合計 {novels.length} 作品 ] / モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
+        {/* タイトル領域 (中央) */}
+        <div className="site-pretitle">２ｃｈ文章</div>
+        <h1 className="site-title">
+          <a href="#">アリの穴NEO</a>
+        </h1>
+        <div className="site-subtitle">匿名投稿・添削できる修行場所。煽り・罵倒は覚悟の上で</div>
+
+        {/* ステータス行 */}
+        <div className="stats-row">
+          <span>{visibleNovels.length}／{novels.length}ページ [ 現在 {visibleNovels.length} 作品 ]</span>
+          <span>
+            モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
+          </span>
         </div>
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
-
-        <hr className="top-rule" />
 
         {view === 'list' && <NovelList novels={visibleNovels} comments={comments} />}
         {view === 'post' && <PostForm onPost={handlePost} />}
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
             <div className="section-title">管理者ログイン</div>
-            <div style={{ fontSize: 13, color: '#333', marginBottom: 6 }}>{isSupabaseMode ? 'Supabase Auth でログインすると管理機能が有効になります。' : '管理画面はパスワードで保護されています。'}</div>
+            <div style={{ fontSize: 13, marginBottom: 6 }}>{isSupabaseMode ? 'Supabase Auth でログインすると管理機能が有効になります。' : '管理画面はパスワードで保護されています。'}</div>
             <form onSubmit={handleAdminLogin}>
-              <table className="classic-table">
+              <table className="form-table">
                 <tbody>
                   {isSupabaseMode && (
                     <tr>
@@ -422,12 +427,13 @@ const App: React.FC = () => {
           />
         )}
         {view === 'read' && activeNovel && <NovelReader novel={activeNovel} comments={comments.filter((c) => c.novelId === activeNovel.id)} onComment={handleComment} />}
-        {view === 'read' && !activeNovel && <div className="legend-box">投稿が見つからないか、非表示に設定されています。<a href="#">一覧へ戻る</a></div>}
+        {view === 'read' && !activeNovel && <div style={{ padding: 8 }}>投稿が見つからないか、非表示に設定されています。<a href="#">一覧へ戻る</a></div>}
 
+        {/* フッター */}
+        <hr className="hr-standard" />
         <div className="site-footer">
-          文章アリの穴NEO / 稼働環境: React + {isSupabaseMode ? 'Supabase' : 'LocalStorage'}
-          <div className="footer-hit">総アクセス数: {visibleNovels.reduce((acc, n) => acc + n.viewCount, 0)} hits</div>
-          <div className="footer-script">Based on Anthology V1.7 Script by YASUU!! (Original Design)</div>
+          <div className="footer-script">Based on Anthology V1.7  Script by YASUU!!</div>
+          <div style={{ fontSize: 12, marginTop: 2 }}>総アクセス数: {visibleNovels.reduce((acc, n) => acc + n.viewCount, 0)} hits / 稼働環境: React + {isSupabaseMode ? 'Supabase' : 'LocalStorage'}</div>
         </div>
 
         {showHelp && (

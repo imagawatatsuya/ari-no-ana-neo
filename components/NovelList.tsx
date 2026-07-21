@@ -9,52 +9,66 @@ interface NovelListProps {
 
 export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
   return (
-    <div>
-      <table className="classic-table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th style={{ width: 130 }}>投稿者</th>
-            <th style={{ width: 160 }}>日付</th>
-            <th style={{ width: 140 }}>スコア</th>
-          </tr>
-        </thead>
-        <tbody>
-          {novels.map((novel, index) => {
-            const novelComments = comments.filter((c) => c.novelId === novel.id);
-            const { stars, score } = formatStarRating(novelComments);
+    <table className="classic-table">
+      <thead>
+        <tr>
+          <th style={{ width: '70%' }}>Title</th>
+          <th style={{ width: '12%' }}>投稿日</th>
+          <th style={{ width: '6%' }}>感想</th>
+          <th style={{ width: '12%' }}>ポイント</th>
+        </tr>
+      </thead>
+      <tbody>
+        {novels.map((novel, index) => {
+          const novelComments = comments.filter((c) => c.novelId === novel.id);
+          const { stars, score } = formatStarRating(novelComments);
+          const starsOn = stars.replace(/☆/g, '');
+          const starsOff = '★'.repeat(5 - starsOn.length);
 
-            return (
-              <tr key={novel.id}>
+          return (
+            <React.Fragment key={novel.id}>
+              {/* Row 1: Title / Date / Comments / Points */}
+              <tr className="entry-title-row">
                 <td>
-                  <a href={`#read/${novel.id}`} className="novel-title">
+                  <a href={`#read/${novel.id}`} className="entry-title-link">
                     {novel.title}
                   </a>
-                  {index < 2 && <span className="new-badge">NEW!</span>}
-                  <div style={{ fontSize: 12, color: '#555' }}>
-                    [{novelComments.length} 件] {novel.author}
-                  </div>
                 </td>
-                <td style={{ textAlign: 'center' }}>{novel.author}</td>
-                <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontSize: 13 }}>
-                  {formatDate(novel.date)}
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <span className="star-rating">{stars}</span>
-                  <div className="star-score">{score}</div>
+                <td className="entry-date">{formatDate(novel.date)}</td>
+                <td className="entry-comments">{novelComments.length}</td>
+                <td className="entry-point">
+                  <span className="stars-on">{starsOn}</span>
+                  <span className="stars-off">{starsOff}</span>
+                  <br />
+                  <span className="point-score">{score}</span>
                 </td>
               </tr>
-            );
-          })}
-          {novels.length === 0 && (
-            <tr>
-              <td colSpan={4} style={{ textAlign: 'center', padding: 18 }}>
-                投稿がありません。
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+              {/* Row 2: Meta (page count + author) */}
+              <tr className="entry-meta-row">
+                <td colSpan={4}>
+                  ［ {novelComments.length} 件 ］ {novel.author}
+                  {index < 2 && <span style={{ color: '#cc0000', fontSize: 11, marginLeft: 4 }}>NEW!</span>}
+                </td>
+              </tr>
+              {/* Separator HR */}
+              {index < novels.length - 1 && (
+                <tr>
+                  <td colSpan={4} style={{ padding: 0 }}>
+                    <hr className="entry-separator" />
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          );
+        })}
+        {novels.length === 0 && (
+          <tr>
+            <td colSpan={4} style={{ textAlign: 'center', padding: 18 }}>
+              投稿がありません。
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
   );
 };
