@@ -61,7 +61,7 @@ const renderTextWithLinks = (text: string) => {
                 href={url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline break-all"
+                className="body-link"
               >
                 {url}
               </a>
@@ -126,7 +126,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
             <sup key={index} id={`footnote-ref-${footnote.index}`}>
               <a 
                 href={`#footnote-${footnote.index}`}
-                className="text-red-600 font-bold ml-0.5 no-underline hover:underline"
+                className="footnote-ref-link"
                 onClick={(e) => {
                   e.preventDefault();
                   document.getElementById(`footnote-${footnote.index}`)?.scrollIntoView({ behavior: 'smooth' });
@@ -154,20 +154,20 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
 
   return (
     <div className="footnote-container">
-      <div className="leading-relaxed" style={{ whiteSpace: 'pre-wrap' }}>
+      <div style={{ whiteSpace: 'pre-wrap' }}>
         {renderContent()}
       </div>
       
       {footnotes.length > 0 && (
-        <div className="mt-8 pt-4 border-t border-gray-400">
-          <p className="font-bold text-sm mb-2 text-[#800000]">脚注</p>
-          <ol className="list-decimal pl-5 text-sm text-gray-700">
+        <div className="footnote-section">
+          <p className="footnote-heading">脚注</p>
+          <ol className="footnote-list">
             {footnotes.map(note => (
-              <li key={note.index} id={`footnote-${note.index}`} className="mb-1 pl-1">
+              <li key={note.index} id={`footnote-${note.index}`}>
                 {renderTextWithLinks(note.text)}{' '}
                 <a 
                   href={`#footnote-ref-${note.index}`} 
-                  className="no-underline text-blue-600 hover:text-red-600 cursor-pointer ml-1"
+                  className="footnote-back-link"
                   onClick={(e) => {
                     e.preventDefault();
                     document.getElementById(`footnote-ref-${note.index}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });

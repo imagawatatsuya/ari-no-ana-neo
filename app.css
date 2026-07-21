@@ -61,9 +61,9 @@ a:hover {
   padding: 0;
 }
 
-/* === Top nav (right-aligned) === */
+/* === Top nav (left-aligned, matching original CGI) === */
 .top-nav {
-  text-align: right;
+  text-align: left;
   font-size: 16px;
   margin-bottom: 4px;
 }
@@ -483,6 +483,18 @@ select {
   padding: 8px;
 }
 
+.score-pos {
+  color: #336633;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.score-neg {
+  color: #993333;
+  font-weight: bold;
+  font-size: 12px;
+}
+
 /* === Legend box === */
 .legend-box {
   font-size: 13px;
@@ -496,6 +508,74 @@ select {
   border: 0;
   border-top: 1px solid var(--hr-color);
   margin: 8px 0;
+}
+
+/* === Footnotes === */
+.footnote-container {
+  line-height: 1.75;
+}
+
+.footnote-ref-link {
+  color: #cc0000;
+  font-weight: bold;
+  margin-left: 2px;
+  text-decoration: none;
+}
+.footnote-ref-link:hover {
+  text-decoration: underline;
+}
+
+.footnote-section {
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid #999;
+}
+
+.footnote-heading {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #800000;
+}
+
+.footnote-list {
+  list-style: decimal;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #444;
+}
+
+.footnote-list li {
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+.footnote-back-link {
+  text-decoration: none;
+  color: #598AAF;
+  cursor: pointer;
+  margin-left: 4px;
+}
+.footnote-back-link:hover {
+  color: #cc0000;
+}
+
+.body-link {
+  color: #598AAF;
+  word-break: break-all;
+}
+.body-link:hover {
+  text-decoration: underline;
+}
+
+/* === Focus styles (accessibility) === */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #598AAF;
+  outline-offset: 1px;
 }
 
 /* === Responsive === */
