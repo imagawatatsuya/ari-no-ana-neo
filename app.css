@@ -236,6 +236,12 @@ a:hover {
   padding: 8px;
 }
 
+.article-page-count {
+  text-align: center;
+  padding: 4px 8px;
+  font-size: 100%;
+}
+
 .article-subtitle {
   background: var(--subtitle-bg);
   padding: 8px;

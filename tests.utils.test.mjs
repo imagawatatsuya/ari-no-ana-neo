@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { formatDate, generateTrip, calculateScore } from './utils.ts';
+import { formatDate, generateTrip, calculateScore, countManuscriptPages } from './utils.ts';
 
 test('generateTrip: empty input falls back to 名無し', () => {
   const result = generateTrip('');
@@ -29,4 +29,37 @@ test('calculateScore: empty comments return zeros', () => {
 test('formatDate: renders Japanese-style date format', () => {
   const text = formatDate('2025-01-02T03:04:00+09:00');
   assert.match(text, /^\d{4}\/\d{2}\/\d{2}\([日月火水木金土]\) \d{2}:\d{2}$/);
+});
+
+test('countManuscriptPages: empty text returns 0', () => {
+  assert.equal(countManuscriptPages(''), 0);
+  assert.equal(countManuscriptPages('   '), 0);
+});
+
+test('countManuscriptPages: 400 chars single line = 1 page', () => {
+  const text = 'あ'.repeat(400);
+  assert.equal(countManuscriptPages(text), 1);
+});
+
+test('countManuscriptPages: 401 chars = 2 pages', () => {
+  const text = 'あ'.repeat(401);
+  assert.equal(countManuscriptPages(text), 2);
+});
+
+test('countManuscriptPages: line breaks consume remaining cells', () => {
+  // 10 chars + newline + 10 chars = 2 lines × 20 cells = 40 cells → 1 page
+  const text = 'あ'.repeat(10) + '\n' + 'あ'.repeat(10);
+  assert.equal(countManuscriptPages(text), 1);
+  // 20 lines of 10 chars each = 20 × 20 = 400 cells → 1 page
+  const text2 = Array(20).fill('あ'.repeat(10)).join('\n');
+  assert.equal(countManuscriptPages(text2), 1);
+  // 21 lines of 10 chars each = 21 × 20 = 420 cells → 2 pages
+  const text3 = Array(21).fill('あ'.repeat(10)).join('\n');
+  assert.equal(countManuscriptPages(text3), 2);
+});
+
+test('countManuscriptPages: empty lines count as 1 line', () => {
+  // 19 lines of 20 chars + 1 empty line = 19×20 + 20 = 400 → 1 page
+  const text = Array(19).fill('あ'.repeat(20)).join('\n') + '\n';
+  assert.equal(countManuscriptPages(text), 1);
 });

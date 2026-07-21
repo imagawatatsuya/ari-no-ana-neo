@@ -44,6 +44,38 @@ export const calculateScore = (comments: any[]) => {
   return { total, count: comments.length, avg };
 };
 
+/**
+ * 400字詰め原稿用紙換算枚数を計算する
+ * ルール:
+ * - 原稿用紙1枚 = 20字 × 20行 = 400字
+ * - 改行時、その行の残りマスも消費としてカウントする
+ * - 各行の消費マス = ceil(その行の文字数 / 20) × 20
+ * - 空行は1行（20マス）としてカウント
+ * - 枚数 = ceil(総消費マス / 400)
+ */
+export const countManuscriptPages = (text: string): number => {
+  if (!text || text.trim().length === 0) return 0;
+
+  const CHARS_PER_LINE = 20;
+  const LINES_PER_PAGE = 20;
+  const CHARS_PER_PAGE = CHARS_PER_LINE * LINES_PER_PAGE; // 400
+
+  const lines = text.split('\n');
+  let totalCells = 0;
+
+  for (const line of lines) {
+    if (line.length === 0) {
+      // 空行も1行としてカウント
+      totalCells += CHARS_PER_LINE;
+    } else {
+      // 改行で残ったマスも消費としてカウント（20字単位に切り上げ）
+      totalCells += Math.ceil(line.length / CHARS_PER_LINE) * CHARS_PER_LINE;
+    }
+  }
+
+  return Math.ceil(totalCells / CHARS_PER_PAGE);
+};
+
 // 5段階の星レーティング文字列を生成 (オリジナルの★★★★☆形式)
 export const formatStarRating = (comments: any[]): { stars: string; score: string } => {
   const { total, count, avg } = calculateScore(comments);

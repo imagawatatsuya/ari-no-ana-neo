@@ -352,6 +352,8 @@ const App: React.FC = () => {
   return (
     <div className="site-shell">
       <div className="site-panel">
+        {/* 作品ページ（read）にはヘッダを表示しない — 元サイト準拠 */}
+        {view !== 'read' && (<>
         {/* 上部ナビ (右寄せ: オリジナルCGI準拠) */}
         <div className="top-nav">
           <a href="#post">&gt;&gt;新規投稿</a> ｜ <a href="#admin">&gt;&gt;管理者用</a> ｜ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>&gt;&gt;ヘルプ</button>{isAdminAuthenticated && <> ｜ <button type="button" className="help-link-btn" onClick={handleAdminLogout}>&gt;&gt;ログアウト</button></>}
@@ -371,6 +373,7 @@ const App: React.FC = () => {
             モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
           </span>
         </div>
+        </>)}
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
 
