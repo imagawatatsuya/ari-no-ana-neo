@@ -41,3 +41,6 @@ screenshot-*.png
 *.sw?
 
 index.BAK
+
+# Typography reference sources (do not publish)
+typography-references.md

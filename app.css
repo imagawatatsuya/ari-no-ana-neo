@@ -30,6 +30,14 @@ body {
   font-family: "Times New Roman", "MS PGothic", "Osaka", serif;
   font-size: 16px;
   line-height: 1.5;
+  /* 日本語組版: 約物アキ調整 (Chrome/Edge progressive enhancement) */
+  text-spacing-trim: space-all;
+  /* 日本語組版: 行末句読点のぶら下げ */
+  hanging-punctuation: allow-end;
+  /* 日本語組版: 禁則処理 */
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-break: strict;
 }
 
 a {
@@ -240,8 +248,13 @@ a:hover {
 .article-body {
   padding: 8px;
   font-size: 16px;
-  line-height: 24px;
+  line-height: 1.75;
   white-space: pre-wrap;
+  /* 日本語組版: 本文の読みやすさ向上 */
+  text-align: justify;
+  text-justify: inter-character;
+  font-feature-settings: "palt" 1;
+  letter-spacing: 0.02em;
 }
 
 .article-date {
