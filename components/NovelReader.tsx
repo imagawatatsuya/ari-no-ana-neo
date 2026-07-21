@@ -18,6 +18,15 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
 
   const { total, count } = calculateScore(comments);
 
+  // 投票内訳を計算
+  const voteBreakdown = {
+    best: comments.filter((c) => c.vote === 2).length,
+    good: comments.filter((c) => c.vote === 1).length,
+    normal: comments.filter((c) => c.vote === 0).length,
+    bad: comments.filter((c) => c.vote === -1).length,
+    worst: comments.filter((c) => c.vote === -2).length,
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (commentText.length > MAX_COMMENT_LENGTH) {
@@ -42,38 +51,48 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
 
   return (
     <div>
-      <div style={{ marginBottom: 8, fontSize: 12 }}>
-        <a href="#">&lt;&lt; 一覧へ戻る</a>
+      <div style={{ marginBottom: 6, fontSize: 13 }}>
+        <a href="#">&lt;&lt; 戻る</a>
       </div>
 
+      {/* タイトルボックス */}
       <div className="read-title-box">
         <h2 className="read-title">{novel.title}</h2>
-        <div className="read-sub">
-          <span>
-            作者: <b>{novel.author}</b> {novel.trip && <small>{novel.trip}</small>}
-          </span>
-          <span>投稿日: {formatDate(novel.date)}</span>
-        </div>
       </div>
 
+      {/* 本文 */}
       <div className="body-box">
         <FootnoteRenderer content={novel.body} />
       </div>
 
-      <div className="stat-bar">
-        総合点: <b className={total < 0 ? 'score-neg' : 'score-pos'}>{total}</b> / 票数: {count} / 閲覧: {novel.viewCount}
+      {/* 投稿日・作者 */}
+      <div style={{ fontSize: 13, color: '#333', marginBottom: 6 }}>
+        {formatDate(novel.date)} 投稿
+      </div>
+      <div style={{ fontSize: 13, marginBottom: 8 }}>
+        投稿者: <b>{novel.author}</b>{novel.trip && <span> {novel.trip}</span>}
       </div>
 
-      <div className="section-title">■ 読者の感想</div>
+      {/* POINT表示 */}
+      <div className="stat-bar">
+        現在のPOINT [ <b>{total}</b> ] 投票数 [ {count} ]
+        <div className="vote-breakdown">
+          内訳: とても良い [ {voteBreakdown.best} ] 良い [ {voteBreakdown.good} ] 普通 [ {voteBreakdown.normal} ] 良くない [ {voteBreakdown.bad} ] 最低 [ {voteBreakdown.worst} ]
+        </div>
+      </div>
+
+      {/* 感想・コメント一覧 */}
+      <div className="section-title">感想・コメント</div>
       {comments.length === 0 ? (
-        <div className="legend-box">まだ感想はありません。</div>
+        <div style={{ fontSize: 13, color: '#555', padding: '6px 4px' }}>まだ感想はありません。</div>
       ) : (
         <div>
-          {comments.map((c) => (
+          {[...comments].reverse().map((c, idx) => (
             <div className="comment-item" key={c.id}>
               <div className="comment-name">
-                {c.name} <small style={{ color: '#666' }}>[{formatDate(c.date)}]</small>{' '}
-                <span className={c.vote < 0 ? 'score-neg' : 'score-pos'}>({c.vote >= 0 ? '+' : ''}{c.vote})</span>
+                <span className="comment-number">{comments.length - idx}:</span>{' '}
+                {c.name}{' '}
+                <small style={{ color: '#666', fontWeight: 'normal' }}>{formatDate(c.date)}</small>
               </div>
               <div className="comment-text">{c.text}</div>
             </div>
@@ -81,10 +100,11 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
         </div>
       )}
 
-      <div style={{ height: 10 }} />
-      <div className="section-title">■ 感想・評価を送る</div>
+      {/* 感想投稿フォーム */}
+      <div style={{ height: 12 }} />
+      <div className="section-title">感想・評価を送る</div>
       <form onSubmit={handleSubmit}>
-        <table className="classic-table form-table">
+        <table className="classic-table">
           <tbody>
             <tr>
               <td className="form-label">名前</td>
@@ -95,11 +115,11 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
             <tr>
               <td className="form-label">評価</td>
               <td>
-                <label><input type="radio" checked={vote === 2} onChange={() => setVote(2)} /> +2</label>{' '}
-                <label><input type="radio" checked={vote === 1} onChange={() => setVote(1)} /> +1</label>{' '}
-                <label><input type="radio" checked={vote === 0} onChange={() => setVote(0)} /> 0</label>{' '}
-                <label><input type="radio" checked={vote === -1} onChange={() => setVote(-1)} /> -1</label>{' '}
-                <label><input type="radio" checked={vote === -2} onChange={() => setVote(-2)} /> -2</label>
+                <label><input type="radio" checked={vote === 2} onChange={() => setVote(2)} /> とても良い</label>{' '}
+                <label><input type="radio" checked={vote === 1} onChange={() => setVote(1)} /> 良い</label>{' '}
+                <label><input type="radio" checked={vote === 0} onChange={() => setVote(0)} /> 普通</label>{' '}
+                <label><input type="radio" checked={vote === -1} onChange={() => setVote(-1)} /> 良くない</label>{' '}
+                <label><input type="radio" checked={vote === -2} onChange={() => setVote(-2)} /> 最低</label>
               </td>
             </tr>
             <tr>
@@ -117,6 +137,9 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
             </tr>
           </tbody>
         </table>
+        <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+          (投票はひとり1回まで。2回目以降の投票は前の投票に上書きされます)
+        </div>
       </form>
     </div>
   );

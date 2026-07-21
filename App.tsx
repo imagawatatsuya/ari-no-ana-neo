@@ -22,7 +22,7 @@ const getJSTISOString = () => {
 const HIDDEN_IDS_STORAGE_KEY = 'bunsho_hidden_novel_ids_v1';
 const ADMIN_AUTH_STORAGE_KEY = 'bunsho_admin_auth_v1';
 const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
-const localAdminPassword = process.env.VITE_ADMIN_PASSWORD?.trim() || '';
+const localAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD?.trim() || '';
 
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
@@ -353,24 +353,28 @@ const App: React.FC = () => {
     <div className="site-shell">
       <div className="site-panel">
         <h1 className="site-title">
-          <a href="#" style={{ color: '#7a0000', textDecoration: 'none' }}>文章アリの穴NEO</a>
+          <a href="#">文章アリの穴NEO</a>
         </h1>
+        <div className="site-meta">あなたがテキストを置く場所。投稿・人気投票の広場</div>
 
-        <div className="header-links">[ <a href="#">トップ</a> ] [ <a href="#post">投稿する</a> ] [ <a href="#admin">管理</a> ] [ <a href="#" onClick={(e) => e.preventDefault()}>検索</a> ] [ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>ヘルプ</button> ] {isAdminAuthenticated && <button type="button" className="help-link-btn" onClick={handleAdminLogout}>[ 管理ログアウト ]</button>}</div>
+        <div className="header-links">
+          [ <a href="#">トップ</a> ] [ <a href="#post">新規投稿</a> ] [ <a href="#admin">管理者用</a> ] [ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>ヘルプ</button> ]{isAdminAuthenticated && <> [ <button type="button" className="help-link-btn" onClick={handleAdminLogout}>管理ログアウト</button> ]</>}
+        </div>
 
-        <div className="site-meta">管理人: <b>アリOB</b> / モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 投稿数: {visibleNovels.length}（全{novels.length}）</div>
+        <div className="site-meta">
+          {visibleNovels.length}タイトル [ 合計 {novels.length} 作品 ] / モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
+        </div>
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
 
         <hr className="top-rule" />
-        <div className="marquee-box">2005年のテキスト投稿サイトをオマージュして再現中。感想・評価の書き込み歓迎です。</div>
 
         {view === 'list' && <NovelList novels={visibleNovels} comments={comments} />}
         {view === 'post' && <PostForm onPost={handlePost} />}
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
-            <div className="section-title">■ 管理者ログイン</div>
-            <div className="legend-box">{isSupabaseMode ? 'Supabase Auth でログインすると管理機能が有効になります。運用時はRLSで管理者権限を制御してください。' : '管理画面はパスワードで保護されています。認証後、編集・削除・非表示が可能です。'}</div>
+            <div className="section-title">管理者ログイン</div>
+            <div style={{ fontSize: 13, color: '#333', marginBottom: 6 }}>{isSupabaseMode ? 'Supabase Auth でログインすると管理機能が有効になります。' : '管理画面はパスワードで保護されています。'}</div>
             <form onSubmit={handleAdminLogin}>
               <table className="classic-table">
                 <tbody>
@@ -423,6 +427,7 @@ const App: React.FC = () => {
         <div className="site-footer">
           文章アリの穴NEO / 稼働環境: React + {isSupabaseMode ? 'Supabase' : 'LocalStorage'}
           <div className="footer-hit">総アクセス数: {visibleNovels.reduce((acc, n) => acc + n.viewCount, 0)} hits</div>
+          <div className="footer-script">Based on Anthology V1.7 Script by YASUU!! (Original Design)</div>
         </div>
 
         {showHelp && (

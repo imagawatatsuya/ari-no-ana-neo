@@ -1,151 +1,260 @@
+/* 文章アリの穴NEO - 2005年オリジナルデザイン完全模倣 */
+
 :root {
-  --page-bg: #d7d7d7;
-  --panel-bg: #fff;
-  --line: #7a7a7a;
-  --line-soft: #a6a6a6;
-  --header-bg: #ececec;
-  --title-red: #7a0000;
-  --title-blue: #0b2c8a;
+  --page-bg: #ffffff;
+  --text: #000000;
+  --link: #0000ee;
+  --link-visited: #551a8b;
+  --link-hover: #cc0000;
+  --table-border: #999999;
+  --table-header-bg: #d4d4d4;
+  --table-cell-border: #bbbbbb;
+  --section-bg: #e8e8e8;
+  --title-box-bg: #f0f0f0;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
+  padding: 0;
   background: var(--page-bg);
-  color: #111;
-  font-family: "MS PGothic", "Osaka", "Hiragino Kaku Gothic Pro", sans-serif;
+  color: var(--text);
+  font-family: "MS PGothic", "Osaka", "Hiragino Kaku Gothic Pro", "ＭＳ Ｐゴシック", sans-serif;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
-a { color: #0000ee; text-decoration: underline; }
-a:visited { color: #551a8b; }
-a:hover, a:active { color: #cc0000; }
+a { color: var(--link); text-decoration: underline; }
+a:visited { color: var(--link-visited); }
+a:hover, a:active { color: var(--link-hover); }
 
-.site-shell { min-height: 100vh; padding: 0; }
+/* === Shell / Panel === */
+.site-shell {
+  min-height: 100vh;
+  padding: 0;
+}
 
 .site-panel {
-  width: 100%;
-  margin: 0;
-  border: 1px solid var(--line);
-  border-left: 0;
-  border-right: 0;
-  background: var(--panel-bg);
-  padding: 6px 10px 10px;
-  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 12px 16px;
+  background: #fff;
 }
 
+/* === Title === */
 .site-title {
-  margin: 0;
+  margin: 4px 0 2px;
   text-align: center;
-  font-size: 34px;
-  letter-spacing: 1px;
-  line-height: 1.05;
+  font-size: 32px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  line-height: 1.2;
 }
 
-.header-links,
-.site-meta,
-.site-footer {
+.site-title a {
+  color: #000;
+  text-decoration: none;
+}
+.site-title a:hover {
+  color: var(--link-hover);
+}
+
+/* === Header links / meta === */
+.header-links {
   text-align: center;
   font-size: 14px;
+  margin-bottom: 2px;
 }
 
-.site-meta { margin-top: 2px; color: #444; }
-.top-rule { border: 0; border-top: 1px solid var(--line); margin: 6px 0 8px; }
+.site-meta {
+  text-align: center;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 4px;
+}
 
+.top-rule {
+  border: 0;
+  border-top: 1px solid #999;
+  margin: 6px 0 8px;
+}
+
+/* === Marquee / info box === */
 .marquee-box {
-  border: 1px solid var(--line-soft);
-  background: #f8f8f8;
   font-size: 13px;
-  padding: 3px 5px;
-  margin-bottom: 6px;
+  color: #333;
+  text-align: center;
+  margin-bottom: 8px;
+  padding: 2px 0;
 }
 
+/* === Section title (gray bar) === */
+.section-title {
+  background: var(--section-bg);
+  border: 1px solid var(--table-border);
+  color: #000;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 3px 6px;
+  margin: 8px 0 4px;
+}
 
+/* === Legend / description box === */
 .legend-box {
-  border: 1px solid var(--line-soft);
-  background: #f9f9f9;
   font-size: 13px;
+  color: #333;
   padding: 4px 6px;
   margin: 0 0 6px;
+  border: 1px solid #ccc;
+  background: #fafafa;
 }
 
-.section-title {
-  border: 1px solid var(--line);
-  background: var(--header-bg);
-  color: var(--title-red);
-  font-weight: bold;
-  padding: 3px 6px;
-  margin: 0 0 5px;
-}
-
+/* === Main table (list) === */
 .classic-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid var(--line);
+  border: 1px solid var(--table-border);
   font-size: 14px;
+  margin-bottom: 8px;
 }
 
 .classic-table th,
 .classic-table td {
-  border: 1px solid var(--line-soft);
-  padding: 3px 5px;
+  border: 1px solid var(--table-cell-border);
+  padding: 4px 6px;
   vertical-align: top;
 }
 
 .classic-table th {
-  background: #e2e2e2;
+  background: var(--table-header-bg);
   text-align: center;
   font-weight: bold;
-}
-
-.novel-title { font-weight: bold; }
-.new-badge { color: #d20000; font-size: 12px; margin-left: 4px; font-weight: bold; }
-.score-pos { color: #003bb3; font-weight: bold; }
-.score-neg { color: #b10000; font-weight: bold; }
-
-.read-title-box {
-  border: 1px solid var(--line);
-  background: #e7e8f4;
-  padding: 7px;
-  margin-bottom: 7px;
-}
-
-.read-title { margin: 0 0 3px; color: var(--title-blue); font-size: 24px; }
-.read-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: #444; }
-
-.body-box {
-  border: 1px solid var(--line-soft);
-  background: #fff;
-  padding: 9px;
-  min-height: 220px;
-  margin-bottom: 7px;
-}
-
-.stat-bar {
-  border: 1px solid var(--line-soft);
-  background: #f1f1f1;
-  text-align: center;
-  padding: 5px;
-  margin-bottom: 10px;
   font-size: 13px;
 }
 
-.comment-item {
-  border: 1px dotted var(--line);
-  background: #fafafa;
-  padding: 5px;
-  margin-bottom: 5px;
+.classic-table td {
+  background: #fff;
 }
-.comment-name { color: #004d00; font-weight: bold; }
-.comment-text { white-space: pre-wrap; }
 
-.form-label { width: 100px; font-weight: bold; font-size: 13px; }
+/* === Novel list specific === */
+.novel-title {
+  font-weight: bold;
+  color: var(--link);
+}
 
-input[type='text'], textarea {
+.new-badge {
+  color: #ff0000;
+  font-size: 11px;
+  font-weight: bold;
+  margin-left: 4px;
+}
+
+.score-pos { color: #0000cc; font-weight: bold; }
+.score-neg { color: #cc0000; font-weight: bold; }
+
+.star-rating {
+  color: #cc8800;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.star-score {
+  font-size: 12px;
+  color: #333;
+}
+
+/* === Article / Reader page === */
+.read-title-box {
+  border: 1px solid var(--table-border);
+  background: var(--title-box-bg);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.read-title {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #000;
+}
+
+.read-sub {
+  font-size: 13px;
+  color: #333;
+}
+
+.body-box {
+  border: 1px solid #ccc;
+  background: #fff;
+  padding: 10px 12px;
+  min-height: 200px;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.stat-bar {
+  border: 1px solid var(--table-border);
+  background: var(--section-bg);
+  text-align: center;
+  padding: 5px 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.vote-breakdown {
+  font-size: 13px;
+  color: #333;
+  text-align: center;
+  margin-top: 3px;
+}
+
+/* === Comments === */
+.comment-item {
+  border-bottom: 1px solid #ddd;
+  padding: 6px 4px;
+  margin-bottom: 0;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-name {
+  font-size: 13px;
+  color: #006600;
+  font-weight: bold;
+}
+
+.comment-text {
+  white-space: pre-wrap;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.comment-number {
+  color: #666;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+/* === Forms === */
+.form-label {
+  width: 90px;
+  font-weight: bold;
+  font-size: 13px;
+  background: #f0f0f0;
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+textarea {
   border: 1px solid #666;
-  padding: 3px;
+  padding: 2px 4px;
   font-family: inherit;
   font-size: 14px;
   background: #fff;
@@ -154,63 +263,81 @@ input[type='text'], textarea {
 textarea { width: 100%; }
 
 .classic-button {
-  border: 1px solid #888;
-  background: #e5e5e5;
-  padding: 1px 8px;
-  font-size: 14px;
+  border: 1px solid #666;
+  background: #e0e0e0;
+  padding: 2px 10px;
+  font-size: 13px;
   cursor: pointer;
+  font-family: inherit;
 }
-.classic-button:active { background: #d7d7d7; }
+.classic-button:hover { background: #d0d0d0; }
+.classic-button:active { background: #c0c0c0; }
+.classic-button:disabled { cursor: default; opacity: 0.6; }
 
+/* === Help button in nav === */
 .help-link-btn {
   border: 0;
   background: transparent;
-  color: #0000ee;
+  color: var(--link);
   text-decoration: underline;
   font-size: 14px;
   cursor: pointer;
   padding: 0;
+  font-family: inherit;
 }
+.help-link-btn:hover { color: var(--link-hover); }
 
-.help-link-btn:hover { color: #cc0000; }
-
+/* === Footer === */
 .site-footer {
-  border-top: 1px solid var(--line-soft);
-  margin-top: 12px;
-  padding-top: 5px;
+  border-top: 1px solid #999;
+  margin-top: 14px;
+  padding-top: 6px;
+  text-align: center;
+  font-size: 12px;
+  color: #555;
 }
 
-.footer-hit { margin-top: 4px; }
+.footer-hit {
+  margin-top: 3px;
+  font-size: 12px;
+}
 
-.error-box {
+.footer-script {
   margin-top: 4px;
-  border: 1px solid #d08080;
-  background: #fff1f1;
-  color: #900;
-  padding: 3px 5px;
+  font-size: 11px;
+  color: #888;
+}
+
+/* === Error box === */
+.error-box {
+  margin: 4px 0;
+  border: 1px solid #cc6666;
+  background: #fff0f0;
+  color: #990000;
+  padding: 4px 6px;
   font-size: 13px;
 }
 
+/* === Help modal === */
 .help-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.3);
   display: grid;
   place-items: center;
   z-index: 20;
 }
 
 .help-box {
-  width: min(92vw, 540px);
-  background: #f0f0f0;
+  width: min(92vw, 520px);
+  background: #f5f5f5;
   border: 1px solid #666;
-  box-shadow: 2px 2px 0 #999;
 }
 
 .help-head {
-  background: #bfbfbf;
+  background: #d4d4d4;
   border-bottom: 1px solid #666;
-  padding: 3px 6px;
+  padding: 4px 8px;
   font-size: 14px;
   font-weight: bold;
   display: flex;
@@ -218,21 +345,41 @@ textarea { width: 100%; }
   align-items: center;
 }
 
-.help-body { padding: 8px; font-size: 14px; }
+.help-body { padding: 10px; font-size: 13px; }
 
-@media (max-width: 640px) {
-  .site-title { font-size: 29px; }
-  .read-sub { display: block; }
-}
-
+/* === Admin === */
 .admin-edit-box {
-  margin-top: 12px;
-  border: 1px solid var(--line);
+  margin-top: 10px;
+  border: 1px solid var(--table-border);
   background: #f8f8f8;
   padding: 8px;
 }
 
-.classic-button:disabled {
-  cursor: default;
-  opacity: 0.7;
+/* === Pagination style === */
+.pagination-bar {
+  text-align: center;
+  font-size: 13px;
+  margin: 6px 0;
+  color: #333;
+}
+
+.pagination-bar a {
+  margin: 0 1px;
+}
+
+/* === Bottom controls (submit/search) === */
+.bottom-controls {
+  text-align: center;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+/* === Responsive === */
+@media (max-width: 640px) {
+  .site-title { font-size: 24px; }
+  .site-panel { padding: 6px 6px 12px; }
+  .classic-table { font-size: 12px; }
+  .classic-table th,
+  .classic-table td { padding: 3px 4px; }
+  .read-sub { display: block; }
 }

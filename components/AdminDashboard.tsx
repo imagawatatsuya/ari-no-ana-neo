@@ -79,8 +79,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   return (
     <div>
-      <div className="section-title">■ 管理ダッシュボード</div>
-      <div className="legend-box">投稿の編集・削除・非表示設定を行います。非表示にした投稿は一覧から隠れます。テスト前にダミーデータへ戻すこともできます。</div>
+      <div className="section-title">管理ダッシュボード</div>
+      <div style={{ fontSize: 13, color: '#333', marginBottom: 6 }}>投稿の編集・削除・非表示設定を行います。</div>
       <div style={{ marginBottom: 8 }}>
         <button type="button" className="classic-button" onClick={onResetSeedData}>テスト用ダミーデータを再投入</button>
       </div>
@@ -130,7 +130,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {editingId && (
         <div className="admin-edit-box">
-          <div className="section-title" style={{ marginBottom: 8 }}>■ 投稿を編集</div>
+          <div className="section-title" style={{ marginBottom: 8 }}>投稿を編集</div>
           <table className="classic-table">
             <tbody>
               <tr>
