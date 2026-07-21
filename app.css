@@ -239,7 +239,7 @@ a:hover {
 .article-subtitle {
   background: var(--subtitle-bg);
   padding: 8px;
-  font-size: 16px;
+  font-size: 75%;
   text-align: center;
 }
 

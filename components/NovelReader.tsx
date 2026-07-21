@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Novel, Comment } from '../types';
-import { calculateScore, formatDate } from '../utils';
+import { calculateScore, formatDate, generateTrip } from '../utils';
 import { FootnoteRenderer } from './FootnoteRenderer';
 
 interface NovelReaderProps {
@@ -30,6 +30,7 @@ const badgeClass = (v: number): string => {
 
 export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onComment }) => {
   const [commentText, setCommentText] = useState('');
+  const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(0);
 
   const { total, count } = calculateScore(comments);
@@ -56,59 +57,62 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
       return;
     }
 
+    const { trip } = generateTrip(commentName);
     onComment({
       id: Date.now().toString(),
       novelId: novel.id,
       name: '',
+      trip,
       text: commentText,
       date: new Date().toISOString(),
       vote,
     });
 
     setCommentText('');
+    setCommentName('');
     setVote(0);
     alert('感想を受け付けました。');
   };
 
   return (
     <div>
-      {/* 戻る */}
+      {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div style={{ marginBottom: 6 }}>
-        <a href="#">&lt;&lt; 戻る</a>
+        <a href="#">&nbsp;戻る</a>
       </div>
 
-      {/* 記事テーブル */}
+      {/* 記事テーブル: 元サイト <table width="90%" cellspacing="4" cellpadding="8" align="center"> */}
       <table className="article-table">
         <tbody>
-          {/* タイトル */}
+          {/* タイトル: .font_title { font-size:240%; font-weight:bold; color:#444444 } */}
           <tr>
             <td className="article-title">{novel.title}</td>
           </tr>
-          {/* 本文 */}
+          {/* メッセージバー: 元サイト <td bgcolor="#D3CEC0" align="center"><span class="font_discription"> — 自由記述 */}
+          {novel.description && (
+            <tr>
+              <td className="article-subtitle">
+                {novel.description}
+              </td>
+            </tr>
+          )}
+          {/* 本文: .font_body { font-size:100%; line-height:150% } */}
           <tr>
             <td className="article-body">
               <FootnoteRenderer content={novel.body} />
             </td>
           </tr>
-          {/* 日付 */}
-          <tr>
-            <td className="article-date" style={{ textAlign: 'right' }}>{formatDate(novel.date)} 公開</td>
-          </tr>
-          {/* 作者メッセージ */}
-          <tr>
-            <td style={{ padding: '4px 8px' }}>
-              <dl style={{ margin: 0 }}>
-                <dt style={{ fontSize: 16 }}>
-                  <b>■作者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>} <b>からのメッセージ</b>
-                </dt>
-                <dd style={{ marginLeft: '3%', fontSize: 16, margin: 0, paddingLeft: '3%' }}>
-                  {novel.author || 'なし'}
-                </dd>
-              </dl>
-            </td>
-          </tr>
         </tbody>
       </table>
+
+      {/* 日付: 元サイトはテーブル外・右寄せ */}
+      <div className="article-date" style={{ textAlign: 'right' }}>{formatDate(novel.date)} 公開</div>
+
+      {/* 作者識別: 元サイト「作者＜trip＞ からのメッセージ」 */}
+      <div style={{ padding: '4px 8px', fontSize: 16 }}>
+        <b>■作者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>} <b>からのメッセージ</b>
+        <div style={{ marginLeft: '3%' }}>{novel.author || '名無し'}</div>
+      </div>
 
       {/* POINT ボックス */}
       <div className="point-box">
@@ -134,7 +138,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
               <div className="comment-footer">
                 <span className="comment-number">{comments.length - idx}:</span>{' '}
                 <span className={badgeClass(c.vote)}>{voteLabel(c.vote)}</span>{' '}
-                <span className="comment-host">{c.name}</span>{' '}
+                {c.trip && <span className="comment-host">＜{c.trip.replace('◆', '')}＞</span>}{' '}
                 <span className="comment-date">{formatDate(c.date)}</span>
               </div>
             </div>
@@ -147,6 +151,10 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
       <form onSubmit={handleSubmit}>
         <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 4 }}>■感想・批評(改行有効）</div>
         <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} style={{ minHeight: 120, width: '100%' }} maxLength={MAX_COMMENT_LENGTH} />
+        <div style={{ marginTop: 6, fontSize: 16 }}>
+          <b>■名前</b>{' '}
+          <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し（トリップ: 名前#pass）" style={{ width: 260 }} />
+        </div>
         <div style={{ marginTop: 6, fontSize: 16 }}>
           <b>■採点</b>{' '}
           <select value={vote} onChange={(e) => setVote(Number(e.target.value))}>
@@ -164,9 +172,9 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
         </div>
       </form>
 
-      {/* 戻る + 管理者用削除セクション */}
+      {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div style={{ marginTop: 12 }}>
-        <a href="#">&lt;&lt; 戻る</a>
+        <a href="#">&nbsp;戻る</a>
       </div>
       <hr style={{ border: '0', borderTop: '1px inset #999', margin: '8px 0' }} />
       <div style={{ fontSize: 14 }}>

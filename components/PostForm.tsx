@@ -8,6 +8,7 @@ interface PostFormProps {
 
 export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
 
@@ -22,6 +23,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
     onPost({
       id: Date.now().toString(),
       title,
+      description,
       author: authorName,
       trip,
       body,
@@ -40,6 +42,18 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
               <td className="form-label">Title</td>
               <td>
                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%' }} />
+              </td>
+            </tr>
+            <tr>
+              <td className="form-label">メッセージ</td>
+              <td>
+                <input
+                  type="text"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="作品ページ上部に表示される自由記述欄"
+                  style={{ width: '360px', maxWidth: '100%' }}
+                />
               </td>
             </tr>
             <tr>
