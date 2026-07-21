@@ -1,29 +1,69 @@
 import React, { useState } from 'react';
 import { Novel } from '../types';
-import { generateTrip } from '../utils';
+import { generateTrip, formatManuscriptPages, formatDate } from '../utils';
+import { FootnoteRenderer } from './FootnoteRenderer';
 
 interface PostFormProps {
   onPost: (novel: Novel) => void;
 }
 
+// 入力長制限
+const MAX_TITLE = 200;
+const MAX_DESCRIPTION = 500;
+const MAX_NAME = 100;
+const MAX_BODY = 100000;
+
+// 連投制限（秒）
+const SPAM_COOLDOWN_MS = 60 * 1000;
+const LAST_POST_KEY = 'bunsho_last_post_at';
+
 export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
+  const [mode, setMode] = useState<'input' | 'preview'>('input');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // プレビュー用の生成データ
+  const { name: authorName, trip } = generateTrip(name);
+
+  const validate = (): boolean => {
+    if (!title.trim()) {
+      alert('タイトルは必須です。');
+      return false;
+    }
+    if (!body.trim()) {
+      alert('本文は必須です。');
+      return false;
+    }
+    return true;
+  };
+
+  const handlePreview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !body) {
-      alert('タイトルと本文は必須です。');
+    if (!validate()) return;
+    setMode('preview');
+  };
+
+  const handleSubmit = () => {
+    if (isSubmitting) return;
+
+    // 連投制限チェック
+    const lastPostAt = Number(sessionStorage.getItem(LAST_POST_KEY) || 0);
+    if (lastPostAt && Date.now() - lastPostAt < SPAM_COOLDOWN_MS) {
+      const remainSec = Math.ceil((SPAM_COOLDOWN_MS - (Date.now() - lastPostAt)) / 1000);
+      alert(`連続投稿は${remainSec}秒後に再度お試しください。`);
       return;
     }
 
-    const { name: authorName, trip } = generateTrip(name);
+    setIsSubmitting(true);
+    sessionStorage.setItem(LAST_POST_KEY, String(Date.now()));
+
     onPost({
       id: Date.now().toString(),
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim() || undefined,
       author: authorName,
       trip,
       body,
@@ -32,16 +72,81 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
     });
   };
 
+  const handleBack = () => {
+    setMode('input');
+  };
+
+  // ===== プレビュー画面 =====
+  if (mode === 'preview') {
+    const previewDate = formatDate(new Date().toISOString());
+    const pageCount = formatManuscriptPages(body);
+
+    return (
+      <div>
+        <div style={{ marginBottom: 6 }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); handleBack(); }}>&nbsp;修正する</a>
+        </div>
+
+        {/* 作品ページと同一レイアウト */}
+        <table className="article-table">
+          <tbody>
+            <tr>
+              <td className="article-title">{title}</td>
+            </tr>
+            {pageCount && (
+              <tr>
+                <td className="article-page-count">{pageCount}</td>
+              </tr>
+            )}
+            {description.trim() && (
+              <tr>
+                <td className="article-subtitle">{description}</td>
+              </tr>
+            )}
+            <tr>
+              <td className="article-body">
+                <FootnoteRenderer content={body} />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="article-date" style={{ textAlign: 'right' }}>{previewDate} 公開（予定）</div>
+
+        <div style={{ padding: '4px 8px', fontSize: 16 }}>
+          <b>■作者</b>{trip && <span>＜{trip.replace('◆', '')}＞</span>} <b>からのメッセージ</b>
+          <div style={{ marginLeft: '3%' }}>{authorName}</div>
+        </div>
+
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
+          <button type="button" className="classic-button" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? '送信中...' : '投稿する'}
+          </button>{' '}
+          <button type="button" className="classic-button" onClick={handleBack}>修正する</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== 入力画面 =====
+  const livePageCount = formatManuscriptPages(body);
+
   return (
     <div>
-      <div className="section-title">新規投稿</div>
-      <form onSubmit={handleSubmit} style={{ marginTop: 6 }}>
+      <div className="section-title">■ 新規投稿</div>
+      <form onSubmit={handlePreview} style={{ marginTop: 6 }}>
         <table className="form-table">
           <tbody>
             <tr>
-              <td className="form-label">Title</td>
+              <td className="form-label">タイトル</td>
               <td>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%' }} />
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={MAX_TITLE}
+                  style={{ width: '100%' }}
+                />
               </td>
             </tr>
             <tr>
@@ -51,7 +156,8 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="作品ページ上部に表示される自由記述欄"
+                  maxLength={MAX_DESCRIPTION}
+                  placeholder="作品ページ上部に表示される自由記述欄（任意）"
                   style={{ width: '360px', maxWidth: '100%' }}
                 />
               </td>
@@ -63,6 +169,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  maxLength={MAX_NAME}
                   placeholder="名無し（トリップ: 名前#pass）"
                   style={{ width: '360px', maxWidth: '100%' }}
                 />
@@ -71,14 +178,23 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
             <tr>
               <td className="form-label">本文</td>
               <td>
-                <textarea value={body} onChange={(e) => setBody(e.target.value)} style={{ minHeight: 260 }} />
+                <textarea
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  maxLength={MAX_BODY}
+                  style={{ minHeight: 280 }}
+                />
+                {livePageCount && (
+                  <div style={{ fontSize: 13, marginTop: 2, color: '#555' }}>
+                    原稿用紙換算: {livePageCount}
+                  </div>
+                )}
               </td>
             </tr>
             <tr>
               <td />
-              <td>
-                <button type="submit" className="classic-button">投稿する</button>{' '}
-                <a href="#">キャンセル</a>
+              <td style={{ textAlign: 'center' }}>
+                <button type="submit" className="classic-button">プレビュー</button>
               </td>
             </tr>
           </tbody>

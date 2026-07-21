@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Novel, Comment } from '../types';
-import { calculateScore, formatDate, generateTrip, countManuscriptPages } from '../utils';
+import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer } from './FootnoteRenderer';
 
 interface NovelReaderProps {
@@ -88,10 +88,12 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
           <tr>
             <td className="article-title">{novel.title}</td>
           </tr>
-          {/* 原稿用紙換算枚数: 元サイト【N 枚】表示 */}
-          <tr>
-            <td className="article-page-count">【{countManuscriptPages(novel.body)} 枚】</td>
-          </tr>
+          {/* 原稿用紙換算枚数: 元サイト【N 枚】表示 / 1枚未満表示 */}
+          {formatManuscriptPages(novel.body) && (
+            <tr>
+              <td className="article-page-count">{formatManuscriptPages(novel.body)}</td>
+            </tr>
+          )}
           {/* メッセージバー: 元サイト <td bgcolor="#D3CEC0" align="center"><span class="font_discription"> — 自由記述 */}
           {novel.description && (
             <tr>

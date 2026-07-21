@@ -76,6 +76,32 @@ export const countManuscriptPages = (text: string): number => {
   return Math.ceil(totalCells / CHARS_PER_PAGE);
 };
 
+/**
+ * 原稿用紙換算枚数の表示文字列を生成する
+ * - 本文が空 → 空文字（非表示）
+ * - 1枚未満（400マス未満） → 「1枚未満」
+ * - 1枚以上 → 「【N 枚】」
+ */
+export const formatManuscriptPages = (text: string): string => {
+  if (!text || text.trim().length === 0) return '';
+
+  const CHARS_PER_LINE = 20;
+  const CHARS_PER_PAGE = 400;
+
+  const lines = text.split('\n');
+  let totalCells = 0;
+  for (const line of lines) {
+    if (line.length === 0) {
+      totalCells += CHARS_PER_LINE;
+    } else {
+      totalCells += Math.ceil(line.length / CHARS_PER_LINE) * CHARS_PER_LINE;
+    }
+  }
+
+  if (totalCells < CHARS_PER_PAGE) return '1枚未満';
+  return `【${Math.ceil(totalCells / CHARS_PER_PAGE)} 枚】`;
+};
+
 // 5段階の星レーティング文字列を生成 (オリジナルの★★★★☆形式)
 export const formatStarRating = (comments: any[]): { stars: string; score: string } => {
   const { total, count, avg } = calculateScore(comments);

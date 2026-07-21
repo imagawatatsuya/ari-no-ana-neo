@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { formatDate, generateTrip, calculateScore, countManuscriptPages } from './utils.ts';
+import { formatDate, generateTrip, calculateScore, countManuscriptPages, formatManuscriptPages } from './utils.ts';
 
 test('generateTrip: empty input falls back to 名無し', () => {
   const result = generateTrip('');
@@ -62,4 +62,25 @@ test('countManuscriptPages: empty lines count as 1 line', () => {
   // 19 lines of 20 chars + 1 empty line = 19×20 + 20 = 400 → 1 page
   const text = Array(19).fill('あ'.repeat(20)).join('\n') + '\n';
   assert.equal(countManuscriptPages(text), 1);
+});
+
+test('formatManuscriptPages: empty text returns empty string', () => {
+  assert.equal(formatManuscriptPages(''), '');
+  assert.equal(formatManuscriptPages('   '), '');
+});
+
+test('formatManuscriptPages: short text shows 1枚未満', () => {
+  // 10 chars = 20 cells < 400 → 1枚未満
+  const text = 'あ'.repeat(10);
+  assert.equal(formatManuscriptPages(text), '1枚未満');
+});
+
+test('formatManuscriptPages: exactly 400 cells shows 【1 枚】', () => {
+  const text = 'あ'.repeat(400);
+  assert.equal(formatManuscriptPages(text), '【1 枚】');
+});
+
+test('formatManuscriptPages: normal text shows 【N 枚】', () => {
+  const text = 'あ'.repeat(800);
+  assert.equal(formatManuscriptPages(text), '【2 枚】');
 });
