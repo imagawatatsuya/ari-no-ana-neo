@@ -30,29 +30,25 @@ body {
   font-family: "Times New Roman", "MS PGothic", "Osaka", serif;
   font-size: 16px;
   line-height: 1.5;
-  /* 日本語組版: 約物アキ調整 (Chrome/Edge progressive enhancement) */
-  text-spacing-trim: space-all;
-  /* 日本語組版: 行末句読点のぶら下げ */
-  hanging-punctuation: allow-end;
-  /* 日本語組版: 禁則処理 */
-  overflow-wrap: anywhere;
-  word-break: normal;
-  line-break: strict;
+  word-break: break-all;
 }
 
 a {
   color: var(--link);
   text-decoration: none;
 }
+a:visited {
+  color: #9e9e9e;
+}
 a:hover {
   text-decoration: underline;
 }
 
 /* === Shell === */
+/* 元サイトは固定幅なし・ブラウザ全幅 (table width="100%") */
 .site-shell {
-  width: 610px;
-  max-width: 100%;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 0;
 }
 
@@ -84,7 +80,7 @@ a:hover {
 .site-title {
   margin: 0;
   text-align: center;
-  font-size: 38px;
+  font-size: 240%;
   font-weight: bold;
   color: var(--title-color);
   line-height: 1.2;
@@ -217,13 +213,14 @@ a:hover {
 }
 
 /* === Article / Reader page === */
+/* 元サイト: <table width="90%" cellspacing="4" cellpadding="8" align="center"> — 枠線・背景なし */
 .article-table {
-  width: 100%;
+  width: 90%;
+  margin: 0 auto 8px;
   border-collapse: separate;
-  border-spacing: 0;
-  border: 1px solid var(--table-border);
-  background: var(--table-bg);
-  margin: 0 0 8px;
+  border-spacing: 4px;
+  border: none;
+  background: none;
 }
 
 .article-table td {
@@ -232,7 +229,7 @@ a:hover {
 }
 
 .article-title {
-  font-size: 38px;
+  font-size: 240%;
   font-weight: bold;
   color: var(--title-color);
   text-align: center;
@@ -243,18 +240,14 @@ a:hover {
   background: var(--subtitle-bg);
   padding: 8px;
   font-size: 16px;
+  text-align: center;
 }
 
 .article-body {
   padding: 8px;
   font-size: 16px;
-  line-height: 1.75;
+  line-height: 1.5;
   white-space: pre-wrap;
-  /* 日本語組版: 本文の読みやすさ向上 */
-  text-align: justify;
-  text-justify: inter-character;
-  font-feature-settings: "palt" 1;
-  letter-spacing: 0.02em;
 }
 
 .article-date {
@@ -277,11 +270,13 @@ a:hover {
 }
 
 /* === Point box === */
+/* 元サイト: <table width="85%" align="center" border="1" cellpadding="10"> */
 .point-box {
+  width: 85%;
   border: 1px solid var(--comment-border);
   background: #FFFFFF;
   padding: 10px;
-  margin: 8px 30px;
+  margin: 0 auto 8px;
   text-align: center;
 }
 
@@ -581,8 +576,8 @@ select:focus-visible {
 /* === Responsive === */
 @media (max-width: 640px) {
   body { margin: 4px; }
-  .site-shell { width: 100%; }
-  .site-title { font-size: 28px; }
-  .article-title { font-size: 28px; }
-  .point-box { margin: 8px 10px; }
+  .site-title { font-size: 180%; }
+  .article-title { font-size: 180%; }
+  .article-table { width: 100%; }
+  .point-box { width: 100%; }
 }
