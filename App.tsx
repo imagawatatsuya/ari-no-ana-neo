@@ -38,6 +38,8 @@ const App: React.FC = () => {
   const [adminPassInput, setAdminPassInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   // サーバーサイドページング用
   const [totalNovelCount, setTotalNovelCount] = useState(0);
   const [readNovel, setReadNovel] = useState<Novel | null>(null);
@@ -86,9 +88,9 @@ const App: React.FC = () => {
   // Supabaseモード: ページ遷移時にサーバーから当該ページ取得
   useEffect(() => {
     if (isSupabaseMode && view === 'list') {
-      fetchPageFromSupabase(currentPage);
+      fetchPageFromSupabase(currentPage, searchQuery);
     }
-  }, [currentPage, view, isSupabaseMode]);
+  }, [currentPage, view, isSupabaseMode, searchQuery]);
 
   // Supabaseモード: 作品閲覧時に個別取得
   useEffect(() => {
@@ -158,28 +160,37 @@ const App: React.FC = () => {
   };
 
   // --- Supabase: サーバーサイドページング（一覧用: 20件ずつ） ---
-  const fetchPageFromSupabase = async (page: number) => {
+  const fetchPageFromSupabase = async (page: number, search?: string) => {
     if (!supabase) return;
     setIsLoading(true);
     try {
       const from = (page - 1) * NOVELS_PER_PAGE;
       const to = from + NOVELS_PER_PAGE - 1;
+      const trimmed = (search ?? '').trim();
 
-      // 総件数取得（is_hidden=false のみ）
-      const { count, error: countError } = await supabase
+      // 総件数取得（is_hidden=false のみ、検索条件付き）
+      let countQuery = supabase
         .from('novels')
         .select('*', { count: 'exact', head: true })
         .eq('is_hidden', false);
+      if (trimmed) {
+        countQuery = countQuery.or(`title.ilike.%${trimmed}%,author.ilike.%${trimmed}%`);
+      }
+      const { count, error: countError } = await countQuery;
       if (countError) throw countError;
       setTotalNovelCount(count ?? 0);
 
       // 当該ページの作品取得
-      const { data: novelsData, error: novelsError } = await supabase
+      let novelsQuery = supabase
         .from('novels')
         .select('*')
         .eq('is_hidden', false)
         .order('date', { ascending: false })
         .range(from, to);
+      if (trimmed) {
+        novelsQuery = novelsQuery.or(`title.ilike.%${trimmed}%,author.ilike.%${trimmed}%`);
+      }
+      const { data: novelsData, error: novelsError } = await novelsQuery;
       if (novelsError) throw novelsError;
 
       const mappedNovels: Novel[] = (novelsData || []).map((n: any) => ({
@@ -509,11 +520,29 @@ const App: React.FC = () => {
     alert('ダミーデータを再投入しました。');
   };
 
+  // --- 検索ハンドラ ---
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchQuery(searchInput);
+    setCurrentPage(1);
+  };
+
+  const handleSearchClear = () => {
+    setSearchInput('');
+    setSearchQuery('');
+    setCurrentPage(1);
+  };
+
   // --- ページング計算（モード分岐） ---
-  const visibleNovels = useMemo(
-    () => novels.filter((novel) => !hiddenNovelIds.includes(novel.id)),
-    [novels, hiddenNovelIds],
-  );
+  const visibleNovels = useMemo(() => {
+    let list = novels.filter((novel) => !hiddenNovelIds.includes(novel.id));
+    // オフラインモード: クライアント側で検索フィルタ
+    if (!isSupabaseMode && searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter((n) => n.title.toLowerCase().includes(q) || n.author.toLowerCase().includes(q));
+    }
+    return list;
+  }, [novels, hiddenNovelIds, isSupabaseMode, searchQuery]);
 
   // Supabaseモード: サーバーが総件数を返す / オフライン: クライアント計算
   const totalPages = isSupabaseMode
@@ -614,6 +643,20 @@ const App: React.FC = () => {
         </>)}
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
+
+        {view === 'list' && (
+          <form className="search-bar" onSubmit={handleSearch}>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="タイトル / 作者で検索"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <button type="submit" className="classic-button">検索</button>
+            {searchQuery && <button type="button" className="classic-button" onClick={handleSearchClear}>解除</button>}
+          </form>
+        )}
 
         {view === 'list' && <NovelList novels={pagedNovels} comments={comments} />}
         {view === 'list' && totalPages > 1 && (

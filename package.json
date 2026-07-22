@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "node --import tsx --test",
+    "test:e2e": "npx playwright test",
     "preview:static": "python3 -m http.server 4173"
   },
   "dependencies": {

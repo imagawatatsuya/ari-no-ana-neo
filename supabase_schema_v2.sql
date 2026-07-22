@@ -6,6 +6,7 @@ create extension if not exists pgcrypto;
 create table if not exists public.novels (
   id text primary key,
   title text not null,
+  description text,
   author text not null,
   trip text,
   body text not null,
@@ -34,21 +35,26 @@ alter table public.comments enable row level security;
 alter table public.admin_users enable row level security;
 
 -- Public read access
-create policy if not exists novels_select_public on public.novels
+drop policy if exists novels_select_public on public.novels;
+create policy novels_select_public on public.novels
 for select using (true);
 
-create policy if not exists comments_select_public on public.comments
+drop policy if exists comments_select_public on public.comments;
+create policy comments_select_public on public.comments
 for select using (true);
 
 -- Public posting
-create policy if not exists novels_insert_public on public.novels
+drop policy if exists novels_insert_public on public.novels;
+create policy novels_insert_public on public.novels
 for insert with check (true);
 
-create policy if not exists comments_insert_public on public.comments
+drop policy if exists comments_insert_public on public.comments;
+create policy comments_insert_public on public.comments
 for insert with check (true);
 
 -- Only admin users can edit/delete rows
-create policy if not exists novels_update_admin_only on public.novels
+drop policy if exists novels_update_admin_only on public.novels;
+create policy novels_update_admin_only on public.novels
 for update using (
   exists (
     select 1 from public.admin_users au
@@ -62,7 +68,8 @@ with check (
   )
 );
 
-create policy if not exists novels_delete_admin_only on public.novels
+drop policy if exists novels_delete_admin_only on public.novels;
+create policy novels_delete_admin_only on public.novels
 for delete using (
   exists (
     select 1 from public.admin_users au
@@ -70,7 +77,8 @@ for delete using (
   )
 );
 
-create policy if not exists comments_delete_admin_only on public.comments
+drop policy if exists comments_delete_admin_only on public.comments;
+create policy comments_delete_admin_only on public.comments
 for delete using (
   exists (
     select 1 from public.admin_users au
@@ -94,7 +102,8 @@ revoke all on function public.increment_novel_view(text) from public;
 grant execute on function public.increment_novel_view(text) to anon, authenticated;
 
 -- Optional hardening: keep admin_users list private.
-create policy if not exists admin_users_select_self on public.admin_users
+drop policy if exists admin_users_select_self on public.admin_users;
+create policy admin_users_select_self on public.admin_users
 for select using (auth.uid() = user_id);
 
 -- How to assign an admin user (run after creating auth user):
@@ -103,3 +112,4 @@ for select using (auth.uid() = user_id);
 
 -- Migration for existing databases (run once):
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false;
+-- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS description text;
