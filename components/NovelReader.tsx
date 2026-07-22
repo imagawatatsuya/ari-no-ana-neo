@@ -169,8 +169,8 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
             <option value={1}>良い</option>
             <option value={-1}>良くない</option>
             <option value={-2}>最悪</option>
-          </select>{' '}
-          <span style={{ fontSize: 13, color: '#666' }}>(採点はひとり１回まで。２回目以降の採点や作者の採点は集計されません)</span>
+          </select>
+          <span className="vote-note" style={{ fontSize: 13, color: '#666' }}>(採点はひとり１回まで。２回目以降の採点や作者の採点は集計されません)</span>
         </div>
         <div style={{ marginTop: 8, textAlign: 'center' }}>
           <button type="submit" className="classic-button">投稿</button>{' '}
@@ -183,9 +183,9 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
         <a href="#" className="back-link">&nbsp;戻る</a>
       </div>
       <hr style={{ border: '0', borderTop: '1px inset #999', margin: '8px 0' }} />
-      <div style={{ fontSize: 14 }}>
-        [ <a href="#admin">感想記事削除</a> ]{' '}
-        <input type="password" placeholder="PASSWORD" style={{ width: 120, maxWidth: '40%' }} readOnly onClick={() => { window.location.hash = '#admin'; }} />{' '}
+      <div className="admin-inline-section" style={{ fontSize: 14 }}>
+        <span>[ <a href="#admin">感想記事削除</a> ]</span>
+        <input type="password" placeholder="PASSWORD" style={{ width: 120, maxWidth: '40%' }} readOnly onClick={() => { window.location.hash = '#admin'; }} />
         <button type="button" className="classic-button" onClick={() => { window.location.hash = '#admin'; }}>管理者用</button>
       </div>
     </div>

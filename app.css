@@ -624,11 +624,18 @@ select:focus-visible {
     align-items: baseline;
     column-gap: 10px;
     row-gap: 2px;
-    padding: 8px 6px 2px;
+    padding: 12px 8px 4px;
   }
   .entry-title-row td:first-child {
     flex-basis: 100%;
     padding: 0;
+  }
+  /* タイトルリンク: タップ領域拡大 */
+  .entry-title-link {
+    display: inline-block;
+    padding: 4px 0;
+    min-height: 36px;
+    line-height: 28px;
   }
   .entry-title-row .entry-date {
     padding: 0;
@@ -650,12 +657,12 @@ select:focus-visible {
 
   /* メタ行 */
   .entry-meta-row td {
-    padding: 2px 6px 8px;
+    padding: 2px 8px 12px;
     font-size: 12px;
   }
 
   /* セパレータ行 */
-  .entry-separator { margin: 0 6px; }
+  .entry-separator { margin: 0 8px; }
 
   /* --- フォーム: 縦積み --- */
   .form-table, .form-table tbody, .form-table tr, .form-table td {
@@ -681,12 +688,14 @@ select:focus-visible {
     min-height: 44px;
   }
 
-  /* --- 戻るリンク: タップしやすく --- */
+  /* --- 戻るリンク: 視認性 & タップしやすく --- */
   .back-link {
     display: inline-block;
-    padding: 10px 12px;
+    padding: 10px 16px;
     min-height: 44px;
     line-height: 24px;
+    background: var(--table-bg);
+    border: 1px solid var(--table-border);
   }
 
   /* --- POINT内訳: 読みやすさ向上 --- */
@@ -696,7 +705,32 @@ select:focus-visible {
   }
 
   /* --- コメント --- */
-  .comment-block { padding: 8px; }
+  .comment-block { padding: 10px; margin-bottom: 6px; }
+
+  /* --- 作品ページ: セクション間余白 --- */
+  .section-title { margin-top: 16px; }
+  .point-box { margin-bottom: 16px; padding: 12px; }
+
+  /* --- 管理者セクション: 縦積み --- */
+  .admin-inline-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .admin-inline-section input[type='password'] {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* --- 採点説明文: 独立行表示 --- */
+  .vote-note {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+  }
 
   /* --- stats-row --- */
   .stats-row { font-size: 12px; }
