@@ -95,13 +95,11 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
             </tr>
           )}
           {/* メッセージバー: 元サイト <td bgcolor="#D3CEC0" align="center"><span class="font_discription"> — 自由記述 */}
-          {novel.description && (
-            <tr>
-              <td className="article-subtitle">
-                {novel.description}
-              </td>
-            </tr>
-          )}
+          <tr>
+            <td className={novel.description ? 'article-subtitle' : 'article-subtitle article-subtitle-empty'}>
+              {novel.description || 'なし'}
+            </td>
+          </tr>
           {/* 本文: .font_body { font-size:100%; line-height:150% } */}
           <tr>
             <td className="article-body">

@@ -98,11 +98,11 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
                 <td className="article-page-count">{pageCount}</td>
               </tr>
             )}
-            {description.trim() && (
-              <tr>
-                <td className="article-subtitle">{description}</td>
-              </tr>
-            )}
+            <tr>
+              <td className={description.trim() ? 'article-subtitle' : 'article-subtitle article-subtitle-empty'}>
+                {description.trim() || 'なし'}
+              </td>
+            </tr>
             <tr>
               <td className="article-body">
                 <FootnoteRenderer content={body} />
@@ -133,6 +133,9 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
 
   return (
     <div>
+      <div style={{ marginBottom: 6 }}>
+        <a href="#">&nbsp;戻る</a>
+      </div>
       <div className="section-title">■ 新規投稿</div>
       <form onSubmit={handlePreview} style={{ marginTop: 6 }}>
         <table className="form-table">

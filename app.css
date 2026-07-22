@@ -271,6 +271,12 @@ a:hover {
   text-align: center;
 }
 
+.article-subtitle-empty {
+  color: #B0AAA0;
+  letter-spacing: 0.3em;
+  user-select: none;
+}
+
 /* ezdogノウハウ: 本文両端揃え + 日本語組版 */
 .article-body {
   padding: 8px;
