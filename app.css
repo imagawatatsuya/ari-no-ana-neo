@@ -579,11 +579,51 @@ select:focus-visible {
   outline-offset: 1px;
 }
 
-/* === Responsive === */
+/* === Responsive (mobile only — desktop はオリジナル CGI デザインを維持) === */
 @media (max-width: 640px) {
   body { margin: 4px; }
   .site-title { font-size: 180%; }
-  .article-title { font-size: 180%; }
-  .article-table { width: 100%; }
+  .article-title { font-size: 160%; }
+  .article-table { width: 100%; border-spacing: 2px; }
   .point-box { width: 100%; }
+
+  /* --- 一覧テーブル: 横スクロール防止 --- */
+  .classic-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .classic-table thead, .classic-table tbody, .classic-table tr { display: table; width: 100%; table-layout: fixed; }
+  .classic-table thead { display: table; width: 100%; }
+  .entry-date, .entry-point { white-space: normal; }
+
+  /* --- ナビゲーション: 折り返し対応 --- */
+  .top-nav { font-size: 14px; line-height: 1.8; }
+
+  /* --- フォーム: 縦積み --- */
+  .form-table, .form-table tbody, .form-table tr, .form-table td {
+    display: block; width: 100%;
+  }
+  .form-label { width: auto; padding-bottom: 2px; }
+  .form-table td { padding: 2px 6px 6px; }
+
+  /* --- 入力要素: iOSズーム防止 & 幅溢れ防止 --- */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  textarea, select {
+    font-size: 16px;
+    max-width: 100%;
+  }
+
+  /* --- ボタン: タップターゲット拡大 --- */
+  .classic-button {
+    padding: 8px 14px;
+    font-size: 15px;
+  }
+
+  /* --- POINT内訳: 折り返し --- */
+  .point-breakdown { line-height: 1.8; }
+
+  /* --- コメントフォーム名前欄 --- */
+  .comment-block { padding: 8px; }
+
+  /* --- stats-row --- */
+  .stats-row { font-size: 12px; }
 }

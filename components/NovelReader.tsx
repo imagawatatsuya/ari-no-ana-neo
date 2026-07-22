@@ -159,7 +159,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
         <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} style={{ minHeight: 120, width: '100%' }} maxLength={MAX_COMMENT_LENGTH} />
         <div style={{ marginTop: 6, fontSize: 16 }}>
           <b>■名前</b>{' '}
-          <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し（トリップ: 名前#pass）" style={{ width: 260 }} />
+          <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し（トリップ: 名前#pass）" style={{ width: 260, maxWidth: '100%' }} />
         </div>
         <div style={{ marginTop: 6, fontSize: 16 }}>
           <b>■採点</b>{' '}
@@ -185,7 +185,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
       <hr style={{ border: '0', borderTop: '1px inset #999', margin: '8px 0' }} />
       <div style={{ fontSize: 14 }}>
         [ <a href="#admin">感想記事削除</a> ]{' '}
-        <input type="password" placeholder="PASSWORD" style={{ width: 120 }} readOnly onClick={() => { window.location.hash = '#admin'; }} />{' '}
+        <input type="password" placeholder="PASSWORD" style={{ width: 120, maxWidth: '40%' }} readOnly onClick={() => { window.location.hash = '#admin'; }} />{' '}
         <button type="button" className="classic-button" onClick={() => { window.location.hash = '#admin'; }}>管理者用</button>
       </div>
     </div>
