@@ -23,6 +23,7 @@ const HIDDEN_IDS_STORAGE_KEY = 'bunsho_hidden_novel_ids_v1';
 const ADMIN_AUTH_STORAGE_KEY = 'bunsho_admin_auth_v1';
 const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
 const localAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD?.trim() || '';
+const NOVELS_PER_PAGE = 20;
 
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
@@ -36,6 +37,7 @@ const App: React.FC = () => {
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPassInput, setAdminPassInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const isSupabaseMode = !!supabase;
 
@@ -95,7 +97,13 @@ const App: React.FC = () => {
         }
         setView('admin');
         setActiveNovelId(null);
+      } else if (hash.startsWith('#page/')) {
+        const pageNum = parseInt(hash.replace('#page/', ''), 10);
+        setCurrentPage(isNaN(pageNum) ? 1 : Math.max(1, pageNum));
+        setView('list');
+        setActiveNovelId(null);
       } else {
+        setCurrentPage(1);
         setView('list');
         setActiveNovelId(null);
       }
@@ -304,6 +312,13 @@ const App: React.FC = () => {
     [novels, hiddenNovelIds],
   );
 
+  const totalPages = Math.max(1, Math.ceil(visibleNovels.length / NOVELS_PER_PAGE));
+  const clampedPage = Math.min(currentPage, totalPages);
+  const pagedNovels = useMemo(
+    () => visibleNovels.slice((clampedPage - 1) * NOVELS_PER_PAGE, clampedPage * NOVELS_PER_PAGE),
+    [visibleNovels, clampedPage],
+  );
+
   const activeNovel = visibleNovels.find((n) => n.id === activeNovelId);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -368,7 +383,12 @@ const App: React.FC = () => {
 
         {/* ステータス行 */}
         <div className="stats-row">
-          <span>{visibleNovels.length}／{novels.length}ページ [ 現在 {visibleNovels.length} 作品 ]</span>
+          <span>
+            {visibleNovels.length === novels.length
+              ? `全 ${novels.length} 作品`
+              : `全 ${novels.length} 作品中 ${visibleNovels.length} 表示`}
+            {totalPages > 1 && ` [ ${clampedPage}/${totalPages} ページ ]`}
+          </span>
           <span>
             モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
           </span>
@@ -377,7 +397,24 @@ const App: React.FC = () => {
 
         {errorMsg && <div className="error-box">{errorMsg}</div>}
 
-        {view === 'list' && <NovelList novels={visibleNovels} comments={comments} />}
+        {view === 'list' && <NovelList novels={pagedNovels} comments={comments} />}
+        {view === 'list' && totalPages > 1 && (
+          <nav className="pagination" aria-label="ページナビゲーション">
+            {clampedPage > 1 && (
+              <a href={`#page/${clampedPage - 1}`} className="pagination-arrow">&lt;&lt; 前へ</a>
+            )}
+            <span className="pagination-dots">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) =>
+                p === clampedPage
+                  ? <span key={p} className="pagination-dot pagination-dot-active" aria-current="page">●</span>
+                  : <a key={p} href={`#page/${p}`} className="pagination-dot">○</a>
+              )}
+            </span>
+            {clampedPage < totalPages && (
+              <a href={`#page/${clampedPage + 1}`} className="pagination-arrow">次へ &gt;&gt;</a>
+            )}
+          </nav>
+        )}
         {view === 'post' && <PostForm onPost={handlePost} />}
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
