@@ -96,7 +96,8 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
           )}
           {/* メッセージバー: 元サイト <td bgcolor="#D3CEC0" align="center"><span class="font_discription"> — 自由記述 */}
           <tr>
-            <td className={novel.description ? 'article-subtitle' : 'article-subtitle article-subtitle-empty'}>
+            <td className={novel.description ? 'article-subtitle' : 'article-subtitle article-subtitle-empty'}
+                aria-hidden={!novel.description || undefined}>
               {novel.description || 'なし'}
             </td>
           </tr>
@@ -121,9 +122,9 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
       {/* POINT ボックス */}
       <div className="point-box">
         現在のPOINT [ <span className="point-value">{total}</span> ] 投票数 [ {count} ]
-        <div>
-          <span className="stars-on">{starsOn}</span>
-          <span className="stars-off">{starsOff}</span>
+        <div aria-label={`5点満点中${filled}点`}>
+          <span className="stars-on" aria-hidden="true">{starsOn}</span>
+          <span className="stars-off" aria-hidden="true">{starsOff}</span>
         </div>
         <div className="point-breakdown">
           内訳： とても良い [ {voteBreakdown.best} ] 良い [ {voteBreakdown.good} ] 普通 [ {voteBreakdown.normal} ] 良くない [ {voteBreakdown.bad} ] 最悪 [ {voteBreakdown.worst} ]
@@ -168,7 +169,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
             <option value={-1}>良くない</option>
             <option value={-2}>最悪</option>
           </select>
-          <span className="vote-note" style={{ fontSize: 13, color: '#666' }}>(採点はひとり１回まで。２回目以降の採点や作者の採点は集計されません)</span>
+          <span className="vote-note">(採点はひとり１回まで。２回目以降の採点や作者の採点は集計されません)</span>
         </div>
         <div style={{ marginTop: 8, textAlign: 'center' }}>
           <button type="submit" className="classic-button">投稿</button>{' '}

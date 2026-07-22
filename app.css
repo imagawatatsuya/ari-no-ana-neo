@@ -1,23 +1,62 @@
 /* 文章アリの穴NEO - 2005年オリジナル "Anthology V1.7" デザイン完全再現 */
 
 :root {
+  color-scheme: light dark;
+
   --body-bg: #F2F2E8;
   --text: #333333;
   --title-color: #444444;
   --link: #3D3832;
+  --link-visited: #7a7a72;
   --table-border: #D3CEC0;
   --table-bg: #FCFCFC;
   --th-bg: #CCCCCC;
   --comment-border: #C0BAAF;
   --stars-on: #598AAF;
   --stars-off: #E3E3D9;
-  --point-gray: #AAAAAA;
+  --point-gray: #767676;
   --hr-color: #808080;
   --subtitle-bg: #D3CEC0;
+  --subtitle-empty: #B0AAA0;
   --badge-pink: #E9BAB8;
   --badge-gray: #D8D8D8;
-  --comment-num: #999999;
+  --badge-text: #fff;
+  --comment-num: #767676;
   --pagination-dot: #C0BAAF;
+
+  /* フォーム控件 */
+  --input-bg: #ffffff;
+  --input-border: #666666;
+  --input-text: #333333;
+  --button-bg: #F0F0F0;
+  --button-border: #cccccc;
+  --button-text: #333333;
+
+  /* 強調・警告 */
+  --error-bg: #fff0f0;
+  --error-border: #cc6666;
+  --error-text: #990000;
+  --score-pos: #336633;
+  --score-neg: #993333;
+
+  /* 脚注 */
+  --footnote-ref: #cc0000;
+  --footnote-heading: #800000;
+  --footnote-text: #444444;
+  --footnote-border: #999999;
+  --body-link: #598AAF;
+
+  /* 管理画面 */
+  --admin-bulk-bg: #fffde6;
+  --admin-bulk-border: #e0d8a0;
+  --admin-hidden-bg: #f5f0e8;
+  --admin-hidden-badge: #993333;
+
+  /* ポイントボックス */
+  --point-bg: #FFFFFF;
+
+  /* ヘルプモーダル */
+  --modal-backdrop: rgba(0,0,0,0.3);
 
   /* ezdogノウハウ: 日本語組版ルート設定 */
   line-break: strict;
@@ -44,7 +83,7 @@ a {
   text-decoration: none;
 }
 a:visited {
-  color: #9e9e9e;
+  color: var(--link-visited);
 }
 a:hover {
   text-decoration: underline;
@@ -215,6 +254,12 @@ a:hover {
   color: var(--text);
 }
 
+.entry-new-badge {
+  color: var(--footnote-ref);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
 .entry-separator {
   border: 0;
   border-top: 1px solid var(--hr-color);
@@ -272,7 +317,7 @@ a:hover {
 }
 
 .article-subtitle-empty {
-  color: #B0AAA0;
+  color: var(--subtitle-empty);
   letter-spacing: 0.3em;
   user-select: none;
 }
@@ -331,7 +376,7 @@ a:hover {
 .point-box {
   width: 85%;
   border: 1px solid var(--comment-border);
-  background: #FFFFFF;
+  background: var(--point-bg);
   padding: 10px;
   margin: 0 auto 8px;
   text-align: center;
@@ -376,7 +421,7 @@ a:hover {
   display: inline-block;
   font-size: 13px;
   padding: 1px 4px;
-  color: #fff;
+  color: var(--badge-text);
   margin: 0 2px;
 }
 
@@ -425,11 +470,12 @@ input[type='text'],
 input[type='email'],
 input[type='password'],
 textarea {
-  border: 1px solid #666;
+  border: 1px solid var(--input-border);
   padding: 2px 4px;
   font-family: inherit;
   font-size: 16px;
-  background: #fff;
+  background: var(--input-bg);
+  color: var(--input-text);
 }
 
 textarea {
@@ -442,8 +488,9 @@ select {
 }
 
 .classic-button {
-  border: 2px outset #ccc;
-  background: #F0F0F0;
+  border: 2px outset var(--button-border);
+  background: var(--button-bg);
+  color: var(--button-text);
   padding: 2px 8px;
   font-size: 14px;
   cursor: pointer;
@@ -455,6 +502,12 @@ select {
 .classic-button:disabled {
   cursor: default;
   opacity: 0.6;
+}
+
+/* === Vote note (採点説明文) === */
+.vote-note {
+  font-size: 13px;
+  color: var(--point-gray);
 }
 
 /* === Help link button === */
@@ -488,9 +541,9 @@ select {
 /* === Error box === */
 .error-box {
   margin: 4px 0;
-  border: 1px solid #cc6666;
-  background: #fff0f0;
-  color: #990000;
+  border: 1px solid var(--error-border);
+  background: var(--error-bg);
+  color: var(--error-text);
   padding: 4px 6px;
   font-size: 13px;
 }
@@ -499,7 +552,7 @@ select {
 .help-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: var(--modal-backdrop);
   display: grid;
   place-items: center;
   z-index: 20;
@@ -565,8 +618,8 @@ select {
   gap: 8px;
   padding: 6px 8px;
   margin-bottom: 6px;
-  background: #fffde6;
-  border: 1px solid #e0d8a0;
+  background: var(--admin-bulk-bg);
+  border: 1px solid var(--admin-bulk-border);
   font-size: 13px;
   flex-wrap: wrap;
 }
@@ -574,27 +627,27 @@ select {
 /* 管理画面: 非表示行 */
 .admin-row-hidden {
   opacity: 0.55;
-  background: #f5f0e8;
+  background: var(--admin-hidden-bg);
 }
 
 /* 管理画面: 非表示バッジ */
 .admin-hidden-badge {
   display: inline-block;
   font-size: 11px;
-  color: #993333;
+  color: var(--admin-hidden-badge);
   font-weight: bold;
   margin-left: 6px;
   vertical-align: middle;
 }
 
 .score-pos {
-  color: #336633;
+  color: var(--score-pos);
   font-weight: bold;
   font-size: 12px;
 }
 
 .score-neg {
-  color: #993333;
+  color: var(--score-neg);
   font-weight: bold;
   font-size: 12px;
 }
@@ -620,7 +673,7 @@ select {
 }
 
 .footnote-ref-link {
-  color: #cc0000;
+  color: var(--footnote-ref);
   font-weight: bold;
   margin-left: 2px;
   text-decoration: none;
@@ -632,21 +685,21 @@ select {
 .footnote-section {
   margin-top: 24px;
   padding-top: 12px;
-  border-top: 1px solid #999;
+  border-top: 1px solid var(--footnote-border);
 }
 
 .footnote-heading {
   font-weight: bold;
   font-size: 14px;
   margin-bottom: 6px;
-  color: #800000;
+  color: var(--footnote-heading);
 }
 
 .footnote-list {
   list-style: decimal;
   padding-left: 20px;
   font-size: 14px;
-  color: #444;
+  color: var(--footnote-text);
 }
 
 .footnote-list li {
@@ -656,16 +709,16 @@ select {
 
 .footnote-back-link {
   text-decoration: none;
-  color: #598AAF;
+  color: var(--body-link);
   cursor: pointer;
   margin-left: 4px;
 }
 .footnote-back-link:hover {
-  color: #cc0000;
+  color: var(--footnote-ref);
 }
 
 .body-link {
-  color: #598AAF;
+  color: var(--body-link);
   word-break: break-all;
 }
 .body-link:hover {
@@ -723,8 +776,91 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #598AAF;
+  outline: 2px solid var(--stars-on);
   outline-offset: 1px;
+}
+
+/* === Skip link (WCAG 2.4.1) === */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 8px;
+  background: var(--table-bg);
+  color: var(--link);
+  border: 1px solid var(--table-border);
+  padding: 6px 12px;
+  font-size: 14px;
+  z-index: 100;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 8px;
+}
+
+/* === Screen reader only utility === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* === Dark mode (WCAG 1.4.3 contrast, prefers-color-scheme) === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --body-bg: #1e1e1a;
+    --text: #d4d0c8;
+    --title-color: #c8c4b8;
+    --link: #a8c4d8;
+    --link-visited: #8a8a80;
+    --table-border: #3a3832;
+    --table-bg: #26261f;
+    --th-bg: #33332c;
+    --comment-border: #4a4640;
+    --stars-on: #6a9abf;
+    --stars-off: #3a3a34;
+    --point-gray: #9a9a90;
+    --hr-color: #5a5a52;
+    --subtitle-bg: #3a3832;
+    --subtitle-empty: #6a665e;
+    --badge-pink: #7a4a48;
+    --badge-gray: #4a4a44;
+    --badge-text: #e0e0d8;
+    --comment-num: #8a8a80;
+    --pagination-dot: #5a5650;
+
+    --input-bg: #2a2a24;
+    --input-border: #5a5650;
+    --input-text: #d4d0c8;
+    --button-bg: #3a3a34;
+    --button-border: #5a5650;
+    --button-text: #d4d0c8;
+
+    --error-bg: #3a2020;
+    --error-border: #8a4444;
+    --error-text: #e0a0a0;
+    --score-pos: #6aaa6a;
+    --score-neg: #cc7777;
+
+    --footnote-ref: #d07070;
+    --footnote-heading: #c08080;
+    --footnote-text: #b0aca4;
+    --footnote-border: #5a5650;
+    --body-link: #6a9abf;
+
+    --admin-bulk-bg: #2e2c22;
+    --admin-bulk-border: #5a5640;
+    --admin-hidden-bg: #2a2820;
+    --admin-hidden-badge: #cc7777;
+
+    --point-bg: #26261f;
+    --modal-backdrop: rgba(0,0,0,0.6);
+  }
 }
 
 /* === Responsive (mobile only — desktop はオリジナル CGI デザインを維持) === */
@@ -892,7 +1028,7 @@ select:focus-visible {
     display: block;
     margin-top: 4px;
     font-size: 13px;
-    color: #666;
+    color: var(--point-gray);
     line-height: 1.6;
   }
 

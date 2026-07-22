@@ -611,6 +611,7 @@ const App: React.FC = () => {
 
   return (
     <div className="site-shell">
+      <a href="#main-content" className="skip-link">本文へスキップ</a>
       <div className="site-panel">
         {/* 作品ページ（read）と投稿ページ（post）にはヘッダを表示しない — 元サイト準拠 */}
         {view !== 'read' && view !== 'post' && (<>
@@ -642,10 +643,12 @@ const App: React.FC = () => {
         </div>
         </>)}
 
-        {errorMsg && <div className="error-box">{errorMsg}</div>}
+        {errorMsg && <div className="error-box" role="alert">{errorMsg}</div>}
+
+        <main id="main-content">
 
         {view === 'list' && (
-          <form className="search-bar" onSubmit={handleSearch}>
+          <form className="search-bar" onSubmit={handleSearch} role="search" aria-label="作品検索">
             <input
               type="text"
               className="search-input"
@@ -731,6 +734,7 @@ const App: React.FC = () => {
         {view === 'read' && activeNovel && <NovelReader novel={activeNovel} comments={activeComments} onComment={handleComment} />}
         {view === 'read' && !activeNovel && !isLoading && <div style={{ padding: 8 }}>投稿が見つからないか、非表示に設定されています。<a href="#">一覧へ戻る</a></div>}
         {view === 'read' && !activeNovel && isLoading && <div style={{ padding: 8 }}>読み込み中...</div>}
+        </main>
 
         {/* フッター */}
         <hr className="hr-standard" />
@@ -741,7 +745,7 @@ const App: React.FC = () => {
 
         {showHelp && (
           <div className="help-backdrop" onClick={() => setShowHelp(false)}>
-            <div className="help-box" onClick={(e) => e.stopPropagation()}>
+            <div className="help-box" role="dialog" aria-modal="true" aria-label="設定 / ヘルプ" onClick={(e) => e.stopPropagation()}>
               <div className="help-head">
                 <span>設定 / ヘルプ</span>
                 <button type="button" className="classic-button" onClick={() => setShowHelp(false)}>閉</button>

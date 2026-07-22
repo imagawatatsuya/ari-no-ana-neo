@@ -37,8 +37,8 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
                 <td className="entry-date">{formatDate(novel.date)}</td>
                 <td className="entry-comments">{novelComments.length}</td>
                 <td className="entry-point">
-                  <span className="stars-on">{starsOn}</span>
-                  <span className="stars-off">{starsOff}</span>
+                  <span className="stars-on" aria-hidden="true">{starsOn}</span>
+                  <span className="stars-off" aria-hidden="true">{starsOff}</span>
                   <br />
                   <span className="point-score">{score}</span>
                 </td>
@@ -47,7 +47,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
               <tr className="entry-meta-row">
                 <td colSpan={4}>
                   ［ {novelComments.length} 件 ］ {novel.author}
-                  {index < 2 && <span style={{ color: '#cc0000', fontSize: 11, marginLeft: 4 }}>NEW!</span>}
+                  {index < 2 && <span className="entry-new-badge">NEW!</span>}
                 </td>
               </tr>
               {/* Separator HR */}

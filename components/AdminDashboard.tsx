@@ -183,7 +183,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <td>
                   <b>{novel.title}</b>
                   {hidden && <span className="admin-hidden-badge">[非表示]</span>}
-                  <div style={{ fontSize: 12, color: '#555' }}>コメント: {commentCount} / 閲覧: {novel.viewCount}</div>
+                  <div style={{ fontSize: 12, color: 'var(--point-gray)' }}>コメント: {commentCount} / 閲覧: {novel.viewCount}</div>
                 </td>
                 <td>{novel.author}</td>
                 <td style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>{formatDate(novel.date)}</td>

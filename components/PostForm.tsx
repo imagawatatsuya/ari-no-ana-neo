@@ -99,7 +99,8 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
               </tr>
             )}
             <tr>
-              <td className={description.trim() ? 'article-subtitle' : 'article-subtitle article-subtitle-empty'}>
+              <td className={description.trim() ? 'article-subtitle' : 'article-subtitle article-subtitle-empty'}
+                  aria-hidden={!description.trim() || undefined}>
                 {description.trim() || 'なし'}
               </td>
             </tr>
@@ -187,7 +188,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
                   maxLength={MAX_BODY}
                   style={{ minHeight: 280 }}
                 />
-                <div style={{ fontSize: 13, marginTop: 2, color: '#555', display: 'flex', gap: 12 }}>
+                <div style={{ fontSize: 13, marginTop: 2, color: 'var(--point-gray)', display: 'flex', gap: 12 }}>
                   <span>文字数: {countBodyCharacters(body).toLocaleString()}文字</span>
                   {livePageCount && <span>原稿用紙: {livePageCount}</span>}
                 </div>
