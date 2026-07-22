@@ -18,6 +18,11 @@
   --badge-gray: #D8D8D8;
   --comment-num: #999999;
   --pagination-dot: #C0BAAF;
+
+  /* ezdogノウハウ: 日本語組版ルート設定 */
+  line-break: strict;
+  hanging-punctuation: allow-end;
+  text-autospace: normal;
 }
 
 * { box-sizing: border-box; }
@@ -30,7 +35,8 @@ body {
   font-family: "Times New Roman", "MS PGothic", "Osaka", serif;
   font-size: 16px;
   line-height: 1.5;
-  word-break: break-all;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 a {
@@ -249,11 +255,34 @@ a:hover {
   text-align: center;
 }
 
+/* ezdogノウハウ: 本文両端揃え + 日本語組版 */
 .article-body {
   padding: 8px;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 1.75;
   white-space: pre-wrap;
+  text-align: justify;
+  text-justify: inter-character;
+  letter-spacing: 0;
+  font-family: Georgia, '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, serif;
+}
+
+/* ezdogノウハウ: 約物制御スパン */
+.nihongo {
+  font-feature-settings: "halt" 1;
+  word-spacing: 0.25em;
+}
+
+/* ezdogノウハウ: 見出しは両端揃えしない */
+.article-body h1,
+.article-body h2,
+.article-body h3,
+.article-body h4,
+.article-body h5,
+.article-body h6 {
+  font-feature-settings: "palt";
+  word-break: keep-all;
+  text-align: start;
 }
 
 .article-date {
