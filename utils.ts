@@ -45,20 +45,55 @@ export const calculateScore = (comments: any[]) => {
 };
 
 /**
+ * 半角文字かどうかを判定する
+ * - ASCII (0x00-0x7F): 半角
+ * - 半角カタカナ (0xFF61-0xFF9F): 半角
+ * - 上記以外（全角英数字・日本語・記号等）: 全角
+ */
+export const isHalfWidth = (ch: string): boolean => {
+  const code = ch.charCodeAt(0);
+  return (code <= 0x7F) || (code >= 0xFF61 && code <= 0xFF9F);
+};
+
+/**
+ * 文字列の全角換算マス数を計算する（全角=1、半角=0.5）
+ */
+export const countFullWidthCells = (text: string): number => {
+  let cells = 0;
+  for (const ch of text) {
+    cells += isHalfWidth(ch) ? 0.5 : 1;
+  }
+  return cells;
+};
+
+/**
+ * 本文の文字数をカウントする（小説家になろう/カクヨム準拠）
+ * - 改行・空白（半角スペース・全角スペース・タブ）を除外
+ * - 全角・半角問わず1文字=1
+ */
+export const countBodyCharacters = (text: string): number => {
+  if (!text) return 0;
+  // 改行(\n, \r)、半角スペース、全角スペース、タブを除去
+  const stripped = text.replace(/[\n\r \u3000\t]/g, '');
+  return stripped.length;
+};
+
+/**
  * 400字詰め原稿用紙換算枚数を計算する
  * ルール:
- * - 原稿用紙1枚 = 20字 × 20行 = 400字
+ * - 原稿用紙1枚 = 20マス × 20行 = 400マス
+ * - 全角文字 = 1マス、半角文字 = 0.5マス
  * - 改行時、その行の残りマスも消費としてカウントする
- * - 各行の消費マス = ceil(その行の文字数 / 20) × 20
+ * - 各行の消費マス = ceil(その行の全角換算マス数 / 20) × 20
  * - 空行は1行（20マス）としてカウント
  * - 枚数 = ceil(総消費マス / 400)
  */
 export const countManuscriptPages = (text: string): number => {
   if (!text || text.trim().length === 0) return 0;
 
-  const CHARS_PER_LINE = 20;
+  const CELLS_PER_LINE = 20;
   const LINES_PER_PAGE = 20;
-  const CHARS_PER_PAGE = CHARS_PER_LINE * LINES_PER_PAGE; // 400
+  const CELLS_PER_PAGE = CELLS_PER_LINE * LINES_PER_PAGE; // 400
 
   const lines = text.split('\n');
   let totalCells = 0;
@@ -66,14 +101,15 @@ export const countManuscriptPages = (text: string): number => {
   for (const line of lines) {
     if (line.length === 0) {
       // 空行も1行としてカウント
-      totalCells += CHARS_PER_LINE;
+      totalCells += CELLS_PER_LINE;
     } else {
-      // 改行で残ったマスも消費としてカウント（20字単位に切り上げ）
-      totalCells += Math.ceil(line.length / CHARS_PER_LINE) * CHARS_PER_LINE;
+      // 全角換算マス数を計算し、20マス単位に切り上げ
+      const lineCells = countFullWidthCells(line);
+      totalCells += Math.ceil(lineCells / CELLS_PER_LINE) * CELLS_PER_LINE;
     }
   }
 
-  return Math.ceil(totalCells / CHARS_PER_PAGE);
+  return Math.ceil(totalCells / CELLS_PER_PAGE);
 };
 
 /**
@@ -85,21 +121,22 @@ export const countManuscriptPages = (text: string): number => {
 export const formatManuscriptPages = (text: string): string => {
   if (!text || text.trim().length === 0) return '';
 
-  const CHARS_PER_LINE = 20;
-  const CHARS_PER_PAGE = 400;
+  const CELLS_PER_LINE = 20;
+  const CELLS_PER_PAGE = 400;
 
   const lines = text.split('\n');
   let totalCells = 0;
   for (const line of lines) {
     if (line.length === 0) {
-      totalCells += CHARS_PER_LINE;
+      totalCells += CELLS_PER_LINE;
     } else {
-      totalCells += Math.ceil(line.length / CHARS_PER_LINE) * CHARS_PER_LINE;
+      const lineCells = countFullWidthCells(line);
+      totalCells += Math.ceil(lineCells / CELLS_PER_LINE) * CELLS_PER_LINE;
     }
   }
 
-  if (totalCells < CHARS_PER_PAGE) return '1枚未満';
-  return `【${Math.ceil(totalCells / CHARS_PER_PAGE)} 枚】`;
+  if (totalCells < CELLS_PER_PAGE) return '1枚未満';
+  return `【${Math.ceil(totalCells / CELLS_PER_PAGE)} 枚】`;
 };
 
 // 5段階の星レーティング文字列を生成 (オリジナルの★★★★☆形式)

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Novel } from '../types';
-import { generateTrip, formatManuscriptPages, formatDate } from '../utils';
+import { generateTrip, formatManuscriptPages, formatDate, countBodyCharacters } from '../utils';
 import { FootnoteRenderer } from './FootnoteRenderer';
 
 interface PostFormProps {
@@ -158,7 +158,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
                   onChange={(e) => setDescription(e.target.value)}
                   maxLength={MAX_DESCRIPTION}
                   placeholder="作品ページ上部に表示される自由記述欄（任意）"
-                  style={{ width: '360px', maxWidth: '100%' }}
+                  style={{ width: '100%' }}
                 />
               </td>
             </tr>
@@ -171,7 +171,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
                   onChange={(e) => setName(e.target.value)}
                   maxLength={MAX_NAME}
                   placeholder="名無し（トリップ: 名前#pass）"
-                  style={{ width: '360px', maxWidth: '100%' }}
+                  style={{ width: '100%' }}
                 />
               </td>
             </tr>
@@ -184,11 +184,10 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
                   maxLength={MAX_BODY}
                   style={{ minHeight: 280 }}
                 />
-                {livePageCount && (
-                  <div style={{ fontSize: 13, marginTop: 2, color: '#555' }}>
-                    原稿用紙換算: {livePageCount}
-                  </div>
-                )}
+                <div style={{ fontSize: 13, marginTop: 2, color: '#555', display: 'flex', gap: 12 }}>
+                  <span>文字数: {countBodyCharacters(body).toLocaleString()}文字</span>
+                  {livePageCount && <span>原稿用紙: {livePageCount}</span>}
+                </div>
               </td>
             </tr>
             <tr>
