@@ -581,20 +581,81 @@ select:focus-visible {
 
 /* === Responsive (mobile only — desktop はオリジナル CGI デザインを維持) === */
 @media (max-width: 640px) {
-  body { margin: 4px; }
+  /* --- 基本: 余白確保 & 単語分割修正 --- */
+  body {
+    margin: 8px;
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+
   .site-title { font-size: 180%; }
   .article-title { font-size: 160%; }
   .article-table { width: 100%; border-spacing: 2px; }
   .point-box { width: 100%; }
 
-  /* --- 一覧テーブル: 横スクロール防止 --- */
-  .classic-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .classic-table thead, .classic-table tbody, .classic-table tr { display: table; width: 100%; table-layout: fixed; }
-  .classic-table thead { display: table; width: 100%; }
-  .entry-date, .entry-point { white-space: normal; }
+  /* --- ナビゲーション: タップターゲット拡大 --- */
+  .top-nav {
+    font-size: 14px;
+    line-height: 2.2;
+  }
+  .top-nav a,
+  .top-nav .help-link-btn {
+    display: inline-block;
+    padding: 6px 6px;
+    min-height: 40px;
+    line-height: 28px;
+  }
 
-  /* --- ナビゲーション: 折り返し対応 --- */
-  .top-nav { font-size: 14px; line-height: 1.8; }
+  /* --- 一覧テーブル: カード型レイアウト（横スクロール廃止） --- */
+  .classic-table {
+    display: block;
+    overflow-x: visible;
+    border: 1px solid var(--table-border);
+  }
+  .classic-table thead { display: none; }
+  .classic-table tbody { display: block; }
+  .classic-table tr { display: block; }
+  .classic-table td { display: block; width: auto; }
+
+  /* タイトル行: 1行目=タイトル全幅, 2行目=日付+ポイント */
+  .entry-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 10px;
+    row-gap: 2px;
+    padding: 8px 6px 2px;
+  }
+  .entry-title-row td:first-child {
+    flex-basis: 100%;
+    padding: 0;
+  }
+  .entry-title-row .entry-date {
+    padding: 0;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .entry-title-row .entry-comments {
+    display: none; /* meta行の［N件］と重複するため非表示 */
+  }
+  .entry-title-row .entry-point {
+    padding: 0;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .entry-point br { display: none; }
+  .entry-point .point-score { margin-left: 4px; }
+
+  /* メタ行 */
+  .entry-meta-row td {
+    padding: 2px 6px 8px;
+    font-size: 12px;
+  }
+
+  /* セパレータ行 */
+  .entry-separator { margin: 0 6px; }
 
   /* --- フォーム: 縦積み --- */
   .form-table, .form-table tbody, .form-table tr, .form-table td {
@@ -603,25 +664,38 @@ select:focus-visible {
   .form-label { width: auto; padding-bottom: 2px; }
   .form-table td { padding: 2px 6px 6px; }
 
-  /* --- 入力要素: iOSズーム防止 & 幅溢れ防止 --- */
+  /* --- 入力要素: iOSズーム防止 & 幅統一 --- */
   input[type='text'],
   input[type='email'],
   input[type='password'],
   textarea, select {
     font-size: 16px;
     max-width: 100%;
+    width: 100%;
   }
 
   /* --- ボタン: タップターゲット拡大 --- */
   .classic-button {
-    padding: 8px 14px;
+    padding: 10px 16px;
     font-size: 15px;
+    min-height: 44px;
   }
 
-  /* --- POINT内訳: 折り返し --- */
-  .point-breakdown { line-height: 1.8; }
+  /* --- 戻るリンク: タップしやすく --- */
+  .back-link {
+    display: inline-block;
+    padding: 10px 12px;
+    min-height: 44px;
+    line-height: 24px;
+  }
 
-  /* --- コメントフォーム名前欄 --- */
+  /* --- POINT内訳: 読みやすさ向上 --- */
+  .point-breakdown {
+    line-height: 2;
+    font-size: 14px;
+  }
+
+  /* --- コメント --- */
   .comment-block { padding: 8px; }
 
   /* --- stats-row --- */

@@ -78,7 +78,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
     <div>
       {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div style={{ marginBottom: 6 }}>
-        <a href="#">&nbsp;戻る</a>
+        <a href="#" className="back-link">&nbsp;戻る</a>
       </div>
 
       {/* 記事テーブル: 元サイト <table width="90%" cellspacing="4" cellpadding="8" align="center"> */}
@@ -180,7 +180,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
 
       {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div style={{ marginTop: 12 }}>
-        <a href="#">&nbsp;戻る</a>
+        <a href="#" className="back-link">&nbsp;戻る</a>
       </div>
       <hr style={{ border: '0', borderTop: '1px inset #999', margin: '8px 0' }} />
       <div style={{ fontSize: 14 }}>
