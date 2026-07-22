@@ -17,6 +17,7 @@ export interface Novel {
   body: string; // Raw text
   date: string;
   viewCount: number;
+  isHidden?: boolean; // 管理者による非表示フラグ
 }
 
 export type ViewMode = 'list' | 'post' | 'read' | 'admin';

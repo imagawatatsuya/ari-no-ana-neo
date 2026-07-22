@@ -10,7 +10,8 @@ create table if not exists public.novels (
   trip text,
   body text not null,
   date timestamptz not null default now(),
-  view_count integer not null default 0 check (view_count >= 0)
+  view_count integer not null default 0 check (view_count >= 0),
+  is_hidden boolean not null default false
 );
 
 create table if not exists public.comments (
@@ -99,3 +100,6 @@ for select using (auth.uid() = user_id);
 -- How to assign an admin user (run after creating auth user):
 -- insert into public.admin_users (user_id)
 -- values ('<auth.users.id UUID>');
+
+-- Migration for existing databases (run once):
+-- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false;

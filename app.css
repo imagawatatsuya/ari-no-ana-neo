@@ -513,6 +513,58 @@ select {
   padding: 8px;
 }
 
+/* 管理画面: フィルタタブ */
+.admin-filter-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.admin-tab {
+  font-size: 13px;
+  padding: 3px 10px;
+  border: 1px solid var(--table-border);
+  background: var(--table-bg);
+  cursor: pointer;
+}
+.admin-tab:hover {
+  background: var(--th-bg);
+}
+.admin-tab-active {
+  font-weight: bold;
+  background: var(--th-bg);
+  border-bottom: 2px solid var(--text);
+}
+
+/* 管理画面: 一括操作バー */
+.admin-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  background: #fffde6;
+  border: 1px solid #e0d8a0;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+/* 管理画面: 非表示行 */
+.admin-row-hidden {
+  opacity: 0.55;
+  background: #f5f0e8;
+}
+
+/* 管理画面: 非表示バッジ */
+.admin-hidden-badge {
+  display: inline-block;
+  font-size: 11px;
+  color: #993333;
+  font-weight: bold;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 .score-pos {
   color: #336633;
   font-weight: bold;

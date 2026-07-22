@@ -150,6 +150,7 @@ const App: React.FC = () => {
         body: n.body,
         date: n.date,
         viewCount: n.view_count ? Number(n.view_count) : 0,
+        isHidden: !!n.is_hidden,
       }));
 
       const mappedComments: Comment[] = (commentsData || []).map((c: any) => ({
@@ -163,6 +164,10 @@ const App: React.FC = () => {
 
       setNovels(mappedNovels);
       setComments(mappedComments);
+
+      // サーバー側の is_hidden から hiddenNovelIds を構築
+      const serverHiddenIds = mappedNovels.filter((n) => n.isHidden).map((n) => n.id);
+      setHiddenNovelIds(serverHiddenIds);
     } catch (err: any) {
       console.error('Supabase Error:', err);
       setErrorMsg('データベースへの接続に失敗しました。オフラインモードで表示します。');
@@ -291,8 +296,40 @@ const App: React.FC = () => {
     }
 
     setHiddenNovelIds((prev) => toggleHiddenNovelId(prev, id, nextHidden));
+    setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isHidden: nextHidden } : n)));
+
+    if (isSupabaseMode && supabase) {
+      const { error } = await supabase.from('novels').update({ is_hidden: nextHidden }).eq('id', id);
+      if (error) {
+        console.error('Failed to sync is_hidden:', error);
+        setErrorMsg('非表示状態の同期に失敗しました。');
+      }
+    }
   };
 
+  const handleBulkToggleHide = async (ids: string[], nextHidden: boolean) => {
+    if (!isAdminAuthenticated) {
+      alert('管理者認証が必要です。');
+      return;
+    }
+
+    setHiddenNovelIds((prev) => {
+      let next = [...prev];
+      for (const id of ids) {
+        next = toggleHiddenNovelId(next, id, nextHidden);
+      }
+      return next;
+    });
+    setNovels((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, isHidden: nextHidden } : n)));
+
+    if (isSupabaseMode && supabase) {
+      const { error } = await supabase.from('novels').update({ is_hidden: nextHidden }).in('id', ids);
+      if (error) {
+        console.error('Failed to bulk sync is_hidden:', error);
+        setErrorMsg('一括非表示の同期に失敗しました。');
+      }
+    }
+  };
 
   const handleResetSeedData = () => {
     if (!isAdminAuthenticated) {
@@ -464,6 +501,7 @@ const App: React.FC = () => {
             onEditNovel={handleEditNovel}
             onDeleteNovel={handleDeleteNovel}
             onToggleHideNovel={handleToggleHideNovel}
+            onBulkToggleHide={handleBulkToggleHide}
             onResetSeedData={handleResetSeedData}
           />
         )}
