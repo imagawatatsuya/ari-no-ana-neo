@@ -117,6 +117,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (view === 'read' && activeNovelId) {
       incrementViewCount(activeNovelId);
+      window.scrollTo(0, 0);
     }
   }, [activeNovelId, view]);
 
