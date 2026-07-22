@@ -610,11 +610,27 @@ select:focus-visible {
 
 /* === Responsive (mobile only — desktop はオリジナル CGI デザインを維持) === */
 @media (max-width: 640px) {
-  /* --- 基本: 余白確保 & 単語分割修正 --- */
+  /* --- 基本: 余白確保 & ezdog組版維持 --- */
   body {
     margin: 8px;
-    word-break: normal;
+    word-break: break-word;
     overflow-wrap: break-word;
+  }
+
+  /* --- ezdogノウハウ: モバイル本文組版 --- */
+  .article-body {
+    text-align: justify;
+    text-justify: inter-character;
+    letter-spacing: 0;
+    font-size: 16px;
+    line-height: 1.8;
+    font-family: Georgia, '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, serif;
+  }
+
+  /* コメント本文も両端揃え */
+  .comment-text {
+    text-align: justify;
+    text-justify: inter-character;
   }
 
   .site-title { font-size: 180%; }
