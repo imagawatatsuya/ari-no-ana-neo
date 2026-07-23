@@ -541,7 +541,8 @@ const App: React.FC = () => {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter((n) => n.title.toLowerCase().includes(q) || n.author.toLowerCase().includes(q));
     }
-    return list;
+    // 新着順（投稿日時降順）で統一
+    return [...list].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [novels, hiddenNovelIds, isSupabaseMode, searchQuery]);
 
   // Supabaseモード: サーバーが総件数を返す / オフライン: クライアント計算
