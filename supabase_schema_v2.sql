@@ -30,6 +30,21 @@ create table if not exists public.admin_users (
   created_at timestamptz not null default now()
 );
 
+-- DB-level CHECK constraints (second line of defence)
+alter table public.novels
+  drop constraint if exists novels_title_length,
+  drop constraint if exists novels_body_length,
+  drop constraint if exists novels_author_length,
+  add constraint novels_title_length  check (length(title) between 1 and 200),
+  add constraint novels_body_length   check (length(body)  between 1 and 100000),
+  add constraint novels_author_length check (length(author) <= 100);
+
+alter table public.comments
+  drop constraint if exists comments_text_length,
+  drop constraint if exists comments_name_length,
+  add constraint comments_text_length check (length(text) between 1 and 500),
+  add constraint comments_name_length check (length(name) <= 100);
+
 alter table public.novels enable row level security;
 alter table public.comments enable row level security;
 alter table public.admin_users enable row level security;
@@ -44,13 +59,39 @@ create policy comments_select_public on public.comments
 for select using (true);
 
 -- Public posting
+-- 値の制約は RLS + DB CHECK の二重で防御する。
+-- AI/API からの直接投稿を許容しつつ、is_hidden, view_count の偽装や
+-- 制限超過テキストの投入を防ぐ。
+
 drop policy if exists novels_insert_public on public.novels;
 create policy novels_insert_public on public.novels
-for insert with check (true);
+for insert
+with check (
+  is_hidden = false
+  and view_count = 0
+  and length(title) between 1 and 200
+  and length(body)  between 1 and 100000
+  and length(author) <= 100
+  and (
+    not exists (select 1 from public.novels)
+    or ("date")::timestamptz >= (select max((n.date)::timestamptz) from public.novels n)
+  )
+  and ("date")::timestamptz <= now() + interval '5 minutes'
+);
 
 drop policy if exists comments_insert_public on public.comments;
 create policy comments_insert_public on public.comments
-for insert with check (true);
+for insert
+with check (
+  length(text) between 1 and 500
+  and length(name) <= 100
+  and vote between -2 and 2
+  and (
+    not exists (select 1 from public.comments)
+    or ("date")::timestamptz >= (select max((c.date)::timestamptz) from public.comments c)
+  )
+  and ("date")::timestamptz <= now() + interval '5 minutes'
+);
 
 -- Only admin users can edit/delete rows
 drop policy if exists novels_update_admin_only on public.novels;

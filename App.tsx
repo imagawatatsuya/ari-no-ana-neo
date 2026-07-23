@@ -356,11 +356,11 @@ const App: React.FC = () => {
         {
           id: novelToSave.id,
           title: novelToSave.title,
+          description: novelToSave.description || null,
           author: novelToSave.author,
-          trip: novelToSave.trip,
+          trip: novelToSave.trip || null,
           body: novelToSave.body,
           date: novelToSave.date,
-          view_count: novelToSave.viewCount,
         },
       ]);
       setIsLoading(false);
@@ -380,7 +380,7 @@ const App: React.FC = () => {
         {
           id: commentToSave.id,
           novel_id: commentToSave.novelId,
-          name: commentToSave.name,
+          name: commentToSave.name || '',
           text: commentToSave.text,
           date: commentToSave.date,
           vote: commentToSave.vote,
