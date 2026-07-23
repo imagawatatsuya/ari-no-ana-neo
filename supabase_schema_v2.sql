@@ -12,7 +12,8 @@ create table if not exists public.novels (
   body text not null,
   date timestamptz not null default now(),
   view_count integer not null default 0 check (view_count >= 0),
-  is_hidden boolean not null default false
+  is_hidden boolean not null default false,
+  is_ryuseigai boolean not null default false
 );
 
 create table if not exists public.comments (
@@ -21,7 +22,7 @@ create table if not exists public.comments (
   name text not null,
   text text not null,
   date timestamptz not null default now(),
-  vote integer not null default 0 check (vote between -2 and 2)
+  vote integer not null default 0 check (vote between -1000 and 2)
 );
 
 -- Supabase Auth users that can edit/delete/hide posts.
@@ -85,7 +86,7 @@ for insert
 with check (
   length(text) between 1 and 500
   and length(name) <= 100
-  and vote between -2 and 2
+  and vote between -1000 and 2
   and (
     not exists (select 1 from public.comments)
     or ("date")::timestamptz >= (select max((c.date)::timestamptz) from public.comments c)
@@ -154,3 +155,9 @@ for select using (auth.uid() = user_id);
 -- Migration for existing databases (run once):
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false;
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS description text;
+
+-- Migration: 流星街機能 (Ryuseigai)
+-- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_ryuseigai boolean NOT NULL DEFAULT false;
+-- 流星街コメントは vote -500 / -1000 を使うため、CHECK制約を拡張:
+-- ALTER TABLE public.comments DROP CONSTRAINT IF EXISTS comments_vote_range;
+-- ALTER TABLE public.comments ADD CONSTRAINT comments_vote_range CHECK (vote BETWEEN -1000 AND 2);
