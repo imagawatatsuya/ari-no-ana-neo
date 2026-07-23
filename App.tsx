@@ -48,11 +48,9 @@ const App: React.FC = () => {
   const [readComments, setReadComments] = useState<Comment[]>([]);
   const [adminNovels, setAdminNovels] = useState<Novel[]>([]);
   const [adminComments, setAdminComments] = useState<Comment[]>([]);
-  // 流星街用
+  // 流星街用（一覧のみ。閲覧は共通 readNovel/readComments を使用）
   const [ryuseigaiNovels, setRyuseigaiNovels] = useState<Novel[]>([]);
   const [ryuseigaiComments, setRyuseigaiComments] = useState<Comment[]>([]);
-  const [ryuseigaiReadNovel, setRyuseigaiReadNovel] = useState<Novel | null>(null);
-  const [ryuseigaiReadComments, setRyuseigaiReadComments] = useState<Comment[]>([]);
 
   const isSupabaseMode = !!supabase;
 
@@ -120,10 +118,10 @@ const App: React.FC = () => {
     }
   }, [view, isSupabaseMode]);
 
-  // Supabaseモード: 流星街作品閲覧
+  // Supabaseモード: 流星街作品閲覧（共通 fetchNovelForRead を使用）
   useEffect(() => {
     if (isSupabaseMode && view === 'ryuseigai-read' && activeNovelId) {
-      fetchRyuseigaiNovelForRead(activeNovelId);
+      fetchNovelForRead(activeNovelId);
     }
   }, [view, activeNovelId, isSupabaseMode]);
 
@@ -169,7 +167,7 @@ const App: React.FC = () => {
   }, [isSupabaseMode]);
 
   useEffect(() => {
-    if (view === 'read' && activeNovelId) {
+    if ((view === 'read' || view === 'ryuseigai-read') && activeNovelId) {
       incrementViewCount(activeNovelId);
       window.scrollTo(0, 0);
     }
@@ -412,52 +410,6 @@ const App: React.FC = () => {
     }
   };
 
-  // --- Supabase: 流星街作品個別取得 ---
-  const fetchRyuseigaiNovelForRead = async (id: string) => {
-    if (!supabase) return;
-    setIsLoading(true);
-    try {
-      const { data: novelData, error: novelError } = await supabase
-        .from('novels')
-        .select('*')
-        .eq('id', id)
-        .eq('is_ryuseigai', true)
-        .single();
-      if (novelError) throw novelError;
-
-      setRyuseigaiReadNovel({
-        id: novelData.id,
-        title: novelData.title,
-        author: novelData.author,
-        trip: novelData.trip,
-        body: novelData.body,
-        date: novelData.date,
-        viewCount: novelData.view_count ? Number(novelData.view_count) : 0,
-        isHidden: !!novelData.is_hidden,
-        isRyuseigai: true,
-      });
-
-      const { data: commentsData, error: commentsError } = await supabase
-        .from('comments')
-        .select('*')
-        .eq('novel_id', id);
-      if (commentsError) throw commentsError;
-      setRyuseigaiReadComments((commentsData || []).map((c: any) => ({
-        id: c.id,
-        novelId: c.novel_id,
-        name: c.name,
-        text: c.text,
-        date: c.date,
-        vote: c.vote,
-      })));
-    } catch (err: any) {
-      console.error('Supabase Error (ryuseigai read):', err);
-      setRyuseigaiReadNovel(null);
-      setRyuseigaiReadComments([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (!isSupabaseMode) localStorage.setItem('bunsho_novels_v2', JSON.stringify(novels));
@@ -526,6 +478,7 @@ const App: React.FC = () => {
       setComments((prev) => [...prev, commentToSave]);
     }
   };
+
 
   const handleEditNovel = async (id: string, patch: Pick<Novel, 'title' | 'author' | 'trip' | 'body'>) => {
     if (!isAdminAuthenticated) {
@@ -733,12 +686,12 @@ const App: React.FC = () => {
     ? readComments
     : comments.filter((c) => c.novelId === activeNovelId);
 
-  // 流星街作品閲覧: Supabaseモードは ryuseigaiReadNovel / オフラインは offlineRyuseigaiNovels から
+  // 流星街作品閲覧: 共通 readNovel/readComments を使用（オフラインのみ独自フィルタ）
   const activeRyuseigaiNovel = isSupabaseMode
-    ? ryuseigaiReadNovel
+    ? readNovel
     : offlineRyuseigaiNovels.find((n) => n.id === activeNovelId) ?? null;
   const activeRyuseigaiComments = isSupabaseMode
-    ? ryuseigaiReadComments
+    ? readComments
     : offlineRyuseigaiComments.filter((c) => c.novelId === activeNovelId);
 
   const handleAdminLogin = async (e: React.FormEvent) => {

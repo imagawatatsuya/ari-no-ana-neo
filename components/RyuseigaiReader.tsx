@@ -51,98 +51,103 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
 
   return (
     <div className="ryuseigai-shell">
-      <div className="ryuseigai-panel">
-        {/* 戻る */}
-        <div style={{ marginBottom: 8 }}>
-          <a href="#ryuseigai" className="ryuseigai-back-link">← 流星街へ戻る</a>
-        </div>
+      {/* 戻る */}
+      <div style={{ marginBottom: 6 }}>
+        <a href="#ryuseigai" className="ryuseigai-back-link">← 流星街へ戻る</a>
+      </div>
 
-        {/* 作品本文 */}
-        <div className="ryuseigai-article">
-          <div className="ryuseigai-article-title">{novel.title}</div>
-
+      {/* 作品本文: 共通組版システム */}
+      <table className="article-table">
+        <tbody>
+          <tr>
+            <td className="article-title">{novel.title}</td>
+          </tr>
           {formatManuscriptPages(novel.body) && (
-            <div className="ryuseigai-page-count">{formatManuscriptPages(novel.body)}</div>
+            <tr>
+              <td className="article-page-count">{formatManuscriptPages(novel.body)}</td>
+            </tr>
           )}
+          <tr>
+            <td className="article-body">
+              <FootnoteRenderer content={novel.body} />
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-          <div className="ryuseigai-article-body">
-            <FootnoteRenderer content={novel.body} />
-          </div>
+      <div className="article-date" style={{ textAlign: 'right' }}>{formatDate(novel.date)} に捨てられた</div>
 
-          <div className="ryuseigai-article-date">{formatDate(novel.date)} に捨てられた</div>
+      <div style={{ padding: '4px 8px', fontSize: 16 }}>
+        <b>■ 捨てた者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}
+        <div style={{ marginLeft: '3%' }}>{novel.author || '名無し'}</div>
+      </div>
 
-          <div className="ryuseigai-author">
-            ■ 捨てた者: {novel.author}{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}
-          </div>
+      {/* 存在価値（流星街独自） */}
+      <div className="ryuseigai-point-box">
+        <div className="ryuseigai-point-label">存在価値</div>
+        <div className="ryuseigai-point-value">{totalScore}</div>
+        <div className="ryuseigai-point-breakdown">
+          「なぜ生まれてきた？」 [{countWhy}] ／ 「おまえは存在しない」 [{countNotExist}]
         </div>
+      </div>
 
-        {/* POINT ボックス（退廃的） */}
-        <div className="ryuseigai-point-box">
-          <div className="ryuseigai-point-label">存在価値</div>
-          <div className="ryuseigai-point-value">{totalScore}</div>
-          <div className="ryuseigai-point-breakdown">
-            「なぜ生まれてきた？」 [{countWhy}] ／ 「おまえは存在しない」 [{countNotExist}]
-          </div>
-        </div>
-
-        {/* 声（コメント一覧） */}
-        <div className="ryuseigai-section-title">声</div>
-        {comments.length === 0 ? (
-          <div className="ryuseigai-no-comments">まだ誰も何も言っていない。沈黙だけがここにある。</div>
-        ) : (
-          <div className="ryuseigai-comments">
-            {[...comments].reverse().map((c, idx) => (
-              <div className="ryuseigai-comment" key={c.id}>
-                <div className="ryuseigai-comment-text">{c.text}</div>
-                <div className="ryuseigai-comment-footer">
-                  <span className="ryuseigai-comment-num">{comments.length - idx}:</span>{' '}
-                  <span className="ryuseigai-comment-vote">
-                    {c.vote === -1000 ? 'おまえは存在しない' : 'なぜ生まれてきた？'}
-                  </span>{' '}
-                  {c.trip && <span className="ryuseigai-comment-trip">＜{c.trip.replace('◆', '')}＞</span>}{' '}
-                  <span className="ryuseigai-comment-date">{formatDate(c.date)}</span>
-                </div>
+      {/* 声（コメント一覧） */}
+      <div className="ryuseigai-section-title">声</div>
+      {comments.length === 0 ? (
+        <div className="ryuseigai-no-comments">まだ誰も何も言っていない。沈黙だけがここにある。</div>
+      ) : (
+        <div>
+          {[...comments].reverse().map((c, idx) => (
+            <div className="comment-block" key={c.id}>
+              <div className="comment-text">{c.text}</div>
+              <div className="comment-footer">
+                <span className="comment-number">{comments.length - idx}:</span>{' '}
+                <span className="ryuseigai-comment-vote">
+                  {c.vote === -1000 ? 'おまえは存在しない' : 'なぜ生まれてきた？'}
+                </span>{' '}
+                {c.trip && <span className="comment-host">＜{c.trip.replace('◆', '')}＞</span>}{' '}
+                <span className="comment-date">{formatDate(c.date)}</span>
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* 声の投下フォーム */}
-        <div style={{ height: 16 }} />
-        <form onSubmit={handleSubmit} className="ryuseigai-form">
-          <div className="ryuseigai-form-title">■ 声を刻む</div>
-          <textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            className="ryuseigai-textarea"
-            maxLength={MAX_COMMENT_LENGTH}
-          />
-          <div style={{ marginTop: 6 }}>
-            <b>■ 名</b>{' '}
-            <input
-              type="text"
-              value={commentName}
-              onChange={(e) => setCommentName(e.target.value)}
-              placeholder="名無し（トリップ: 名前#pass）"
-              className="ryuseigai-input"
-            />
-          </div>
-          <div style={{ marginTop: 6 }}>
-            <b>■ 断罪</b>{' '}
-            <select value={vote} onChange={(e) => setVote(Number(e.target.value))} className="ryuseigai-select">
-              <option value={-500}>なぜ生まれてきた？ (-500)</option>
-              <option value={-1000}>おまえは存在しない (-1000)</option>
-            </select>
-          </div>
-          <div style={{ marginTop: 10, textAlign: 'center' }}>
-            <button type="submit" className="ryuseigai-button">刻む</button>
-          </div>
-        </form>
-
-        {/* 戻る */}
-        <div style={{ marginTop: 14 }}>
-          <a href="#ryuseigai" className="ryuseigai-back-link">← 流星街へ戻る</a>
+            </div>
+          ))}
         </div>
+      )}
+
+      {/* 声を刻むフォーム（流星街独自） */}
+      <div style={{ height: 14 }} />
+      <form onSubmit={handleSubmit} className="ryuseigai-form">
+        <div className="ryuseigai-form-title">■ 声を刻む</div>
+        <textarea
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+          className="ryuseigai-textarea"
+          maxLength={MAX_COMMENT_LENGTH}
+        />
+        <div style={{ marginTop: 6 }}>
+          <b>■ 名</b>{' '}
+          <input
+            type="text"
+            value={commentName}
+            onChange={(e) => setCommentName(e.target.value)}
+            placeholder="名無し（トリップ: 名前#pass）"
+            className="ryuseigai-input"
+          />
+        </div>
+        <div style={{ marginTop: 6 }}>
+          <b>■ 断罪</b>{' '}
+          <select value={vote} onChange={(e) => setVote(Number(e.target.value))} className="ryuseigai-select">
+            <option value={-500}>なぜ生まれてきた？ (-500)</option>
+            <option value={-1000}>おまえは存在しない (-1000)</option>
+          </select>
+        </div>
+        <div style={{ marginTop: 10, textAlign: 'center' }}>
+          <button type="submit" className="ryuseigai-button">刻む</button>
+        </div>
+      </form>
+
+      {/* 戻る */}
+      <div style={{ marginTop: 12 }}>
+        <a href="#ryuseigai" className="ryuseigai-back-link">← 流星街へ戻る</a>
       </div>
     </div>
   );

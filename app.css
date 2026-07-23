@@ -1066,7 +1066,40 @@ select:focus-visible {
 .ryuseigai-shell {
   min-height: 100vh;
   background: #0a0a0a;
+  color: #b8b2a6;
   padding: 8px;
+}
+
+/* 流星街内の共通組版クラス: 暗色上書き */
+.ryuseigai-shell .article-title {
+  color: #c99a9a;
+}
+.ryuseigai-shell .article-body {
+  color: #c8c2b6;
+}
+.ryuseigai-shell .article-page-count {
+  color: #9a9488;
+}
+.ryuseigai-shell .article-date {
+  color: #9a9488;
+}
+.ryuseigai-shell .comment-block {
+  border-bottom: 1px solid #2a2a2a;
+}
+.ryuseigai-shell .comment-text {
+  color: #b8b2a6;
+}
+.ryuseigai-shell .comment-footer {
+  color: #9a9488;
+}
+.ryuseigai-shell .comment-number {
+  color: #9a9488;
+}
+.ryuseigai-shell .comment-host {
+  color: #a8a296;
+}
+.ryuseigai-shell .comment-date {
+  color: #8a8478;
 }
 
 .ryuseigai-panel {
@@ -1177,50 +1210,6 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
-/* 流星街: 作品閲覧 */
-.ryuseigai-article {
-  border: 1px solid #3a3a3a;
-  padding: 16px 12px;
-  margin-bottom: 16px;
-  background: #0d0d0d;
-}
-
-.ryuseigai-article-title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #c99a9a;
-  margin-bottom: 8px;
-}
-
-.ryuseigai-page-count {
-  font-size: 12px;
-  color: #9a9488;
-  margin-bottom: 8px;
-}
-
-.ryuseigai-article-body {
-  font-size: 15px;
-  line-height: 1.8;
-  color: #c8c2b6;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.ryuseigai-article-date {
-  text-align: right;
-  font-size: 12px;
-  color: #9a9488;
-  margin-top: 10px;
-}
-
-.ryuseigai-author {
-  font-size: 13px;
-  color: #a8a296;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #333;
-}
-
 /* 流星街: ポイントボックス */
 .ryuseigai-point-box {
   border: 1px solid #4a3535;
@@ -1266,39 +1255,9 @@ select:focus-visible {
   text-align: center;
 }
 
-.ryuseigai-comment {
-  border-bottom: 1px solid #2a2a2a;
-  padding: 8px 4px;
-}
-
-.ryuseigai-comment-text {
-  font-size: 14px;
-  color: #b8b2a6;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.ryuseigai-comment-footer {
-  font-size: 12px;
-  color: #9a9488;
-  margin-top: 4px;
-}
-
-.ryuseigai-comment-num {
-  color: #9a9488;
-}
-
 .ryuseigai-comment-vote {
   color: #d08080;
   font-weight: bold;
-}
-
-.ryuseigai-comment-trip {
-  color: #a8a296;
-}
-
-.ryuseigai-comment-date {
-  color: #8a8478;
 }
 
 /* 流星街: フォーム */
