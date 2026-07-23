@@ -195,11 +195,12 @@ const App: React.FC = () => {
       const to = from + NOVELS_PER_PAGE - 1;
       const trimmed = (search ?? '').trim();
 
-      // 総件数取得（is_hidden=false のみ、検索条件付き）
+      // 総件数取得（is_hidden=false かつ is_ryuseigai=false のみ、検索条件付き）
       let countQuery = supabase
         .from('novels')
         .select('*', { count: 'exact', head: true })
-        .eq('is_hidden', false);
+        .eq('is_hidden', false)
+        .eq('is_ryuseigai', false);
       if (trimmed) {
         countQuery = countQuery.or(`title.ilike.%${trimmed}%,author.ilike.%${trimmed}%`);
       }
@@ -207,11 +208,12 @@ const App: React.FC = () => {
       if (countError) throw countError;
       setTotalNovelCount(count ?? 0);
 
-      // 当該ページの作品取得
+      // 当該ページの作品取得（流星街送りの作品は除外）
       let novelsQuery = supabase
         .from('novels')
         .select('*')
         .eq('is_hidden', false)
+        .eq('is_ryuseigai', false)
         .order('date', { ascending: false })
         .range(from, to);
       if (trimmed) {
@@ -229,6 +231,7 @@ const App: React.FC = () => {
         date: n.date,
         viewCount: n.view_count ? Number(n.view_count) : 0,
         isHidden: false,
+        isRyuseigai: !!n.is_ryuseigai,
       }));
 
       // 当該ページ作品のコメントのみ取得
@@ -332,6 +335,7 @@ const App: React.FC = () => {
         date: n.date,
         viewCount: n.view_count ? Number(n.view_count) : 0,
         isHidden: !!n.is_hidden,
+        isRyuseigai: !!n.is_ryuseigai,
       }));
 
       const mappedComments: Comment[] = (commentsData || []).map((c: any) => ({
