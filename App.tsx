@@ -166,6 +166,32 @@ const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [isSupabaseMode]);
 
+  // 流星垓ビュー: document.title / meta / favicon を動的切替
+  useEffect(() => {
+    const isRyuseigaiView = view === 'ryuseigai' || view === 'ryuseigai-read';
+    const defaultTitle = '文章アリの穴NEO';
+    const defaultDesc = '文章アリの穴NEO - 匿名投稿・添削できる修行場所。2005年のテキスト投稿サイト「文章アリの穴」をオマージュした再現サイト。';
+    const defaultIcon = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐜</text></svg>";
+
+    const ryuseigaiTitle = '流星垓';
+    const ryuseigaiDesc = 'ここに捨てられたものは、まだ息をしている。救済はない。ただ、在る。';
+    const ryuseigaiIcon = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☄️</text></svg>";
+
+    document.title = isRyuseigaiView ? ryuseigaiTitle : defaultTitle;
+
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', isRyuseigaiView ? ryuseigaiDesc : defaultDesc);
+
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', isRyuseigaiView ? ryuseigaiTitle : defaultTitle);
+
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', isRyuseigaiView ? ryuseigaiDesc : defaultDesc);
+
+    const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null;
+    if (favicon) favicon.href = isRyuseigaiView ? ryuseigaiIcon : defaultIcon;
+  }, [view]);
+
   useEffect(() => {
     if ((view === 'read' || view === 'ryuseigai-read') && activeNovelId) {
       incrementViewCount(activeNovelId);
