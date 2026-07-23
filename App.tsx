@@ -712,12 +712,12 @@ const App: React.FC = () => {
     : Math.max(1, Math.ceil(visibleNovels.length / NOVELS_PER_PAGE));
   const clampedPage = Math.min(currentPage, totalPages);
 
-  // Supabaseモード: novels は既に当該ページ分 / オフライン: クライアントでスライス
+  // Supabaseモード: visibleNovels（ソート済み）をそのまま使用 / オフライン: クライアントでスライス
   const pagedNovels = useMemo(
     () => isSupabaseMode
-      ? novels
+      ? visibleNovels
       : visibleNovels.slice((clampedPage - 1) * NOVELS_PER_PAGE, clampedPage * NOVELS_PER_PAGE),
-    [novels, visibleNovels, clampedPage, isSupabaseMode],
+    [visibleNovels, clampedPage, isSupabaseMode],
   );
 
   // 作品閲覧: Supabaseモードは readNovel / オフラインは visibleNovels から検索
