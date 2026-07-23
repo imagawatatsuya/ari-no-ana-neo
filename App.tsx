@@ -928,12 +928,14 @@ const App: React.FC = () => {
         )}
         </main>
 
-        {/* フッター */}
+        {/* フッター（流星街には表示しない） */}
+        {view !== 'ryuseigai' && view !== 'ryuseigai-read' && (<>
         <hr className="hr-standard" />
         <div className="site-footer">
           <div className="footer-script">Based on Anthology V1.7  Script by YASUU!!</div>
           <div style={{ fontSize: 12, marginTop: 2 }}>総アクセス数: {isSupabaseMode ? '―' : visibleNovels.reduce((acc, n) => acc + n.viewCount, 0)} hits / 稼働環境: React + {isSupabaseMode ? 'Supabase' : 'LocalStorage'}</div>
         </div>
+        </>)}
 
         {showHelp && (
           <div className="help-backdrop" onClick={() => setShowHelp(false)}>
