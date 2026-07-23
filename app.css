@@ -1058,7 +1058,7 @@ select:focus-visible {
 }
 
 /* ============================================================
-   流星街 (Ryuseigai) — 社会の掃き溜めをイメージした暗黒UI
+   流星垓 (Ryuseigai) — 社会の掃き溜めをイメージした暗黒UI
    WCAG 2.1 AA 準拠（コントラスト比 4.5:1 以上を確保）
    おどろおどろしいテーマはライト/ダークモード共通
    ============================================================ */
@@ -1070,7 +1070,7 @@ select:focus-visible {
   padding: 8px;
 }
 
-/* 流星街内の共通組版クラス: 暗色上書き */
+/* 流星垓内の共通組版クラス: 暗色上書き */
 .ryuseigai-shell .article-title {
   color: #c99a9a;
 }
@@ -1210,7 +1210,7 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
-/* 流星街: ポイントボックス */
+/* 流星垓: ポイントボックス */
 .ryuseigai-point-box {
   border: 1px solid #4a3535;
   background: #1a0f0f;
@@ -1238,7 +1238,7 @@ select:focus-visible {
   color: #a89a9a;
 }
 
-/* 流星街: コメント */
+/* 流星垓: コメント */
 .ryuseigai-section-title {
   font-size: 14px;
   font-weight: bold;
@@ -1260,7 +1260,7 @@ select:focus-visible {
   font-weight: bold;
 }
 
-/* 流星街: フォーム */
+/* 流星垓: フォーム */
 .ryuseigai-form {
   border: 1px solid #3a3a3a;
   padding: 12px;
@@ -1334,7 +1334,7 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
-/* 管理画面: 流星街バッジ */
+/* 管理画面: 流星垓バッジ */
 .ryuseigai-badge {
   color: #6b4c4c;
   font-weight: bold;

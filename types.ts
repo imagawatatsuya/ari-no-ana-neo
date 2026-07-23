@@ -18,7 +18,7 @@ export interface Novel {
   date: string;
   viewCount: number;
   isHidden?: boolean; // 管理者による非表示フラグ
-  isRyuseigai?: boolean; // 流星街送りフラグ
+  isRyuseigai?: boolean; // 流星垓送りフラグ
 }
 
 export type ViewMode = 'list' | 'post' | 'read' | 'admin' | 'ryuseigai' | 'ryuseigai-read';

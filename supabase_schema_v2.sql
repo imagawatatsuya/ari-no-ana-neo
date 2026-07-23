@@ -156,8 +156,8 @@ for select using (auth.uid() = user_id);
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false;
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS description text;
 
--- Migration: 流星街機能 (Ryuseigai)
+-- Migration: 流星垓機能 (Ryuseigai)
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_ryuseigai boolean NOT NULL DEFAULT false;
--- 流星街コメントは vote -500 / -1000 を使うため、CHECK制約を拡張:
+-- 流星垓コメントは vote -500 / -1000 を使うため、CHECK制約を拡張:
 -- ALTER TABLE public.comments DROP CONSTRAINT IF EXISTS comments_vote_range;
 -- ALTER TABLE public.comments ADD CONSTRAINT comments_vote_range CHECK (vote BETWEEN -1000 AND 2);

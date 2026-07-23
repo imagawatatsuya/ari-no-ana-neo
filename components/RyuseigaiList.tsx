@@ -7,7 +7,7 @@ interface RyuseigaiListProps {
   comments: Comment[];
 }
 
-/** 流星街の初期ポイント */
+/** 流星垓の初期ポイント */
 const RYUSEIGAI_BASE_SCORE = -300;
 
 /** Fisher-Yates シャッフル（アクセスごとにランダム順） */
@@ -33,9 +33,9 @@ export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ novels, comments }
   return (
     <div className="ryuseigai-shell">
       <div className="ryuseigai-panel">
-        {/* 流星街ヘッダ */}
+        {/* 流星垓ヘッダ */}
         <div className="ryuseigai-header">
-          <h1 className="ryuseigai-title">流 星 街</h1>
+          <h1 className="ryuseigai-title">流 星 垓</h1>
           
           <div className="ryuseigai-epigraph">
             ここに捨てられたものは、まだ息をしている。<br />

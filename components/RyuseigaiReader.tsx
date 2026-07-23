@@ -11,7 +11,7 @@ interface RyuseigaiReaderProps {
 
 const MAX_COMMENT_LENGTH = 500;
 
-/** 流星街の初期ポイント */
+/** 流星垓の初期ポイント */
 const RYUSEIGAI_BASE_SCORE = -300;
 
 export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comments, onComment }) => {
@@ -53,7 +53,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
     <div className="ryuseigai-shell">
       {/* 戻る */}
       <div style={{ marginBottom: 6 }}>
-        <a href="#ryuseigai" className="ryuseigai-back-link">← 流星街へ戻る</a>
+        <a href="#ryuseigai" className="ryuseigai-back-link">← 流星垓へ戻る</a>
       </div>
 
       {/* 作品本文: 共通組版システム */}
@@ -82,7 +82,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
         <div style={{ marginLeft: '3%' }}>{novel.author || '名無し'}</div>
       </div>
 
-      {/* 存在価値（流星街独自） */}
+      {/* 存在価値（流星垓独自） */}
       <div className="ryuseigai-point-box">
         <div className="ryuseigai-point-label">存在価値</div>
         <div className="ryuseigai-point-value">{totalScore}</div>
@@ -113,7 +113,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
         </div>
       )}
 
-      {/* 声を刻むフォーム（流星街独自） */}
+      {/* 声を刻むフォーム（流星垓独自） */}
       <div style={{ height: 14 }} />
       <form onSubmit={handleSubmit} className="ryuseigai-form">
         <div className="ryuseigai-form-title">■ 声を刻む</div>
@@ -147,7 +147,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
 
       {/* 戻る */}
       <div style={{ marginTop: 12 }}>
-        <a href="#ryuseigai" className="ryuseigai-back-link">← 流星街へ戻る</a>
+        <a href="#ryuseigai" className="ryuseigai-back-link">← 流星垓へ戻る</a>
       </div>
     </div>
   );

@@ -190,13 +190,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <td>{novel.author}</td>
                 <td style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>{formatDate(novel.date)}</td>
                 <td style={{ textAlign: 'center' }}>
-                  <span className={hidden ? 'score-neg' : novel.isRyuseigai ? 'ryuseigai-badge' : 'score-pos'}>{hidden ? '非表示' : novel.isRyuseigai ? '流星街' : '公開'}</span>
+                  <span className={hidden ? 'score-neg' : novel.isRyuseigai ? 'ryuseigai-badge' : 'score-pos'}>{hidden ? '非表示' : novel.isRyuseigai ? '流星垓' : '公開'}</span>
                 </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   <button type="button" className="classic-button" onClick={() => startEdit(novel)}>編集</button>{' '}
                   <button type="button" className="classic-button" onClick={() => handleDelete(novel.id)}>削除</button>{' '}
                   <button type="button" className="classic-button" onClick={() => handleToggleHide(novel.id, !hidden)}>{hidden ? '表示する' : '非表示'}</button>{' '}
-                  <button type="button" className="classic-button" onClick={() => onToggleRyuseigai(novel.id, !novel.isRyuseigai)}>{novel.isRyuseigai ? '流星街から戻す' : '流星街へ'}</button>
+                  <button type="button" className="classic-button" onClick={() => onToggleRyuseigai(novel.id, !novel.isRyuseigai)}>{novel.isRyuseigai ? '流星垓から戻す' : '流星垓へ'}</button>
                 </td>
               </tr>
             );

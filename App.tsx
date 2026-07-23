@@ -48,7 +48,7 @@ const App: React.FC = () => {
   const [readComments, setReadComments] = useState<Comment[]>([]);
   const [adminNovels, setAdminNovels] = useState<Novel[]>([]);
   const [adminComments, setAdminComments] = useState<Comment[]>([]);
-  // 流星街用（一覧のみ。閲覧は共通 readNovel/readComments を使用）
+  // 流星垓用（一覧のみ。閲覧は共通 readNovel/readComments を使用）
   const [ryuseigaiNovels, setRyuseigaiNovels] = useState<Novel[]>([]);
   const [ryuseigaiComments, setRyuseigaiComments] = useState<Comment[]>([]);
 
@@ -111,14 +111,14 @@ const App: React.FC = () => {
     }
   }, [view, isAdminAuthenticated, isSupabaseMode]);
 
-  // Supabaseモード: 流星街一覧取得
+  // Supabaseモード: 流星垓一覧取得
   useEffect(() => {
     if (isSupabaseMode && view === 'ryuseigai') {
       fetchRyuseigaiFromSupabase();
     }
   }, [view, isSupabaseMode]);
 
-  // Supabaseモード: 流星街作品閲覧（共通 fetchNovelForRead を使用）
+  // Supabaseモード: 流星垓作品閲覧（共通 fetchNovelForRead を使用）
   useEffect(() => {
     if (isSupabaseMode && view === 'ryuseigai-read' && activeNovelId) {
       fetchNovelForRead(activeNovelId);
@@ -206,7 +206,7 @@ const App: React.FC = () => {
       if (countError) throw countError;
       setTotalNovelCount(count ?? 0);
 
-      // 当該ページの作品取得（流星街送りの作品は除外）
+      // 当該ページの作品取得（流星垓送りの作品は除外）
       let novelsQuery = supabase
         .from('novels')
         .select('*')
@@ -357,7 +357,7 @@ const App: React.FC = () => {
     }
   };
 
-  // --- Supabase: 流星街一覧取得 ---
+  // --- Supabase: 流星垓一覧取得 ---
   const fetchRyuseigaiFromSupabase = async () => {
     if (!supabase) return;
     setIsLoading(true);
@@ -604,7 +604,7 @@ const App: React.FC = () => {
     alert('ダミーデータを再投入しました。');
   };
 
-  // --- 流星街送りトグル ---
+  // --- 流星垓送りトグル ---
   const handleToggleRyuseigai = async (id: string, nextRyuseigai: boolean) => {
     if (!isAdminAuthenticated) {
       alert('管理者認証が必要です。');
@@ -622,7 +622,7 @@ const App: React.FC = () => {
       const { error } = await supabase.from('novels').update({ is_ryuseigai: nextRyuseigai }).eq('id', id);
       if (error) {
         console.error('Failed to sync is_ryuseigai:', error);
-        setErrorMsg('流星街状態の同期に失敗しました。');
+        setErrorMsg('流星垓状態の同期に失敗しました。');
       }
     }
   };
@@ -652,7 +652,7 @@ const App: React.FC = () => {
     return [...list].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [novels, hiddenNovelIds, isSupabaseMode, searchQuery]);
 
-  // --- 流星街作品（オフラインモード用） ---
+  // --- 流星垓作品（オフラインモード用） ---
   const offlineRyuseigaiNovels = useMemo(() => {
     if (isSupabaseMode) return [];
     return novels.filter((n) => n.isRyuseigai && !hiddenNovelIds.includes(n.id));
@@ -686,7 +686,7 @@ const App: React.FC = () => {
     ? readComments
     : comments.filter((c) => c.novelId === activeNovelId);
 
-  // 流星街作品閲覧: 共通 readNovel/readComments を使用（オフラインのみ独自フィルタ）
+  // 流星垓作品閲覧: 共通 readNovel/readComments を使用（オフラインのみ独自フィルタ）
   const activeRyuseigaiNovel = isSupabaseMode
     ? readNovel
     : offlineRyuseigaiNovels.find((n) => n.id === activeNovelId) ?? null;
@@ -741,7 +741,7 @@ const App: React.FC = () => {
     <div className="site-shell">
       <a href="#main-content" className="skip-link">本文へスキップ</a>
       <div className="site-panel">
-        {/* 作品ページ（read/post）と流星街には通常ヘッダを表示しない */}
+        {/* 作品ページ（read/post）と流星垓には通常ヘッダを表示しない */}
         {view !== 'read' && view !== 'post' && view !== 'ryuseigai' && view !== 'ryuseigai-read' && (<>
         {/* 上部ナビ (右寄せ: オリジナルCGI準拠) */}
         <div className="top-nav">
@@ -864,7 +864,7 @@ const App: React.FC = () => {
         {view === 'read' && !activeNovel && !isLoading && <div style={{ padding: 8 }}>投稿が見つからないか、非表示に設定されています。<a href="#">一覧へ戻る</a></div>}
         {view === 'read' && !activeNovel && isLoading && <div style={{ padding: 8 }}>読み込み中...</div>}
 
-        {/* 流星街 */}
+        {/* 流星垓 */}
         {view === 'ryuseigai' && (
           <RyuseigaiList
             novels={isSupabaseMode ? ryuseigaiNovels : offlineRyuseigaiNovels}
@@ -886,7 +886,7 @@ const App: React.FC = () => {
         )}
         </main>
 
-        {/* フッター（流星街には表示しない） */}
+        {/* フッター（流星垓には表示しない） */}
         {view !== 'ryuseigai' && view !== 'ryuseigai-read' && (<>
         <hr className="hr-standard" />
         <div className="site-footer">
