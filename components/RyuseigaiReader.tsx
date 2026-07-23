@@ -54,7 +54,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
       <div className="ryuseigai-panel">
         {/* 戻る */}
         <div style={{ marginBottom: 8 }}>
-          <a href="#ryuseigai" className="ryuseigai-back-link">← 芥溜へ戻る</a>
+          <a href="#ryuseigai" className="ryuseigai-back-link">← 流星街へ戻る</a>
         </div>
 
         {/* 作品本文 */}
@@ -81,7 +81,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
           <div className="ryuseigai-point-label">存在価値</div>
           <div className="ryuseigai-point-value">{totalScore}</div>
           <div className="ryuseigai-point-breakdown">
-            「なぜ生きている？」 [{countWhy}] ／ 「おまえは存在しない」 [{countNotExist}]
+            「なぜ生まれてきた？」 [{countWhy}] ／ 「おまえは存在しない」 [{countNotExist}]
           </div>
         </div>
 
@@ -97,7 +97,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
                 <div className="ryuseigai-comment-footer">
                   <span className="ryuseigai-comment-num">{comments.length - idx}:</span>{' '}
                   <span className="ryuseigai-comment-vote">
-                    {c.vote === -1000 ? 'おまえは存在しない' : 'なぜ生きている？'}
+                    {c.vote === -1000 ? 'おまえは存在しない' : 'なぜ生まれてきた？'}
                   </span>{' '}
                   {c.trip && <span className="ryuseigai-comment-trip">＜{c.trip.replace('◆', '')}＞</span>}{' '}
                   <span className="ryuseigai-comment-date">{formatDate(c.date)}</span>
@@ -130,7 +130,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
           <div style={{ marginTop: 6 }}>
             <b>■ 断罪</b>{' '}
             <select value={vote} onChange={(e) => setVote(Number(e.target.value))} className="ryuseigai-select">
-              <option value={-500}>なぜ生きている？ (-500)</option>
+              <option value={-500}>なぜ生まれてきた？ (-500)</option>
               <option value={-1000}>おまえは存在しない (-1000)</option>
             </select>
           </div>
@@ -141,7 +141,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
 
         {/* 戻る */}
         <div style={{ marginTop: 14 }}>
-          <a href="#ryuseigai" className="ryuseigai-back-link">← 芥溜へ戻る</a>
+          <a href="#ryuseigai" className="ryuseigai-back-link">← 流星街へ戻る</a>
         </div>
       </div>
     </div>

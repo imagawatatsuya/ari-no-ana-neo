@@ -36,7 +36,7 @@ export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ novels, comments }
         {/* 流星街ヘッダ */}
         <div className="ryuseigai-header">
           <h1 className="ryuseigai-title">流 星 街</h1>
-          <div className="ryuseigai-subtitle">― 芥溜 ―</div>
+          
           <div className="ryuseigai-epigraph">
             ここに捨てられたものは、まだ息をしている。<br />
             救済はない。ただ、在る。
