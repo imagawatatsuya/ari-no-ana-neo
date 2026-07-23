@@ -1059,6 +1059,8 @@ select:focus-visible {
 
 /* ============================================================
    流星街 (Ryuseigai) — 社会の掃き溜めをイメージした暗黒UI
+   WCAG 2.1 AA 準拠（コントラスト比 4.5:1 以上を確保）
+   おどろおどろしいテーマはライト/ダークモード共通
    ============================================================ */
 
 .ryuseigai-shell {
@@ -1071,38 +1073,38 @@ select:focus-visible {
   max-width: 720px;
   margin: 0 auto;
   background: #111111;
-  border: 1px solid #2a2a2a;
+  border: 1px solid #3a3a3a;
   padding: 24px 16px;
-  color: #8a8a7a;
+  color: #b8b2a6;
   font-family: "MS PGothic", "Osaka", monospace;
 }
 
 .ryuseigai-header {
   text-align: center;
   margin-bottom: 24px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #3a3a3a;
   padding-bottom: 16px;
 }
 
 .ryuseigai-title {
   font-size: 28px;
   font-weight: bold;
-  color: #6b4c4c;
+  color: #c99a9a;
   letter-spacing: 12px;
   margin: 0 0 4px;
-  text-shadow: 0 0 8px rgba(120, 40, 40, 0.4);
+  text-shadow: 0 0 8px rgba(160, 60, 60, 0.5);
 }
 
 .ryuseigai-subtitle {
   font-size: 14px;
-  color: #555;
+  color: #9a9488;
   letter-spacing: 6px;
 }
 
 .ryuseigai-epigraph {
   margin-top: 12px;
-  font-size: 12px;
-  color: #4a4a40;
+  font-size: 13px;
+  color: #9a9488;
   line-height: 1.8;
   font-style: italic;
 }
@@ -1110,64 +1112,74 @@ select:focus-visible {
 .ryuseigai-empty {
   text-align: center;
   padding: 32px 0;
-  color: #444;
+  color: #9a9488;
   font-size: 14px;
 }
 
 .ryuseigai-entries {
-  border-top: 1px solid #222;
+  border-top: 1px solid #333;
 }
 
 .ryuseigai-entry {
   padding: 10px 4px;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .ryuseigai-entry-link {
-  color: #7a5a5a;
-  text-decoration: none;
+  color: #c99a9a;
+  text-decoration: underline;
+  text-decoration-color: #6a4a4a;
   font-size: 15px;
   font-weight: bold;
 }
 .ryuseigai-entry-link:hover {
-  color: #a06060;
-  text-decoration: underline;
+  color: #e0b0b0;
+  text-decoration-color: #c99a9a;
+}
+.ryuseigai-entry-link:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 2px;
 }
 
 .ryuseigai-entry-score {
   float: right;
-  color: #5a3a3a;
+  color: #c08080;
   font-size: 13px;
   font-weight: bold;
 }
 
 .ryuseigai-entry-meta {
-  font-size: 11px;
-  color: #4a4a40;
+  font-size: 12px;
+  color: #9a9488;
   margin-top: 3px;
 }
 
 .ryuseigai-footer {
   margin-top: 24px;
   text-align: center;
-  font-size: 11px;
-  color: #3a3a3a;
-  border-top: 1px solid #222;
+  font-size: 12px;
+  color: #8a8478;
+  border-top: 1px solid #333;
   padding-top: 12px;
 }
 
 .ryuseigai-back-link {
-  color: #5a4a4a;
-  text-decoration: none;
+  color: #c99a9a;
+  text-decoration: underline;
+  text-decoration-color: #6a4a4a;
   font-size: 13px;
 }
 .ryuseigai-back-link:hover {
-  color: #8a6060;
+  color: #e0b0b0;
+}
+.ryuseigai-back-link:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 2px;
 }
 
 /* 流星街: 作品閲覧 */
 .ryuseigai-article {
-  border: 1px solid #2a2a2a;
+  border: 1px solid #3a3a3a;
   padding: 16px 12px;
   margin-bottom: 16px;
   background: #0d0d0d;
@@ -1176,42 +1188,42 @@ select:focus-visible {
 .ryuseigai-article-title {
   font-size: 20px;
   font-weight: bold;
-  color: #7a5a5a;
+  color: #c99a9a;
   margin-bottom: 8px;
 }
 
 .ryuseigai-page-count {
   font-size: 12px;
-  color: #555;
+  color: #9a9488;
   margin-bottom: 8px;
 }
 
 .ryuseigai-article-body {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.8;
-  color: #9a9a8a;
+  color: #c8c2b6;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .ryuseigai-article-date {
   text-align: right;
-  font-size: 11px;
-  color: #4a4a40;
+  font-size: 12px;
+  color: #9a9488;
   margin-top: 10px;
 }
 
 .ryuseigai-author {
   font-size: 13px;
-  color: #5a5a50;
+  color: #a8a296;
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #222;
+  border-top: 1px solid #333;
 }
 
 /* 流星街: ポイントボックス */
 .ryuseigai-point-box {
-  border: 1px solid #3a2a2a;
+  border: 1px solid #4a3535;
   background: #1a0f0f;
   padding: 12px;
   margin-bottom: 16px;
@@ -1219,79 +1231,79 @@ select:focus-visible {
 }
 
 .ryuseigai-point-label {
-  font-size: 11px;
-  color: #5a4a4a;
+  font-size: 12px;
+  color: #a89a9a;
   letter-spacing: 4px;
 }
 
 .ryuseigai-point-value {
   font-size: 32px;
   font-weight: bold;
-  color: #8a3030;
+  color: #d05050;
   margin: 4px 0;
-  text-shadow: 0 0 6px rgba(140, 40, 40, 0.5);
+  text-shadow: 0 0 6px rgba(180, 50, 50, 0.5);
 }
 
 .ryuseigai-point-breakdown {
   font-size: 12px;
-  color: #5a4a4a;
+  color: #a89a9a;
 }
 
 /* 流星街: コメント */
 .ryuseigai-section-title {
   font-size: 14px;
   font-weight: bold;
-  color: #6b4c4c;
-  border-bottom: 1px solid #2a2a2a;
+  color: #c99a9a;
+  border-bottom: 1px solid #3a3a3a;
   padding-bottom: 4px;
   margin-bottom: 8px;
 }
 
 .ryuseigai-no-comments {
-  font-size: 12px;
-  color: #444;
+  font-size: 13px;
+  color: #9a9488;
   padding: 12px 0;
   text-align: center;
 }
 
 .ryuseigai-comment {
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
   padding: 8px 4px;
 }
 
 .ryuseigai-comment-text {
-  font-size: 13px;
-  color: #8a8a7a;
+  font-size: 14px;
+  color: #b8b2a6;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .ryuseigai-comment-footer {
-  font-size: 11px;
-  color: #4a4a40;
+  font-size: 12px;
+  color: #9a9488;
   margin-top: 4px;
 }
 
 .ryuseigai-comment-num {
-  color: #555;
+  color: #9a9488;
 }
 
 .ryuseigai-comment-vote {
-  color: #7a3a3a;
+  color: #d08080;
   font-weight: bold;
 }
 
 .ryuseigai-comment-trip {
-  color: #5a5a50;
+  color: #a8a296;
 }
 
 .ryuseigai-comment-date {
-  color: #3a3a3a;
+  color: #8a8478;
 }
 
 /* 流星街: フォーム */
 .ryuseigai-form {
-  border: 1px solid #2a2a2a;
+  border: 1px solid #3a3a3a;
   padding: 12px;
   background: #0d0d0d;
 }
@@ -1299,7 +1311,7 @@ select:focus-visible {
 .ryuseigai-form-title {
   font-size: 14px;
   font-weight: bold;
-  color: #6b4c4c;
+  color: #c99a9a;
   margin-bottom: 8px;
 }
 
@@ -1307,42 +1319,48 @@ select:focus-visible {
   width: 100%;
   min-height: 100px;
   background: #1a1a1a;
-  border: 1px solid #333;
-  color: #9a9a8a;
+  border: 1px solid #444;
+  color: #c8c2b6;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   padding: 8px;
   resize: vertical;
 }
 .ryuseigai-textarea:focus {
-  outline: 1px solid #5a3a3a;
+  outline: 2px solid #c99a9a;
+  outline-offset: 1px;
 }
 
 .ryuseigai-input {
   background: #1a1a1a;
-  border: 1px solid #333;
-  color: #9a9a8a;
-  font-size: 13px;
+  border: 1px solid #444;
+  color: #c8c2b6;
+  font-size: 14px;
   padding: 4px 8px;
   width: 240px;
   max-width: 100%;
 }
 .ryuseigai-input:focus {
-  outline: 1px solid #5a3a3a;
+  outline: 2px solid #c99a9a;
+  outline-offset: 1px;
 }
 
 .ryuseigai-select {
   background: #1a1a1a;
-  border: 1px solid #333;
-  color: #8a5a5a;
-  font-size: 13px;
+  border: 1px solid #444;
+  color: #c99a9a;
+  font-size: 14px;
   padding: 4px 8px;
+}
+.ryuseigai-select:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 1px;
 }
 
 .ryuseigai-button {
   background: #2a1a1a;
-  border: 1px solid #4a3030;
-  color: #8a5a5a;
+  border: 1px solid #5a3a3a;
+  color: #c99a9a;
   font-size: 14px;
   padding: 6px 24px;
   cursor: pointer;
@@ -1350,7 +1368,11 @@ select:focus-visible {
 }
 .ryuseigai-button:hover {
   background: #3a2020;
-  color: #a06060;
+  color: #e0b0b0;
+}
+.ryuseigai-button:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 2px;
 }
 
 /* 管理画面: 流星街バッジ */
