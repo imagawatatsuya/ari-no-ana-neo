@@ -1015,13 +1015,14 @@ const App: React.FC = () => {
                 <button type="button" className="classic-button" onClick={() => setShowHelp(false)}>閉</button>
               </div>
               <div className="help-body">
-                <p><b>Supabase利用時の設定</b></p>
-                <ol>
-                  <li><code>supabase_schema_v2.sql</code> を SQL Editor で実行</li>
-                  <li><code>.env</code> に URL / ANON KEY を設定</li>
-                  <li>本番は <code>supabase.auth</code> とRLSで管理者のみ更新・削除を許可</li>
-                  <li>GitHub Actions の Secrets に同値を設定</li>
-                </ol>
+                <p><b>■ 閲覧</b></p>
+                <p>一覧からタイトルをクリックすると作品を読めます。作品内の <span className="footnote-ref-link">[1]</span> 等の番号は脚注へのリンクです。</p>
+                <p><b>■ 投稿</b></p>
+                <p>「新規投稿」から作品を投稿できます。タイトル・本文を入力し、プレビュー確認後に送信してください。本文内の <code>[^1]</code> と <code>[^1]: 脚注テキスト</code> で脚注を使えます。</p>
+                <p><b>■ 感想・評価</b></p>
+                <p>作品ページ下部から感想を投稿できます。評価（とても良い～最悪）を選んで投票してください。</p>
+                <p><b>■ その他</b></p>
+                <p>当サイトは2005年のテキスト投稿サイト「文章アリの穴」をオマージュした再現サイトです。煽り・罵倒は覚悟の上で。</p>
                 <div style={{ textAlign: 'center' }}>
                   <button type="button" className="classic-button" onClick={() => setShowHelp(false)}>閉じる</button>
                 </div>
