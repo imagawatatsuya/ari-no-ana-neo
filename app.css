@@ -334,9 +334,9 @@ a:hover {
 }
 
 /* ezdogノウハウ: 段落構造（<p>単位でjustifyコンテキスト生成） */
+/* 注意: white-space: pre-wrap はiOS Safariでtext-align:justifyを無効化するため使用禁止 */
 .article-paragraphs p {
   margin: 0;
-  white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: break-word;
 }
@@ -898,7 +898,6 @@ select:focus-visible {
   .article-paragraphs p {
     text-align: justify;
     text-justify: inter-ideograph;
-    white-space: pre-wrap;
     word-break: break-word;
     overflow-wrap: break-word;
   }
