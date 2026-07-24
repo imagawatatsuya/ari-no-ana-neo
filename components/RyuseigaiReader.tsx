@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Novel, Comment } from '../types';
 import { formatDate, generateTrip, formatManuscriptPages } from '../utils';
-import { FootnoteRenderer } from './FootnoteRenderer';
+import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 
 interface RyuseigaiReaderProps {
   novel: Novel;
   comments: Comment[];
   onComment: (comment: Comment) => void;
+  footnoteMode?: FootnoteMode;
 }
 
 const MAX_COMMENT_LENGTH = 500;
@@ -14,7 +15,7 @@ const MAX_COMMENT_LENGTH = 500;
 /** 流星垓の初期ポイント */
 const RYUSEIGAI_BASE_SCORE = -300;
 
-export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comments, onComment }) => {
+export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comments, onComment, footnoteMode }) => {
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(-500);
@@ -69,7 +70,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
           )}
           <tr>
             <td className="article-body">
-              <FootnoteRenderer content={novel.body} />
+              <FootnoteRenderer content={novel.body} footnoteMode={footnoteMode} />
             </td>
           </tr>
         </tbody>

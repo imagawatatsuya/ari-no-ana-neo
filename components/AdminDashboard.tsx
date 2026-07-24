@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Comment, Novel } from '../types';
 import { formatDate } from '../utils';
+import { FootnoteMode } from './FootnoteRenderer';
 
 type FilterTab = 'all' | 'published' | 'hidden';
 
@@ -14,6 +15,8 @@ interface AdminDashboardProps {
   onBulkToggleHide: (ids: string[], nextHidden: boolean) => Promise<void>;
   onToggleRyuseigai: (id: string, nextRyuseigai: boolean) => Promise<void>;
   onResetSeedData: () => void;
+  footnoteMode: FootnoteMode;
+  onChangeFootnoteMode: (mode: FootnoteMode) => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -26,6 +29,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onBulkToggleHide,
   onToggleRyuseigai,
   onResetSeedData,
+  footnoteMode,
+  onChangeFootnoteMode,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
@@ -133,6 +138,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div style={{ fontSize: 13, marginBottom: 6 }}>投稿の編集・削除・非表示設定を行います。</div>
       <div style={{ marginBottom: 8 }}>
         <button type="button" className="classic-button" onClick={onResetSeedData}>テスト用ダミーデータを再投入</button>
+      </div>
+
+      <div style={{ marginBottom: 12, padding: '8px 12px', background: 'var(--admin-bulk-bg)', border: '1px solid var(--admin-bulk-border)', fontSize: 13 }}>
+        <b>脚注クリック動作:</b>{' '}
+        <label style={{ marginRight: 12 }}>
+          <input type="radio" name="footnoteMode" checked={footnoteMode === 'scroll'} onChange={() => onChangeFootnoteMode('scroll')} /> スクロール
+        </label>
+        <label>
+          <input type="radio" name="footnoteMode" checked={footnoteMode === 'tooltip'} onChange={() => onChangeFootnoteMode('tooltip')} /> ツールチップ
+        </label>
       </div>
 
       {/* フィルタタブ */}

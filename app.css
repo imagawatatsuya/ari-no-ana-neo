@@ -1360,3 +1360,61 @@ select:focus-visible {
   font-weight: bold;
   font-size: 12px;
 }
+
+/* === 脚注ツールチップ === */
+.footnote-tooltip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 320px;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 4px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+  font-size: 13px;
+  line-height: 1.6;
+  animation: tooltip-fade-in 0.15s ease-out;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.footnote-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  border-radius: 4px 4px 0 0;
+  font-size: 11px;
+  font-weight: bold;
+  color: #800000;
+}
+
+.footnote-tooltip-header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  padding: 0 2px;
+  line-height: 1;
+}
+.footnote-tooltip-header button:hover {
+  color: #cc0000;
+}
+
+.footnote-tooltip-body {
+  padding: 8px 10px;
+  color: #333;
+  word-break: break-word;
+}

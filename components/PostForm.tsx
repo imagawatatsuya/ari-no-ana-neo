@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Novel } from '../types';
 import { generateTrip, formatManuscriptPages, formatDate, countBodyCharacters } from '../utils';
-import { FootnoteRenderer } from './FootnoteRenderer';
+import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 
 interface PostFormProps {
   onPost: (novel: Novel) => void;
+  footnoteMode?: FootnoteMode;
 }
 
 // 入力長制限
@@ -17,7 +18,7 @@ const MAX_BODY = 100000;
 const SPAM_COOLDOWN_MS = 60 * 1000;
 const LAST_POST_KEY = 'bunsho_last_post_at';
 
-export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
+export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
   const [mode, setMode] = useState<'input' | 'preview'>('input');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -106,7 +107,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
             </tr>
             <tr>
               <td className="article-body">
-                <FootnoteRenderer content={body} />
+                <FootnoteRenderer content={body} footnoteMode={footnoteMode} />
               </td>
             </tr>
           </tbody>

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Novel, Comment } from '../types';
 import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
-import { FootnoteRenderer } from './FootnoteRenderer';
+import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 
 interface NovelReaderProps {
   novel: Novel;
   comments: Comment[];
   onComment: (comment: Comment) => void;
+  footnoteMode?: FootnoteMode;
 }
 
 const MAX_COMMENT_LENGTH = 500;
@@ -28,7 +29,7 @@ const badgeClass = (v: number): string => {
   return 'comment-badge comment-badge-neutral';
 };
 
-export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onComment }) => {
+export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onComment, footnoteMode }) => {
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(0);
@@ -104,7 +105,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
           {/* 本文: .font_body { font-size:100%; line-height:150% } */}
           <tr>
             <td className="article-body">
-              <FootnoteRenderer content={novel.body} />
+              <FootnoteRenderer content={novel.body} footnoteMode={footnoteMode} />
             </td>
           </tr>
         </tbody>

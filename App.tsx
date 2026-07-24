@@ -9,6 +9,7 @@ import { RyuseigaiList } from './components/RyuseigaiList';
 import { RyuseigaiReader } from './components/RyuseigaiReader';
 import { supabase } from './services/supabaseClient';
 import { deleteNovelAndComments, editNovelInList, toggleHiddenNovelId } from './adminOps';
+import { FootnoteMode } from './components/FootnoteRenderer';
 
 const getJSTISOString = () => {
   const jstDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
@@ -51,6 +52,12 @@ const App: React.FC = () => {
   // 流星垓用（一覧のみ。閲覧は共通 readNovel/readComments を使用）
   const [ryuseigaiNovels, setRyuseigaiNovels] = useState<Novel[]>([]);
   const [ryuseigaiComments, setRyuseigaiComments] = useState<Comment[]>([]);
+
+  // 脚注表示モード（管理者設定）
+  const FOOTNOTE_MODE_KEY = 'bunsho_footnote_mode';
+  const [footnoteMode, setFootnoteMode] = useState<FootnoteMode>(
+    () => (localStorage.getItem(FOOTNOTE_MODE_KEY) as FootnoteMode) || 'scroll'
+  );
 
   const isSupabaseMode = !!supabase;
 
@@ -833,7 +840,7 @@ const App: React.FC = () => {
             )}
           </nav>
         )}
-        {view === 'post' && <PostForm onPost={handlePost} />}
+        {view === 'post' && <PostForm onPost={handlePost} footnoteMode={footnoteMode} />}
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
             <div className="section-title">管理者ログイン</div>
@@ -884,9 +891,14 @@ const App: React.FC = () => {
             onBulkToggleHide={handleBulkToggleHide}
             onToggleRyuseigai={handleToggleRyuseigai}
             onResetSeedData={handleResetSeedData}
+            footnoteMode={footnoteMode}
+            onChangeFootnoteMode={(mode) => {
+              setFootnoteMode(mode);
+              localStorage.setItem(FOOTNOTE_MODE_KEY, mode);
+            }}
           />
         )}
-        {view === 'read' && activeNovel && <NovelReader novel={activeNovel} comments={activeComments} onComment={handleComment} />}
+        {view === 'read' && activeNovel && <NovelReader novel={activeNovel} comments={activeComments} onComment={handleComment} footnoteMode={footnoteMode} />}
         {view === 'read' && !activeNovel && !isLoading && <div style={{ padding: 8 }}>投稿が見つからないか、非表示に設定されています。<a href="#">一覧へ戻る</a></div>}
         {view === 'read' && !activeNovel && isLoading && <div style={{ padding: 8 }}>読み込み中...</div>}
 
@@ -902,6 +914,7 @@ const App: React.FC = () => {
             novel={activeRyuseigaiNovel}
             comments={activeRyuseigaiComments}
             onComment={handleComment}
+            footnoteMode={footnoteMode}
           />
         )}
         {view === 'ryuseigai-read' && !activeRyuseigaiNovel && !isLoading && (
