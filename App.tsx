@@ -142,6 +142,14 @@ const App: React.FC = () => {
         window.history.replaceState({}, '', stored);
       }
 
+      // 旧ハッシュURL互換: #read/123 等を /read/123 にリダイレクト
+      const hash = window.location.hash;
+      if (hash && hash !== '#' && hash !== '#main-content') {
+        const route = hash.slice(1); // '#read/123' → 'read/123'
+        const newPath = BASE_PATH + '/' + route;
+        window.history.replaceState({}, '', newPath);
+      }
+
       let path = window.location.pathname;
       if (BASE_PATH && path.startsWith(BASE_PATH)) {
         path = path.slice(BASE_PATH.length) || '/';
