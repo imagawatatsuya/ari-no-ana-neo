@@ -1122,6 +1122,23 @@ select:focus-visible {
   color: #8a8478;
 }
 
+/* 流星垓: 脚注セクション視認性確保（暗色背景固定） */
+.ryuseigai-shell .footnote-section {
+  border-top-color: #4a4440;
+}
+.ryuseigai-shell .footnote-heading {
+  color: #c99a9a;
+}
+.ryuseigai-shell .footnote-list {
+  color: #c8c2b6;
+}
+.ryuseigai-shell .footnote-back-link {
+  color: #6a9abf;
+}
+.ryuseigai-shell .footnote-ref-link {
+  color: #d07070;
+}
+
 .ryuseigai-panel {
   max-width: 720px;
   margin: 0 auto;
