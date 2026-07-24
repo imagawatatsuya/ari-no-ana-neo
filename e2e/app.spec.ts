@@ -36,12 +36,12 @@ test.describe('アリの穴NEO - 一覧画面', () => {
 
 test.describe('アリの穴NEO - 投稿画面', () => {
   test('投稿フォームが表示される', async ({ page }) => {
-    await page.goto('/#post');
+    await page.goto('/post');
     await expect(page.locator('.form-table')).toBeVisible();
   });
 
   test('プレビュー→送信の2段階フロー', async ({ page }) => {
-    await page.goto('/#post');
+    await page.goto('/post');
     // タイトルと本文を入力
     const inputs = page.locator('.form-table input[type="text"], .form-table textarea');
     await inputs.first().fill('E2Eテスト作品');
@@ -60,7 +60,7 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
     if (await firstLink.isVisible()) {
       const title = await firstLink.textContent();
       await firstLink.click();
-      await expect(page).toHaveURL(/#read\//);
+      await expect(page).toHaveURL(/\/read\//);
       await expect(page.locator('body')).toContainText(title!);
     }
   });
@@ -78,7 +78,7 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
 
 test.describe('アリの穴NEO - 管理画面', () => {
   test('管理画面にログインフォームが表示される', async ({ page }) => {
-    await page.goto('/#admin');
+    await page.goto('/admin');
     await expect(page.locator('body')).toContainText('管理者ログイン');
   });
 });

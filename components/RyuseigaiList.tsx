@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Novel, Comment } from '../types';
 import { formatDate } from '../utils';
+import { BASE_PATH, navigate } from '../router';
 
 interface RyuseigaiListProps {
   novels: Novel[];
@@ -55,7 +56,7 @@ export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ novels, comments }
               const commentCount = comments.filter((c) => c.novelId === novel.id).length;
               return (
                 <div className="ryuseigai-entry" key={novel.id}>
-                  <a href={`#ryuseigai/read/${novel.id}`} className="ryuseigai-entry-link">
+                  <a href={BASE_PATH + `/ryuseigai/read/${novel.id}`} onClick={(e) => { e.preventDefault(); navigate(`/ryuseigai/read/${novel.id}`); }} className="ryuseigai-entry-link">
                     {novel.title}
                   </a>
                   <span className="ryuseigai-entry-score">{score}</span>

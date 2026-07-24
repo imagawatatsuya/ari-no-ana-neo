@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>文章アリの穴NEO</title>
+  <script>
+    // GitHub Pages SPA fallback:
+    // Deep link を sessionStorage に保存し、アプリルートへリダイレクト
+    sessionStorage.setItem('__spa_path', window.location.pathname + window.location.search + window.location.hash);
+    // アプリルート = 最初のパスセグメント（GitHub Pages: /ari-no-ana-neo/）
+    var base = '/' + window.location.pathname.split('/')[1] + '/';
+    window.location.replace(base);
+  </script>
+</head>
+<body></body>
+</html>

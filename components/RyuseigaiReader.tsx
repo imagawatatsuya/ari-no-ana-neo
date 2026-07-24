@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Novel, Comment } from '../types';
 import { formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
+import { BASE_PATH, navigate } from '../router';
 
 interface RyuseigaiReaderProps {
   novel: Novel;
@@ -54,7 +55,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
     <div className="ryuseigai-shell">
       {/* 戻る */}
       <div style={{ marginBottom: 6 }}>
-        <a href="#ryuseigai" className="ryuseigai-back-link">← 流星垓へ戻る</a>
+        <a href={BASE_PATH + '/ryuseigai'} onClick={(e) => { e.preventDefault(); navigate('/ryuseigai'); }} className="ryuseigai-back-link">← 流星垓へ戻る</a>
       </div>
 
       {/* 作品本文: 共通組版システム */}
@@ -148,7 +149,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
 
       {/* 戻る */}
       <div style={{ marginTop: 12 }}>
-        <a href="#ryuseigai" className="ryuseigai-back-link">← 流星垓へ戻る</a>
+        <a href={BASE_PATH + '/ryuseigai'} onClick={(e) => { e.preventDefault(); navigate('/ryuseigai'); }} className="ryuseigai-back-link">← 流星垓へ戻る</a>
       </div>
     </div>
   );

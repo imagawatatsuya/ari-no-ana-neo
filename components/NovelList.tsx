@@ -1,6 +1,7 @@
 import React from 'react';
 import { Novel, Comment } from '../types';
 import { formatStarRating, formatDate } from '../utils';
+import { BASE_PATH, navigate } from '../router';
 
 interface NovelListProps {
   novels: Novel[];
@@ -30,7 +31,7 @@ export const NovelList: React.FC<NovelListProps> = ({ novels, comments }) => {
               {/* Row 1: Title / Date / Comments / Points */}
               <tr className="entry-title-row">
                 <td>
-                  <a href={`#read/${novel.id}`} className="entry-title-link">
+                  <a href={BASE_PATH + `/read/${novel.id}`} onClick={(e) => { e.preventDefault(); navigate(`/read/${novel.id}`); }} className="entry-title-link">
                     {novel.title}
                   </a>
                 </td>

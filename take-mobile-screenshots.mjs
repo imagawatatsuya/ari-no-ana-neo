@@ -18,7 +18,7 @@ await page.screenshot({ path: 'screenshot-mobile-top.png', fullPage: true });
 console.log('Captured: mobile top page');
 
 // 2. Article page - click first article link
-const articleLink = await page.locator('a[href*="#read/"]').first();
+const articleLink = await page.locator('a[href*="/read/"]').first();
 if (await articleLink.count() > 0) {
   await articleLink.click();
   await page.waitForTimeout(1000);
@@ -29,7 +29,7 @@ if (await articleLink.count() > 0) {
 }
 
 // 3. Post form page
-await page.goto('http://localhost:5173/#post', { waitUntil: 'networkidle' });
+await page.goto('http://localhost:5173/post', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1000);
 await page.screenshot({ path: 'screenshot-mobile-post.png', fullPage: true });
 console.log('Captured: mobile post form page');

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Novel } from '../types';
 import { generateTrip, formatManuscriptPages, formatDate, countBodyCharacters } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
+import { BASE_PATH, navigate } from '../router';
 
 interface PostFormProps {
   onPost: (novel: Novel) => void;
@@ -85,7 +86,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
     return (
       <div>
         <div style={{ marginBottom: 6 }}>
-          <a href="#" onClick={(e) => { e.preventDefault(); handleBack(); }}>&nbsp;修正する</a>
+          <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); handleBack(); }}>&nbsp;修正する</a>
         </div>
 
         {/* 作品ページと同一レイアウト */}
@@ -136,7 +137,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
   return (
     <div>
       <div style={{ marginBottom: 6 }}>
-        <a href="#">&nbsp;戻る</a>
+        <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }}>&nbsp;戻る</a>
       </div>
       <div className="section-title">■ 新規投稿</div>
       <form onSubmit={handlePreview} style={{ marginTop: 6 }}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Novel, Comment } from '../types';
 import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
+import { BASE_PATH, navigate } from '../router';
 
 interface NovelReaderProps {
   novel: Novel;
@@ -79,7 +80,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
     <div>
       {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div style={{ marginBottom: 6 }}>
-        <a href="#" className="back-link">&nbsp;戻る</a>
+        <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">&nbsp;戻る</a>
       </div>
 
       {/* 記事テーブル: 元サイト <table width="90%" cellspacing="4" cellpadding="8" align="center"> */}
@@ -180,13 +181,13 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
 
       {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div style={{ marginTop: 12 }}>
-        <a href="#" className="back-link">&nbsp;戻る</a>
+        <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">&nbsp;戻る</a>
       </div>
       <hr style={{ border: '0', borderTop: '1px inset #999', margin: '8px 0' }} />
       <div className="admin-inline-section" style={{ fontSize: 14 }}>
-        <span>[ <a href="#admin">感想記事削除</a> ]</span>
-        <input type="password" placeholder="PASSWORD" style={{ width: 120, maxWidth: '40%' }} readOnly onClick={() => { window.location.hash = '#admin'; }} />
-        <button type="button" className="classic-button" onClick={() => { window.location.hash = '#admin'; }}>管理者用</button>
+        <span>[ <a href={BASE_PATH + '/admin'} onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>感想記事削除</a> ]</span>
+        <input type="password" placeholder="PASSWORD" style={{ width: 120, maxWidth: '40%' }} readOnly onClick={() => { navigate('/admin'); }} />
+        <button type="button" className="classic-button" onClick={() => { navigate('/admin'); }}>管理者用</button>
       </div>
     </div>
   );

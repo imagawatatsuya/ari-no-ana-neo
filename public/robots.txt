@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://imagawatatsuya.github.io/ari-no-ana-neo/sitemap.xml
