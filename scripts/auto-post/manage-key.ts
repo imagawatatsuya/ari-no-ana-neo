@@ -4,9 +4,9 @@
  * .credentials.json に GEMINI_API_KEY を保存・削除する。
  *
  * 実行例:
- *   npx tsx scripts/manage-key.ts store    # APIキーを保存
- *   npx tsx scripts/manage-key.ts delete    # APIキーを削除
- *   npx tsx scripts/manage-key.ts status    # 保存状態を確認
+ *   npx tsx scripts/auto-post/manage-key.ts store    # APIキーを保存
+ *   npx tsx scripts/auto-post/manage-key.ts delete    # APIキーを削除
+ *   npx tsx scripts/auto-post/manage-key.ts status    # 保存状態を確認
  */
 
 import { readFileSync, writeFileSync, existsSync, unlinkSync, chmodSync } from 'fs';
@@ -128,9 +128,9 @@ async function main(): Promise<void> {
       break;
     default:
       console.log('使い方:');
-      console.log('  npx tsx scripts/manage-key.ts store   - APIキーを保存');
-      console.log('  npx tsx scripts/manage-key.ts delete   - APIキーを削除');
-      console.log('  npx tsx scripts/manage-key.ts status   - 保存状態を確認');
+      console.log('  npx tsx scripts/auto-post/manage-key.ts store   - APIキーを保存');
+      console.log('  npx tsx scripts/auto-post/manage-key.ts delete   - APIキーを削除');
+      console.log('  npx tsx scripts/auto-post/manage-key.ts status   - 保存状態を確認');
       process.exit(cmd ? 1 : 0);
   }
 }

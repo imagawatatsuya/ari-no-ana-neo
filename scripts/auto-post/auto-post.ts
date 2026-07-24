@@ -4,8 +4,8 @@
  * Gemini API で指定文字数の小説を生成し、Supabase に自動投稿する。
  *
  * 実行例:
- *   npx tsx scripts/auto-post.ts 3000
- *   npx tsx scripts/auto-post.ts 3000 "消化器官のコメディ"
+ *   npx tsx scripts/auto-post/auto-post.ts 3000
+ *   npx tsx scripts/auto-post/auto-post.ts 3000 "消化器官のコメディ"
  *
  * 環境変数 (.env.local):
  *   VITE_SUPABASE_URL
@@ -94,8 +94,8 @@ function parseResponse(text: string): { title: string; body: string } {
 async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    console.log('使い方: npx tsx scripts/auto-post.ts <目標文字数> [テーマ]');
-    console.log('例: npx tsx scripts/auto-post.ts 3000 "消化器官のコメディ"');
+    console.log('使い方: npx tsx scripts/auto-post/auto-post.ts <目標文字数> [テーマ]');
+    console.log('例: npx tsx scripts/auto-post/auto-post.ts 3000 "消化器官のコメディ"');
     process.exit(1);
   }
 
@@ -120,16 +120,16 @@ async function main() {
   }
   if (!geminiKey) {
     console.error('エラー: GEMINI_API_KEY が見つかりません。');
-    console.error('  npx tsx scripts/manage-key.ts store で保存してください。');
+    console.error('  scripts\\auto-post\\save-key.bat を実行してキーを保存してください。');
     process.exit(1);
   }
 
   // クライアント初期化
   const genAI = new GoogleGenerativeAI(geminiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const MAX_RETRIES = 3;
+  const MAX_RETRIES = 4;
   let bestBody = '';
   let bestTitle = '';
   let bestDiff = Infinity;

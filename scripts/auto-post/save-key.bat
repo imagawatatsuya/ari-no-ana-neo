@@ -1,13 +1,15 @@
 @echo off
 chcp 65001 >nul
-title APIキーを削除
+title APIキーを保存
+
+cd /d "%~dp0..\.."
 
 echo ============================================
-echo   GEMINI_API_KEY を削除
+echo   GEMINI_API_KEY を保存
 echo ============================================
 echo.
 
-npx tsx scripts/manage-key.ts delete
+npx tsx scripts/auto-post/manage-key.ts store
 
 echo.
 echo ============================================

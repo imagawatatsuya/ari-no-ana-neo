@@ -327,11 +327,23 @@ a:hover {
   padding: 8px;
   font-size: 17px;
   line-height: 1.75;
-  white-space: pre-wrap;
   text-align: justify;
   text-justify: inter-character;
   letter-spacing: 0;
   font-family: Georgia, '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, serif;
+}
+
+/* ezdogノウハウ: 段落構造（<p>単位でjustifyコンテキスト生成） */
+.article-paragraphs p {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ezdogノウハウ: 第2段落以降の行間（ezdog gyoukan相当） */
+.article-paragraphs p.gyoukan {
+  margin-top: 6.8px;
 }
 
 /* ezdogノウハウ: 約物制御スパン */
@@ -880,6 +892,15 @@ select:focus-visible {
     font-size: 16px;
     line-height: 1.8;
     font-family: Georgia, '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, serif;
+  }
+
+  /* モバイル段落: inter-ideographフォールバック（Chrome Android向け） */
+  .article-paragraphs p {
+    text-align: justify;
+    text-justify: inter-ideograph;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   /* コメント本文も両端揃え */

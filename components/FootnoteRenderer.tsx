@@ -114,8 +114,9 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
     return { mainContent: cleanedContent, footnotes: notes };
   }, [content]);
 
-  const renderContent = () => {
-    const parts = mainContent.split(/(\[\^.+?\])/g);
+  // 段落内のインラインコンテンツ（脚注参照 + リンク + <br>改行）を描画
+  const renderInline = (text: string) => {
+    const parts = text.split(/(\[\^.+?\])/g);
     return parts.map((part, index) => {
       const match = part.match(/\[\^(.+?)\]/);
       if (match) {
@@ -138,7 +139,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
           );
         }
       }
-      // 通常テキスト
+      // 通常テキスト: 単一\nは<br>で改行
       return (
         <Fragment key={index}>
           {part.split('\n').map((line, i) => (
@@ -152,9 +153,19 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
     });
   };
 
+  // 本文を段落（空行区切り）に分割し、<p>要素として描画
+  const renderContent = () => {
+    const paragraphs = mainContent.split(/\n\n+/).filter(p => p.trim() !== '');
+    return paragraphs.map((para, idx) => (
+      <p key={idx} className={idx > 0 ? 'gyoukan' : undefined}>
+        {renderInline(para)}
+      </p>
+    ));
+  };
+
   return (
     <div className="footnote-container">
-      <div style={{ whiteSpace: 'pre-wrap' }}>
+      <div className="article-paragraphs">
         {renderContent()}
       </div>
       

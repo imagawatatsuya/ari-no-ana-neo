@@ -2,6 +2,8 @@
 chcp 65001 >nul
 title AI自動投稿ツール
 
+cd /d "%~dp0..\.."
+
 echo ============================================
 echo   文章アリの穴NEO - AI自動投稿ツール
 echo ============================================
@@ -13,7 +15,7 @@ if exist .credentials.json (
 )
 if "%GEMINI_API_KEY%"=="" (
     echo [エラー] GEMINI_API_KEY が見つかりません。
-    echo   npx tsx scripts/manage-key.ts store で保存してください。
+    echo   scripts\auto-post\save-key.bat を実行してキーを保存してください。
     echo.
     pause
     exit /b 1
@@ -26,12 +28,12 @@ if "%THEME%"=="" (
     echo.
     echo 実行中: %CHARS%字の小説を生成します...
     echo.
-    npx tsx scripts/auto-post.ts %CHARS%
+    npx tsx scripts/auto-post/auto-post.ts %CHARS%
 ) else (
     echo.
     echo 実行中: %CHARS%字「%THEME%」の小説を生成します...
     echo.
-    npx tsx scripts/auto-post.ts %CHARS% "%THEME%"
+    npx tsx scripts/auto-post/auto-post.ts %CHARS% "%THEME%"
 )
 
 echo.
