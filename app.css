@@ -216,6 +216,18 @@ a:hover {
 }
 
 /* === List entry rows === */
+.entry-group {
+  cursor: pointer;
+  border-bottom: 1px solid var(--hr-color);
+}
+.entry-group:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}
+.entry-group:hover .entry-title-link {
+  text-decoration: underline;
+}
+
 .entry-title-row td {
   padding: 6px 4px 2px;
 }
@@ -225,9 +237,6 @@ a:hover {
   color: var(--link);
   text-decoration: none;
   font-size: 1.0625rem;
-}
-.entry-title-link:hover {
-  text-decoration: underline;
 }
 
 .entry-date {
@@ -1041,7 +1050,8 @@ select:focus-visible {
     border: 1px solid var(--table-border);
   }
   .classic-table thead { display: none; }
-  .classic-table tbody { display: block; }
+  .classic-table tbody,
+  .classic-table tbody.entry-group { display: block; }
   .classic-table tr { display: block; }
   .classic-table td { display: block; width: auto; }
 
@@ -1058,12 +1068,15 @@ select:focus-visible {
     flex-basis: 100%;
     padding: 0;
   }
-  /* タイトルリンク: タップ領域拡大 */
+  /* エントリ全体がタップ領域 */
+  .entry-group {
+    border-bottom-color: var(--table-border);
+  }
   .entry-title-link {
-    display: inline-block;
-    padding: 4px 0;
-    min-height: 36px;
-    line-height: 28px;
+    display: inline;
+    padding: 0;
+    min-height: 0;
+    line-height: inherit;
   }
   .entry-title-row .entry-date {
     padding: 0;
@@ -1088,9 +1101,6 @@ select:focus-visible {
     padding: 2px 8px 12px;
     font-size: 12px;
   }
-
-  /* セパレータ行 */
-  .entry-separator { margin: 0 8px; }
 
   /* --- フォーム: 縦積み --- */
   .form-table, .form-table tbody, .form-table tr, .form-table td {
@@ -1124,17 +1134,12 @@ select:focus-visible {
     min-height: 36px;
   }
 
-  /* --- コメントフォーム: 固定アクションバー --- */
-  .comment-form {
-    padding-bottom: 72px;
-  }
+  /* --- コメントフォーム: 入力欄付近でのみ下部に張り付く --- */
   .comment-form-actions {
-    position: fixed;
-    left: 0;
-    right: 0;
+    position: sticky;
     bottom: 0;
-    z-index: 100;
-    margin: 0;
+    z-index: 50;
+    margin: 10px -8px 0;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
     background: var(--body-bg);
     border-top: 1px solid var(--table-border);
@@ -1348,6 +1353,11 @@ select:focus-visible {
 .ryuseigai-entry {
   padding: 10px 4px;
   border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+}
+.ryuseigai-entry:focus-visible {
+  outline: 2px solid #c99a9a;
+  outline-offset: -2px;
 }
 
 .ryuseigai-entry-link {
@@ -1357,13 +1367,9 @@ select:focus-visible {
   font-size: 15px;
   font-weight: bold;
 }
-.ryuseigai-entry-link:hover {
+.ryuseigai-entry:hover .ryuseigai-entry-link {
   color: #e0b0b0;
   text-decoration-color: #c99a9a;
-}
-.ryuseigai-entry-link:focus {
-  outline: 2px solid #c99a9a;
-  outline-offset: 2px;
 }
 
 .ryuseigai-entry-score {

@@ -1,7 +1,16 @@
 import React from 'react';
 import { NovelListState } from '../types';
 import { formatStarRatingFromAggregate, formatDate } from '../utils';
-import { BASE_PATH, navigate } from '../router';
+import { navigate } from '../router';
+
+const openNovel = (id: string) => navigate(`/read/${id}`);
+
+const handleEntryKeyDown = (id: string, e: React.KeyboardEvent) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    openNovel(id);
+  }
+};
 
 interface NovelListProps {
   state: NovelListState;
@@ -58,60 +67,52 @@ export const NovelList: React.FC<NovelListProps> = ({ state, onRetry }) => {
             <th style={{ width: '12%' }}>ポイント</th>
           </tr>
         </thead>
-        <tbody>
-          {state.status === 'empty' && (
+        {state.status === 'empty' && (
+          <tbody>
             <tr>
               <td colSpan={4} style={{ textAlign: 'center', padding: 18 }}>
                 投稿がありません。
               </td>
             </tr>
-          )}
-          {novels.map((novel, index) => {
-            const { stars, score } = formatStarRatingFromAggregate(novel.voteSum, novel.commentCount);
-            const starsOn = stars.replace(/☆/g, '');
-            const starsOff = '★'.repeat(5 - starsOn.length);
+          </tbody>
+        )}
+        {novels.map((novel, index) => {
+          const { stars, score } = formatStarRatingFromAggregate(novel.voteSum, novel.commentCount);
+          const starsOn = stars.replace(/☆/g, '');
+          const starsOff = '★'.repeat(5 - starsOn.length);
 
-            return (
-              <React.Fragment key={novel.id}>
-                <tr className="entry-title-row">
-                  <td>
-                    <a
-                      href={BASE_PATH + `/read/${novel.id}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigate(`/read/${novel.id}`);
-                      }}
-                      className="entry-title-link"
-                    >
-                      {novel.title}
-                    </a>
-                  </td>
-                  <td className="entry-date">{formatDate(novel.date)}</td>
-                  <td className="entry-comments">{novel.commentCount}</td>
-                  <td className="entry-point">
-                    <span className="stars-on" aria-hidden="true">{starsOn}</span>
-                    <span className="stars-off" aria-hidden="true">{starsOff}</span>
-                    <br />
-                    <span className="point-score">{score}</span>
-                  </td>
-                </tr>
-                <tr className="entry-meta-row">
-                  <td colSpan={4}>
-                    ［ {novel.commentCount} 件 ］ {novel.author}
-                    {index < 2 && <span className="entry-new-badge">NEW!</span>}
-                  </td>
-                </tr>
-                {index < novels.length - 1 && (
-                  <tr>
-                    <td colSpan={4} style={{ padding: 0 }}>
-                      <hr className="entry-separator" />
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </tbody>
+          return (
+            <tbody
+              key={novel.id}
+              className="entry-group"
+              onClick={() => openNovel(novel.id)}
+              onKeyDown={(e) => handleEntryKeyDown(novel.id, e)}
+              tabIndex={0}
+              role="link"
+              aria-label={`${novel.title}を読む`}
+            >
+              <tr className="entry-title-row">
+                <td>
+                  <span className="entry-title-link">{novel.title}</span>
+                </td>
+                <td className="entry-date">{formatDate(novel.date)}</td>
+                <td className="entry-comments">{novel.commentCount}</td>
+                <td className="entry-point">
+                  <span className="stars-on" aria-hidden="true">{starsOn}</span>
+                  <span className="stars-off" aria-hidden="true">{starsOff}</span>
+                  <br />
+                  <span className="point-score">{score}</span>
+                </td>
+              </tr>
+              <tr className="entry-meta-row">
+                <td colSpan={4}>
+                  ［ {novel.commentCount} 件 ］ {novel.author}
+                  {index < 2 && <span className="entry-new-badge">NEW!</span>}
+                </td>
+              </tr>
+            </tbody>
+          );
+        })}
       </table>
     </>
   );

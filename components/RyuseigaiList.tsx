@@ -1,7 +1,16 @@
 import React, { useMemo } from 'react';
 import { NovelListState } from '../types';
 import { formatDate } from '../utils';
-import { BASE_PATH, navigate } from '../router';
+import { navigate } from '../router';
+
+const openNovel = (id: string) => navigate(`/ryuseigai/read/${id}`);
+
+const handleEntryKeyDown = (id: string, e: React.KeyboardEvent) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    openNovel(id);
+  }
+};
 
 interface RyuseigaiListProps {
   state: NovelListState;
@@ -71,17 +80,16 @@ export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ state }) => {
             {shuffled.map((novel) => {
               const score = RYUSEIGAI_BASE_SCORE + novel.voteSum;
               return (
-                <div className="ryuseigai-entry" key={novel.id}>
-                  <a
-                    href={BASE_PATH + `/ryuseigai/read/${novel.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate(`/ryuseigai/read/${novel.id}`);
-                    }}
-                    className="ryuseigai-entry-link"
-                  >
-                    {novel.title}
-                  </a>
+                <div
+                  className="ryuseigai-entry"
+                  key={novel.id}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`${novel.title}を読む`}
+                  onClick={() => openNovel(novel.id)}
+                  onKeyDown={(e) => handleEntryKeyDown(novel.id, e)}
+                >
+                  <span className="ryuseigai-entry-link">{novel.title}</span>
                   <span className="ryuseigai-entry-score">{score}</span>
                   <div className="ryuseigai-entry-meta">
                     {novel.author} ／ {formatDate(novel.date)} ／ 声 {novel.commentCount}
