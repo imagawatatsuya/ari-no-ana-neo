@@ -1,5 +1,8 @@
 -- Performance: single-query public novel list with comment aggregates
 -- Run in Supabase SQL Editor after supabase_schema_v2.sql
+-- Note: novels.date may be text or timestamptz in existing DBs; RPC returns text.
+
+drop function if exists public.list_public_novels(integer, integer, text, boolean);
 
 create or replace function public.list_public_novels(
   p_offset integer default 0,
@@ -12,7 +15,7 @@ returns table (
   title text,
   author text,
   trip text,
-  date timestamptz,
+  date text,
   view_count integer,
   comment_count bigint,
   vote_sum bigint,
@@ -28,7 +31,7 @@ as $$
     n.title,
     n.author,
     n.trip,
-    n.date,
+    n.date::text,
     n.view_count,
     count(c.id) as comment_count,
     coalesce(sum(c.vote), 0) as vote_sum,
@@ -45,7 +48,7 @@ as $$
       or n.author ilike '%' || p_search || '%'
     )
   group by n.id
-  order by n.date desc
+  order by (n.date)::timestamptz desc
   offset greatest(p_offset, 0)
   limit least(greatest(p_limit, 1), 100);
 $$;
