@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Novel, Comment } from '../types';
 import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
@@ -34,6 +34,14 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(0);
+  const [formError, setFormError] = useState('');
+  const [flashMessage, setFlashMessage] = useState('');
+
+  useEffect(() => {
+    if (!flashMessage) return;
+    const timer = window.setTimeout(() => setFlashMessage(''), 3000);
+    return () => window.clearTimeout(timer);
+  }, [flashMessage]);
 
   const { total, count } = calculateScore(comments);
 
@@ -54,11 +62,16 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!commentText.trim()) {
+      setFormError('感想を入力してください。');
+      return;
+    }
     if (commentText.length > MAX_COMMENT_LENGTH) {
-      alert(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
+      setFormError(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
       return;
     }
 
+    setFormError('');
     const { trip } = generateTrip(commentName);
     onComment({
       id: Date.now().toString(),
@@ -73,7 +86,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
     setCommentText('');
     setCommentName('');
     setVote(0);
-    alert('感想を受け付けました。');
+    setFlashMessage('感想を受け付けました。');
   };
 
   return (
@@ -154,30 +167,52 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
       )}
 
       {/* 感想投稿フォーム */}
-      <div style={{ height: 14 }} />
-      <form onSubmit={handleSubmit}>
-        <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 4 }}>■感想・批評(改行有効）</div>
-        <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} style={{ minHeight: 120, width: '100%' }} maxLength={MAX_COMMENT_LENGTH} />
-        <div style={{ marginTop: 6, fontSize: 16 }}>
-          <b>■名前</b>{' '}
-          <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し（トリップ: 名前#pass）" style={{ width: 260, maxWidth: '100%' }} />
-        </div>
-        <div style={{ marginTop: 6, fontSize: 16 }}>
-          <b>■採点</b>{' '}
-          <select value={vote} onChange={(e) => setVote(Number(e.target.value))}>
-            <option value={0}>採点しない</option>
-            <option value={2}>とても良い</option>
-            <option value={1}>良い</option>
-            <option value={-1}>良くない</option>
-            <option value={-2}>最悪</option>
-          </select>
-          <span className="vote-note">(採点はひとり１回まで。２回目以降の採点や作者の採点は集計されません)</span>
-        </div>
-        <div style={{ marginTop: 8, textAlign: 'center' }}>
-          <button type="submit" className="classic-button">投稿</button>{' '}
-          <button type="button" className="classic-button" onClick={() => { setCommentText(''); setVote(0); }}>クリア</button>
-        </div>
-      </form>
+      <div className="comment-form">
+        {flashMessage && (
+          <div className="form-message form-message--info" role="status" aria-live="polite">
+            {flashMessage}
+          </div>
+        )}
+        <form onSubmit={handleSubmit}>
+          <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 4 }}>■感想・批評(改行有効）</div>
+          <textarea
+            value={commentText}
+            onChange={(e) => {
+              setCommentText(e.target.value);
+              if (formError) setFormError('');
+            }}
+            style={{ minHeight: 120, width: '100%' }}
+            maxLength={MAX_COMMENT_LENGTH}
+            aria-invalid={!!formError}
+            aria-describedby={formError ? 'comment-form-error' : 'comment-form-count'}
+          />
+          <div id="comment-form-count" className="comment-form-count">
+            {commentText.length.toLocaleString()} / {MAX_COMMENT_LENGTH} 文字
+          </div>
+          {formError && (
+            <div id="comment-form-error" className="form-field-error" role="alert">{formError}</div>
+          )}
+          <div style={{ marginTop: 6, fontSize: 16 }}>
+            <b>■名前</b>{' '}
+            <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し（トリップ: 名前#pass）" style={{ width: 260, maxWidth: '100%' }} />
+          </div>
+          <div style={{ marginTop: 6, fontSize: 16 }}>
+            <b>■採点</b>{' '}
+            <select value={vote} onChange={(e) => setVote(Number(e.target.value))}>
+              <option value={0}>採点しない</option>
+              <option value={2}>とても良い</option>
+              <option value={1}>良い</option>
+              <option value={-1}>良くない</option>
+              <option value={-2}>最悪</option>
+            </select>
+            <span className="vote-note">(採点はひとり１回まで。２回目以降の採点や作者の採点は集計されません)</span>
+          </div>
+          <div className="comment-form-actions">
+            <button type="submit" className="classic-button comment-form-action-primary">投稿</button>
+            <button type="button" className="classic-button" onClick={() => { setCommentText(''); setVote(0); setFormError(''); }}>クリア</button>
+          </div>
+        </form>
+      </div>
 
       {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div style={{ marginTop: 12 }}>

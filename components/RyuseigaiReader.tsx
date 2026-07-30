@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Novel, Comment } from '../types';
 import { formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
@@ -20,6 +20,14 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(-500);
+  const [formError, setFormError] = useState('');
+  const [flashMessage, setFlashMessage] = useState('');
+
+  useEffect(() => {
+    if (!flashMessage) return;
+    const timer = window.setTimeout(() => setFlashMessage(''), 3000);
+    return () => window.clearTimeout(timer);
+  }, [flashMessage]);
 
   const voteSum = comments.reduce((acc, c) => acc + c.vote, 0);
   const totalScore = RYUSEIGAI_BASE_SCORE + voteSum;
@@ -29,11 +37,16 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!commentText.trim()) {
+      setFormError('声を入力してください。');
+      return;
+    }
     if (commentText.length > MAX_COMMENT_LENGTH) {
-      alert(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
+      setFormError(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
       return;
     }
 
+    setFormError('');
     const { trip } = generateTrip(commentName);
     onComment({
       id: Date.now().toString(),
@@ -48,7 +61,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
     setCommentText('');
     setCommentName('');
     setVote(-500);
-    alert('刻んだ。');
+    setFlashMessage('刻んだ。');
   };
 
   return (
@@ -116,36 +129,53 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
       )}
 
       {/* 声を刻むフォーム（流星垓独自） */}
-      <div style={{ height: 14 }} />
-      <form onSubmit={handleSubmit} className="ryuseigai-form">
-        <div className="ryuseigai-form-title">■ 声を刻む</div>
-        <textarea
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          className="ryuseigai-textarea"
-          maxLength={MAX_COMMENT_LENGTH}
-        />
-        <div style={{ marginTop: 6 }}>
-          <b>■ 名</b>{' '}
-          <input
-            type="text"
-            value={commentName}
-            onChange={(e) => setCommentName(e.target.value)}
-            placeholder="名無し（トリップ: 名前#pass）"
-            className="ryuseigai-input"
+      <div className="comment-form ryuseigai-comment-form">
+        {flashMessage && (
+          <div className="form-message form-message--info" role="status" aria-live="polite">
+            {flashMessage}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="ryuseigai-form">
+          <div className="ryuseigai-form-title">■ 声を刻む</div>
+          <textarea
+            value={commentText}
+            onChange={(e) => {
+              setCommentText(e.target.value);
+              if (formError) setFormError('');
+            }}
+            className="ryuseigai-textarea"
+            maxLength={MAX_COMMENT_LENGTH}
+            aria-invalid={!!formError}
+            aria-describedby={formError ? 'ryuseigai-comment-error' : 'ryuseigai-comment-count'}
           />
-        </div>
-        <div style={{ marginTop: 6 }}>
-          <b>■ 断罪</b>{' '}
-          <select value={vote} onChange={(e) => setVote(Number(e.target.value))} className="ryuseigai-select">
-            <option value={-500}>なぜ生まれてきた？ (-500)</option>
-            <option value={-1000}>おまえは存在しない (-1000)</option>
-          </select>
-        </div>
-        <div style={{ marginTop: 10, textAlign: 'center' }}>
-          <button type="submit" className="ryuseigai-button">刻む</button>
-        </div>
-      </form>
+          <div id="ryuseigai-comment-count" className="comment-form-count">
+            {commentText.length.toLocaleString()} / {MAX_COMMENT_LENGTH} 文字
+          </div>
+          {formError && (
+            <div id="ryuseigai-comment-error" className="form-field-error" role="alert">{formError}</div>
+          )}
+          <div style={{ marginTop: 6 }}>
+            <b>■ 名</b>{' '}
+            <input
+              type="text"
+              value={commentName}
+              onChange={(e) => setCommentName(e.target.value)}
+              placeholder="名無し（トリップ: 名前#pass）"
+              className="ryuseigai-input"
+            />
+          </div>
+          <div style={{ marginTop: 6 }}>
+            <b>■ 断罪</b>{' '}
+            <select value={vote} onChange={(e) => setVote(Number(e.target.value))} className="ryuseigai-select">
+              <option value={-500}>なぜ生まれてきた？ (-500)</option>
+              <option value={-1000}>おまえは存在しない (-1000)</option>
+            </select>
+          </div>
+          <div className="comment-form-actions">
+            <button type="submit" className="ryuseigai-button comment-form-action-primary">刻む</button>
+          </div>
+        </form>
+      </div>
 
       {/* 戻る */}
       <div style={{ marginTop: 12 }}>

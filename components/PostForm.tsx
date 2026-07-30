@@ -27,6 +27,8 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; body?: string }>({});
+  const [formMessage, setFormMessage] = useState<{ type: 'error' | 'info'; text: string } | null>(null);
 
   useEffect(() => {
     const draft = readPostDraft();
@@ -48,19 +50,22 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
   const previewPageCount = formatManuscriptPages(body);
 
   const validate = (): boolean => {
-    if (!title.trim()) {
-      alert('タイトルは必須です。');
+    const next: { title?: string; body?: string } = {};
+    if (!title.trim()) next.title = 'タイトルは必須です。';
+    if (!body.trim()) next.body = '本文は必須です。';
+    setFieldErrors(next);
+    if (Object.keys(next).length > 0) {
+      setFormMessage(null);
+      setMode('input');
       return false;
     }
-    if (!body.trim()) {
-      alert('本文は必須です。');
-      return false;
-    }
+    setFieldErrors({});
     return true;
   };
 
   const switchToPreview = () => {
     if (!validate()) return;
+    setFormMessage(null);
     setMode('preview');
   };
 
@@ -70,10 +75,11 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
     const lastPostAt = Number(sessionStorage.getItem(LAST_POST_KEY) || 0);
     if (lastPostAt && Date.now() - lastPostAt < SPAM_COOLDOWN_MS) {
       const remainSec = Math.ceil((SPAM_COOLDOWN_MS - (Date.now() - lastPostAt)) / 1000);
-      alert(`連続投稿は${remainSec}秒後に再度お試しください。`);
+      setFormMessage({ type: 'error', text: `連続投稿は${remainSec}秒後に再度お試しください。` });
       return;
     }
 
+    setFormMessage(null);
     setIsSubmitting(true);
     try {
       const result = await onPost({
@@ -90,7 +96,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
       });
 
       if (!result.ok) {
-        alert(result.message);
+        setFormMessage({ type: 'error', text: result.message });
         setIsSubmitting(false);
         return;
       }
@@ -101,9 +107,11 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
       setDescription('');
       setName('');
       setBody('');
+      setFieldErrors({});
+      setFormMessage({ type: 'info', text: '投稿が完了しました。' });
       setMode('input');
     } catch {
-      alert('投稿中にエラーが発生しました。入力内容は保持されています。');
+      setFormMessage({ type: 'error', text: '投稿中にエラーが発生しました。入力内容は保持されています。' });
       setIsSubmitting(false);
     }
   };
@@ -125,6 +133,16 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
         </a>
         <div className="section-title">■ 新規投稿</div>
       </div>
+
+      {formMessage && (
+        <div
+          className={`form-message form-message--${formMessage.type}`}
+          role={formMessage.type === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {formMessage.text}
+        </div>
+      )}
 
       <div className="post-form-tabs" role="tablist" aria-label="投稿モード">
         <button
@@ -167,10 +185,18 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
                   <input
                     type="text"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      if (fieldErrors.title) setFieldErrors((prev) => ({ ...prev, title: undefined }));
+                    }}
                     maxLength={MAX_TITLE}
                     style={{ width: '100%' }}
+                    aria-invalid={!!fieldErrors.title}
+                    aria-describedby={fieldErrors.title ? 'post-error-title' : undefined}
                   />
+                  {fieldErrors.title && (
+                    <div id="post-error-title" className="form-field-error">{fieldErrors.title}</div>
+                  )}
                 </td>
               </tr>
               <tr>
@@ -204,10 +230,18 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
                 <td>
                   <textarea
                     value={body}
-                    onChange={(e) => setBody(e.target.value)}
+                    onChange={(e) => {
+                      setBody(e.target.value);
+                      if (fieldErrors.body) setFieldErrors((prev) => ({ ...prev, body: undefined }));
+                    }}
                     maxLength={MAX_BODY}
                     style={{ minHeight: 280 }}
+                    aria-invalid={!!fieldErrors.body}
+                    aria-describedby={fieldErrors.body ? 'post-error-body' : undefined}
                   />
+                  {fieldErrors.body && (
+                    <div id="post-error-body" className="form-field-error">{fieldErrors.body}</div>
+                  )}
                   <div className="post-form-stats">
                     <span>文字数: {countBodyCharacters(body).toLocaleString()}文字</span>
                     {livePageCount && <span>原稿用紙: {livePageCount}</span>}
