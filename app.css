@@ -60,6 +60,14 @@
   /* ヘルプモーダル */
   --modal-backdrop: rgba(0,0,0,0.3);
 
+  /* タイポグラフィ（スマホ〜4K、投稿・閲覧向け） */
+  --font-root: clamp(16px, 15px + 0.35vw, 21px);
+  --line-height-ui: 1.6;
+  --line-height-read: 1.75;
+  --content-max: 68rem;
+  --article-max: 46rem;
+  --page-gutter: clamp(10px, 2.5vw, 36px);
+
   /* ezdogノウハウ: 日本語組版ルート設定 */
   line-break: strict;
   hanging-punctuation: allow-end;
@@ -68,14 +76,18 @@
 
 * { box-sizing: border-box; }
 
+html {
+  font-size: var(--font-root);
+}
+
 body {
-  margin: 8px;
+  margin: 0;
   padding: 0;
   background: var(--body-bg);
   color: var(--text);
   font-family: "Times New Roman", "MS PGothic", "Osaka", serif;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: var(--line-height-ui);
   word-break: break-word;
   overflow-wrap: break-word;
 }
@@ -92,11 +104,11 @@ a:hover {
 }
 
 /* === Shell === */
-/* 元サイトは固定幅なし・ブラウザ全幅 (table width="100%") */
 .site-shell {
   width: 100%;
-  margin: 0;
-  padding: 0;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 8px var(--page-gutter) 24px;
 }
 
 .site-panel {
@@ -107,7 +119,7 @@ a:hover {
 /* === Top nav (right-aligned, matching original CGI) === */
 .top-nav {
   text-align: right;
-  font-size: 16px;
+  font-size: 1rem;
   margin-bottom: 4px;
 }
 
@@ -119,7 +131,7 @@ a:hover {
 /* === Title area (centered) === */
 .site-pretitle {
   text-align: center;
-  font-size: 12px;
+  font-size: 0.8125rem;
   font-weight: normal;
   color: var(--text);
 }
@@ -140,14 +152,14 @@ a:hover {
 
 .site-subtitle {
   text-align: center;
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--text);
   padding-bottom: 4px;
 }
 
 /* === Stats row === */
 .stats-row {
-  font-size: 14px;
+  font-size: 0.9375rem;
   padding: 1px 0;
   margin-bottom: 4px;
   display: flex;
@@ -169,9 +181,9 @@ a:hover {
 }
 .search-input {
   flex: 1;
-  max-width: 260px;
-  padding: 2px 6px;
-  font-size: 14px;
+  max-width: min(100%, 22rem);
+  padding: 4px 8px;
+  font-size: 1rem;
   border: 1px solid var(--table-border);
   background: var(--table-bg);
 }
@@ -183,13 +195,13 @@ a:hover {
   border-spacing: 0;
   border: 1px solid var(--table-border);
   background: var(--table-bg);
-  font-size: 16px;
+  font-size: 1rem;
   margin-bottom: 0;
 }
 
 .classic-table th {
   background: var(--th-bg);
-  font-size: 14px;
+  font-size: 0.9375rem;
   font-weight: bold;
   text-align: center;
   padding: 3px 0;
@@ -212,7 +224,7 @@ a:hover {
   font-weight: bold;
   color: var(--link);
   text-decoration: none;
-  font-size: 16px;
+  font-size: 1.0625rem;
 }
 .entry-title-link:hover {
   text-decoration: underline;
@@ -275,16 +287,15 @@ a:hover {
   border: 1px solid var(--comment-border);
   color: var(--text);
   font-weight: bold;
-  font-size: 14px;
+  font-size: 0.9375rem;
   text-align: center;
-  padding: 3px 10px;
+  padding: 6px 10px;
   margin: 8px 0 0;
 }
 
 /* === Article / Reader page === */
-/* 元サイト: <table width="90%" cellspacing="4" cellpadding="8" align="center"> — 枠線・背景なし */
 .article-table {
-  width: 90%;
+  width: min(100%, var(--article-max));
   margin: 0 auto 8px;
   border-collapse: separate;
   border-spacing: 4px;
@@ -343,12 +354,12 @@ a:hover {
 }
 
 .article-date {
-  font-size: 16px;
+  font-size: 1rem;
   padding: 4px 8px;
 }
 
 .article-author {
-  font-size: 16px;
+  font-size: 1rem;
   padding: 4px 8px;
 }
 
@@ -358,7 +369,7 @@ a:hover {
 
 .article-author-msg {
   margin-left: 3%;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 /* === Point box === */
@@ -451,9 +462,9 @@ a:hover {
 }
 
 .form-label {
-  width: 90px;
+  width: 6.5rem;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 /* === 投稿フォーム === */
@@ -587,28 +598,30 @@ input[type='email'],
 input[type='password'],
 textarea {
   border: 1px solid var(--input-border);
-  padding: 2px 4px;
+  padding: 4px 8px;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 1rem;
   background: var(--input-bg);
   color: var(--input-text);
 }
 
 textarea {
   width: 100%;
+  line-height: var(--line-height-ui);
 }
 
 select {
   font-family: inherit;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 .classic-button {
   border: 2px outset var(--button-border);
   background: var(--button-bg);
   color: var(--button-text);
-  padding: 2px 8px;
-  font-size: 14px;
+  padding: 4px 12px;
+  font-size: 1rem;
+  min-height: 2.25rem;
   cursor: pointer;
   font-family: inherit;
 }
@@ -632,7 +645,7 @@ select {
   background: transparent;
   color: var(--link);
   text-decoration: none;
-  font-size: 16px;
+  font-size: 1rem;
   cursor: pointer;
   padding: 0;
   font-family: inherit;
@@ -951,8 +964,45 @@ select:focus-visible {
   }
 }
 
+/* === 大画面（タブレット横・4K）: 補助テキストも根拠サイズに連動 === */
+@media (min-width: 1024px) {
+  .entry-meta-row td,
+  .entry-date,
+  .entry-point,
+  .entry-comments,
+  .comment-footer,
+  .comment-date,
+  .comment-number,
+  .comment-text,
+  .pagination,
+  .list-cache-notice,
+  .list-status-message,
+  .site-footer,
+  .footer-script,
+  .vote-note,
+  .post-form-note,
+  .post-form-stats,
+  .comment-form-count,
+  .form-field-error,
+  .form-message,
+  .point-breakdown,
+  .help-body,
+  .error-box {
+    font-size: 0.9375rem;
+  }
+
+  .point-box .point-value {
+    font-size: 1.25rem;
+  }
+}
+
 /* === Responsive (mobile only — desktop はオリジナル CGI デザインを維持) === */
 @media (max-width: 640px) {
+  .site-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
   /* --- 基本: 余白確保 & ezdog組版維持 --- */
   body {
     margin: 8px;
@@ -1245,7 +1295,7 @@ select:focus-visible {
 }
 
 .ryuseigai-panel {
-  max-width: 720px;
+  max-width: min(45rem, 100%);
   margin: 0 auto;
   background: #111111;
   border: 1px solid #3a3a3a;
