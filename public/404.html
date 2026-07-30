@@ -7,8 +7,14 @@
     // GitHub Pages SPA fallback:
     // Deep link を sessionStorage に保存し、アプリルートへリダイレクト
     sessionStorage.setItem('__spa_path', window.location.pathname + window.location.search + window.location.hash);
-    // アプリルート = 最初のパスセグメント（GitHub Pages: /ari-no-ana-neo/）
-    var base = '/' + window.location.pathname.split('/')[1] + '/';
+    var parts = window.location.pathname.split('/').filter(Boolean);
+    var routeSegments = ['read', 'post', 'admin', 'page', 'ryuseigai'];
+    var base = '/';
+    if (parts.length > 0 && routeSegments.indexOf(parts[0]) === -1) {
+      base = '/' + parts[0] + '/';
+    } else if (parts.length >= 2 && routeSegments.indexOf(parts[1]) !== -1) {
+      base = '/' + parts[0] + '/';
+    }
     window.location.replace(base);
   </script>
 </head>
