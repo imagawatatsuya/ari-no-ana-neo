@@ -11,12 +11,12 @@
   --link: #3D3832;
   --link-visited: #7a7a72;
   --table-border: #D3CEC0;
-  --table-bg: #FCFCFC;
+  --table-bg: #FFFFFF;
   --th-bg: #CCCCCC;
   --comment-border: #C0BAAF;
   --stars-on: #598AAF;
-  --stars-off: #E3E3D9;
-  --point-gray: #767676;
+  --stars-off: #D0D0C6;
+  --point-gray: #5a5a52;
   --hr-color: #808080;
   --subtitle-bg: #D3CEC0;
   --subtitle-empty: #B0AAA0;
@@ -172,6 +172,29 @@ a:hover {
   color: var(--link);
 }
 
+/* === List toolbar (stats + search, connected to table) === */
+.list-toolbar {
+  background: var(--th-bg);
+  border: 1px solid var(--comment-border);
+  border-bottom: none;
+  padding: 6px 8px 8px;
+  margin-bottom: 0;
+}
+
+.list-toolbar .stats-row {
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+
+.list-toolbar .search-bar {
+  margin-bottom: 0;
+}
+
+.list-toolbar + .classic-table,
+.list-toolbar + .list-cache-notice + .classic-table {
+  border-top: none;
+}
+
 /* === Search bar === */
 .search-bar {
   display: flex;
@@ -191,13 +214,18 @@ a:hover {
 /* === Main table (list) === */
 .classic-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid var(--table-border);
+  border: 1px solid var(--comment-border);
   background: var(--table-bg);
   font-size: 1rem;
   margin-bottom: 0;
 }
+
+.classic-table .col-date { width: 11rem; }
+.classic-table .col-comments { width: 3rem; }
+.classic-table .col-point { width: 6.5rem; }
 
 .classic-table th {
   background: var(--th-bg);
@@ -207,6 +235,7 @@ a:hover {
   padding: 3px 0;
   color: var(--text);
   border: none;
+  border-bottom: 1px solid var(--comment-border);
 }
 
 .classic-table td {
@@ -219,6 +248,9 @@ a:hover {
 .entry-group {
   cursor: pointer;
   border-bottom: 1px solid var(--hr-color);
+}
+.entry-group:hover {
+  background: #f6f6f0;
 }
 .entry-group:focus-visible {
   outline: 2px solid var(--link);
@@ -240,20 +272,20 @@ a:hover {
 }
 
 .entry-date {
-  font-size: 12px;
-  text-align: center;
+  font-size: 0.8125rem;
+  text-align: right;
   white-space: nowrap;
   vertical-align: top;
 }
 
 .entry-comments {
-  font-size: 12px;
+  font-size: 0.8125rem;
   text-align: center;
   vertical-align: top;
 }
 
 .entry-point {
-  font-size: 12px;
+  font-size: 0.8125rem;
   white-space: nowrap;
   vertical-align: top;
 }
@@ -267,19 +299,22 @@ a:hover {
 }
 
 .point-score {
-  color: var(--point-gray);
-  font-size: 12px;
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 .entry-meta-row td {
   padding: 0 4px 6px;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 0.8125rem;
+  color: #5a564e;
 }
 
 .entry-new-badge {
   color: var(--footnote-ref);
-  font-size: 11px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.06em;
   margin-left: 4px;
 }
 
@@ -945,8 +980,8 @@ select:focus-visible {
     --th-bg: #33332c;
     --comment-border: #4a4640;
     --stars-on: #6a9abf;
-    --stars-off: #3a3a34;
-    --point-gray: #9a9a90;
+    --stars-off: #2e2e28;
+    --point-gray: #b0aca4;
     --hr-color: #5a5a52;
     --subtitle-bg: #3a3832;
     --subtitle-empty: #6a665e;
@@ -1015,6 +1050,14 @@ select:focus-visible {
   .footnote-tooltip-body {
     color: var(--footnote-text);
   }
+
+  .entry-group:hover {
+    background: #2e2e28;
+  }
+
+  .entry-meta-row td {
+    color: #a8a4a0;
+  }
 }
 
 /* === 大画面（タブレット横・4K）: 補助テキストも根拠サイズに連動 === */
@@ -1023,6 +1066,7 @@ select:focus-visible {
   .entry-date,
   .entry-point,
   .entry-comments,
+  .point-score,
   .comment-footer,
   .comment-date,
   .comment-number,
@@ -1051,6 +1095,10 @@ select:focus-visible {
     font-size: 1.25rem;
   }
 
+  .entry-new-badge {
+    font-size: 0.8125rem;
+  }
+
   .ryuseigai-entry-meta,
   .ryuseigai-footer,
   .ryuseigai-point-label,
@@ -1058,7 +1106,7 @@ select:focus-visible {
   .ryuseigai-badge,
   .ryuseigai-comment-form .comment-form-count,
   .ryuseigai-comment-form .form-field-error {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
   }
 
   .ryuseigai-epigraph,
@@ -1156,7 +1204,7 @@ select:focus-visible {
     padding: 0;
     text-align: left;
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .entry-title-row .entry-comments {
     display: none; /* meta行の［N件］と重複するため非表示 */
@@ -1165,7 +1213,7 @@ select:focus-visible {
     padding: 0;
     text-align: left;
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .entry-point br { display: none; }
   .entry-point .point-score { margin-left: 4px; }
@@ -1173,7 +1221,7 @@ select:focus-visible {
   /* メタ行 */
   .entry-meta-row td {
     padding: 2px 8px 12px;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
 
   /* --- フォーム: 縦積み --- */
@@ -1308,6 +1356,10 @@ select:focus-visible {
     min-height: 40px;
     display: inline-flex;
     align-items: center;
+  }
+
+  .ryuseigai-entry {
+    padding: 16px 12px;
   }
 }
 
@@ -1469,9 +1521,20 @@ select:focus-visible {
 }
 
 .ryuseigai-entry {
-  padding: 10px 4px;
-  border-bottom: 1px solid #2a2a2a;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "title score"
+    "meta meta";
+  align-items: start;
+  gap: 0 12px;
+  padding: 14px 10px;
+  border-bottom: 1px solid #333;
   cursor: pointer;
+  transition: background 0.15s ease;
+}
+.ryuseigai-entry:hover {
+  background: #181414;
 }
 .ryuseigai-entry:focus-visible {
   outline: 2px solid #c99a9a;
@@ -1479,6 +1542,7 @@ select:focus-visible {
 }
 
 .ryuseigai-entry-link {
+  grid-area: title;
   color: #c99a9a;
   text-decoration: underline;
   text-decoration-color: #6a4a4a;
@@ -1491,16 +1555,26 @@ select:focus-visible {
 }
 
 .ryuseigai-entry-score {
-  float: right;
+  grid-area: score;
   color: #c08080;
   font-size: 0.8125rem;
   font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  background: #1a1510;
+  border: 1px solid #4a3535;
+  padding: 2px 8px;
+  white-space: nowrap;
 }
 
 .ryuseigai-entry-meta {
-  font-size: 0.75rem;
-  color: #9a9488;
-  margin-top: 3px;
+  grid-area: meta;
+  font-size: 0.8125rem;
+  color: #a8a296;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.ryuseigai-entry:hover .ryuseigai-entry-meta {
+  color: #c0bab0;
 }
 
 .ryuseigai-footer {

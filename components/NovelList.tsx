@@ -59,12 +59,18 @@ export const NovelList: React.FC<NovelListProps> = ({ state, onRetry }) => {
         </div>
       )}
       <table className="classic-table">
+        <colgroup>
+          <col className="col-title" />
+          <col className="col-date" />
+          <col className="col-comments" />
+          <col className="col-point" />
+        </colgroup>
         <thead>
           <tr>
-            <th style={{ width: '70%' }}>Title</th>
-            <th style={{ width: '12%' }}>投稿日</th>
-            <th style={{ width: '6%' }}>感想</th>
-            <th style={{ width: '12%' }}>ポイント</th>
+            <th>Title</th>
+            <th>投稿日</th>
+            <th>感想</th>
+            <th>ポイント</th>
           </tr>
         </thead>
         {state.status === 'empty' && (

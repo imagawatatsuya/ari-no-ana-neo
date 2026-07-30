@@ -799,20 +799,22 @@ const App: React.FC = () => {
         </h1>
         <div className="site-subtitle">匿名投稿・添削できる修行場所。煽り・罵倒は覚悟の上で</div>
 
-        {/* ステータス行 */}
-        <div className="stats-row">
-          <span>
-            {isSupabaseMode
-              ? `全 ${totalNovelCount} 作品`
-              : visibleNovels.length === novels.length
-                ? `全 ${novels.length} 作品`
-                : `全 ${novels.length} 作品中 ${visibleNovels.length} 表示`}
-            {totalPages > 1 && ` [ ${clampedPage}/${totalPages} ページ ]`}
-          </span>
-          <span>
-            モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
-          </span>
-        </div>
+        {/* ステータス行（管理画面のみ。一覧は list-toolbar 内） */}
+        {view === 'admin' && (
+          <div className="stats-row">
+            <span>
+              {isSupabaseMode
+                ? `全 ${totalNovelCount} 作品`
+                : visibleNovels.length === novels.length
+                  ? `全 ${novels.length} 作品`
+                  : `全 ${novels.length} 作品中 ${visibleNovels.length} 表示`}
+              {totalPages > 1 && ` [ ${clampedPage}/${totalPages} ページ ]`}
+            </span>
+            <span>
+              モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
+            </span>
+          </div>
+        )}
         </>)}
 
         {errorMsg && <div className="error-box" role="alert">{errorMsg}</div>}
@@ -820,17 +822,32 @@ const App: React.FC = () => {
         <main id="main-content">
 
         {view === 'list' && (
-          <form className="search-bar" onSubmit={handleSearch} role="search" aria-label="作品検索">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="タイトル / 作者で検索"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-            <button type="submit" className="classic-button">検索</button>
-            {searchQuery && <button type="button" className="classic-button" onClick={handleSearchClear}>解除</button>}
-          </form>
+          <div className="list-toolbar">
+            <div className="stats-row">
+              <span>
+                {isSupabaseMode
+                  ? `全 ${totalNovelCount} 作品`
+                  : visibleNovels.length === novels.length
+                    ? `全 ${novels.length} 作品`
+                    : `全 ${novels.length} 作品中 ${visibleNovels.length} 表示`}
+                {totalPages > 1 && ` [ ${clampedPage}/${totalPages} ページ ]`}
+              </span>
+              <span>
+                モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
+              </span>
+            </div>
+            <form className="search-bar" onSubmit={handleSearch} role="search" aria-label="作品検索">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="タイトル / 作者で検索"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+              <button type="submit" className="classic-button">検索</button>
+              {searchQuery && <button type="button" className="classic-button" onClick={handleSearchClear}>解除</button>}
+            </form>
+          </div>
         )}
 
         {view === 'list' && (
