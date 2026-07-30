@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Novel } from '../types';
+import React, { useEffect, useState } from 'react';
+import { Novel, SubmitResult } from '../types';
 import { generateTrip, formatManuscriptPages, formatDate, countBodyCharacters } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { BASE_PATH, navigate } from '../router';
+import { clearPostDraft, readPostDraft, writePostDraft } from '../lib/draftStorage';
 
 interface PostFormProps {
-  onPost: (novel: Novel) => void;
+  onPost: (novel: Novel) => Promise<SubmitResult>;
   footnoteMode?: FootnoteMode;
 }
 
@@ -26,6 +27,20 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const draft = readPostDraft();
+    if (draft) {
+      setTitle(draft.title);
+      setDescription(draft.description);
+      setName(draft.name);
+      setBody(draft.body);
+    }
+  }, []);
+
+  useEffect(() => {
+    writePostDraft({ title, description, name, body });
+  }, [title, description, name, body]);
 
   // プレビュー用の生成データ
   const { name: authorName, trip } = generateTrip(name);
@@ -48,10 +63,9 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
     setMode('preview');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (isSubmitting) return;
 
-    // 連投制限チェック
     const lastPostAt = Number(sessionStorage.getItem(LAST_POST_KEY) || 0);
     if (lastPostAt && Date.now() - lastPostAt < SPAM_COOLDOWN_MS) {
       const remainSec = Math.ceil((SPAM_COOLDOWN_MS - (Date.now() - lastPostAt)) / 1000);
@@ -60,18 +74,36 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
     }
 
     setIsSubmitting(true);
-    sessionStorage.setItem(LAST_POST_KEY, String(Date.now()));
+    try {
+      const result = await onPost({
+        id: Date.now().toString(),
+        title: title.trim(),
+        description: description.trim() || undefined,
+        author: authorName,
+        trip,
+        body,
+        date: new Date().toISOString(),
+        viewCount: 0,
+        commentCount: 0,
+        voteSum: 0,
+      });
 
-    onPost({
-      id: Date.now().toString(),
-      title: title.trim(),
-      description: description.trim() || undefined,
-      author: authorName,
-      trip,
-      body,
-      date: new Date().toISOString(),
-      viewCount: 0,
-    });
+      if (!result.ok) {
+        alert(result.message);
+        setIsSubmitting(false);
+        return;
+      }
+
+      sessionStorage.setItem(LAST_POST_KEY, String(Date.now()));
+      clearPostDraft();
+      setTitle('');
+      setDescription('');
+      setName('');
+      setBody('');
+    } catch {
+      alert('投稿中にエラーが発生しました。入力内容は保持されています。');
+      setIsSubmitting(false);
+    }
   };
 
   const handleBack = () => {
@@ -89,7 +121,6 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
           <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); handleBack(); }}>&nbsp;修正する</a>
         </div>
 
-        {/* 作品ページと同一レイアウト */}
         <table className="article-table">
           <tbody>
             <tr>

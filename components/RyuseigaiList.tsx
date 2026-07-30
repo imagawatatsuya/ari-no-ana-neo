@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
-import { Novel, Comment } from '../types';
+import { NovelListState } from '../types';
 import { formatDate } from '../utils';
 import { BASE_PATH, navigate } from '../router';
 
 interface RyuseigaiListProps {
-  novels: Novel[];
-  comments: Comment[];
+  state: NovelListState;
 }
 
 /** 流星垓の初期ポイント */
@@ -21,47 +20,71 @@ const shuffle = <T,>(arr: T[]): T[] => {
   return a;
 };
 
-export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ novels, comments }) => {
-  // アクセスごとにランダム順（マウント時にシャッフル）
+export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ state }) => {
+  const novels = state.status === 'success' ? state.items : [];
   const shuffled = useMemo(() => shuffle(novels), [novels]);
+  const stale = state.status === 'success' && state.stale;
 
-  const getScore = (novelId: string): number => {
-    const novelComments = comments.filter((c) => c.novelId === novelId);
-    const voteSum = novelComments.reduce((acc, c) => acc + c.vote, 0);
-    return RYUSEIGAI_BASE_SCORE + voteSum;
-  };
+  if (state.status === 'loading') {
+    return (
+      <div className="ryuseigai-shell">
+        <div className="ryuseigai-panel" style={{ padding: 18, textAlign: 'center' }} role="status" aria-busy="true">
+          ……
+        </div>
+      </div>
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div className="ryuseigai-shell">
+        <div className="ryuseigai-panel" style={{ padding: 18, textAlign: 'center' }} role="alert">
+          流星垓の一覧を取得できませんでした。
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ryuseigai-shell">
       <div className="ryuseigai-panel">
-        {/* 流星垓ヘッダ */}
         <div className="ryuseigai-header">
           <h1 className="ryuseigai-title">流 星 垓</h1>
-          
           <div className="ryuseigai-epigraph">
             ここに捨てられたものは、まだ息をしている。<br />
             救済はない。ただ、在る。
           </div>
         </div>
 
-        {/* 作品一覧: ページングなし・ランダム順 */}
-        {shuffled.length === 0 ? (
+        {stale && (
+          <div className="list-cache-notice" role="status" aria-live="polite">
+            前回取得した一覧を表示しています。最新情報を確認中です。
+          </div>
+        )}
+
+        {state.status === 'empty' || shuffled.length === 0 ? (
           <div className="ryuseigai-empty">
             まだ何も捨てられていない。
           </div>
         ) : (
           <div className="ryuseigai-entries">
             {shuffled.map((novel) => {
-              const score = getScore(novel.id);
-              const commentCount = comments.filter((c) => c.novelId === novel.id).length;
+              const score = RYUSEIGAI_BASE_SCORE + novel.voteSum;
               return (
                 <div className="ryuseigai-entry" key={novel.id}>
-                  <a href={BASE_PATH + `/ryuseigai/read/${novel.id}`} onClick={(e) => { e.preventDefault(); navigate(`/ryuseigai/read/${novel.id}`); }} className="ryuseigai-entry-link">
+                  <a
+                    href={BASE_PATH + `/ryuseigai/read/${novel.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(`/ryuseigai/read/${novel.id}`);
+                    }}
+                    className="ryuseigai-entry-link"
+                  >
                     {novel.title}
                   </a>
                   <span className="ryuseigai-entry-score">{score}</span>
                   <div className="ryuseigai-entry-meta">
-                    {novel.author} ／ {formatDate(novel.date)} ／ 声 {commentCount}
+                    {novel.author} ／ {formatDate(novel.date)} ／ 声 {novel.commentCount}
                   </div>
                 </div>
               );

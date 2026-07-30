@@ -538,6 +538,24 @@ select {
 }
 
 /* === Footer === */
+.list-status-message {
+  padding: 18px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.list-status-error {
+  color: var(--point-red, #c00);
+}
+
+.list-cache-notice {
+  margin: 6px 0 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+}
+
 .site-footer {
   margin-top: 10px;
   padding-top: 4px;

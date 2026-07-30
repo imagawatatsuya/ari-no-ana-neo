@@ -1,16 +1,40 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Novel, ViewMode, Comment } from './types';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { Novel, ViewMode, Comment, NovelListState, SubmitResult } from './types';
 import { SEED_NOVELS, SEED_COMMENTS } from './seedData';
 import { NovelList } from './components/NovelList';
-import { NovelReader } from './components/NovelReader';
-import { PostForm } from './components/PostForm';
-import { AdminDashboard } from './components/AdminDashboard';
 import { RyuseigaiList } from './components/RyuseigaiList';
-import { RyuseigaiReader } from './components/RyuseigaiReader';
 import { supabase } from './services/supabaseClient';
 import { deleteNovelAndComments, editNovelInList, toggleHiddenNovelId } from './adminOps';
 import { FootnoteMode } from './components/FootnoteRenderer';
 import { BASE_PATH, navigate } from './router';
+import { useNovelList } from './features/novels/useNovelList';
+import { novelsToSummaries } from './features/novels/novelSummaries';
+import { NOVELS_PER_PAGE, RYUSEIGAI_LIST_LIMIT } from './services/supabase/novelQueries';
+
+const AdminDashboard = lazy(() =>
+  import('./components/AdminDashboard').then((module) => ({
+    default: module.AdminDashboard,
+  })),
+);
+const PostForm = lazy(() =>
+  import('./components/PostForm').then((module) => ({
+    default: module.PostForm,
+  })),
+);
+const NovelReader = lazy(() =>
+  import('./components/NovelReader').then((module) => ({
+    default: module.NovelReader,
+  })),
+);
+const RyuseigaiReader = lazy(() =>
+  import('./components/RyuseigaiReader').then((module) => ({
+    default: module.RyuseigaiReader,
+  })),
+);
+
+const ViewFallback: React.FC = () => (
+  <div className="list-status-message" role="status" aria-busy="true">読み込み中……</div>
+);
 
 const getJSTISOString = () => {
   const jstDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
@@ -27,7 +51,6 @@ const HIDDEN_IDS_STORAGE_KEY = 'bunsho_hidden_novel_ids_v1';
 const ADMIN_AUTH_STORAGE_KEY = 'bunsho_admin_auth_v1';
 const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
 const localAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD?.trim() || '';
-const NOVELS_PER_PAGE = 20;
 
 const App: React.FC = () => {
   const [novels, setNovels] = useState<Novel[]>([]);
@@ -44,23 +67,27 @@ const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  // サーバーサイドページング用
-  const [totalNovelCount, setTotalNovelCount] = useState(0);
   const [readNovel, setReadNovel] = useState<Novel | null>(null);
   const [readComments, setReadComments] = useState<Comment[]>([]);
   const [adminNovels, setAdminNovels] = useState<Novel[]>([]);
   const [adminComments, setAdminComments] = useState<Comment[]>([]);
-  // 流星垓用（一覧のみ。閲覧は共通 readNovel/readComments を使用）
-  const [ryuseigaiNovels, setRyuseigaiNovels] = useState<Novel[]>([]);
-  const [ryuseigaiComments, setRyuseigaiComments] = useState<Comment[]>([]);
 
+  const isSupabaseMode = !!supabase;
+
+  const { listState: supabaseListState, totalCount: supabaseTotalCount, refresh: refreshList } = useNovelList(
+    isSupabaseMode && view === 'list',
+    { page: currentPage, search: searchQuery, isRyuseigai: false, pageSize: NOVELS_PER_PAGE },
+  );
+
+  const { listState: supabaseRyuseigaiListState } = useNovelList(
+    isSupabaseMode && view === 'ryuseigai',
+    { page: 1, search: '', isRyuseigai: true, pageSize: RYUSEIGAI_LIST_LIMIT },
+  );
   // 脚注表示モード（管理者設定）
   const FOOTNOTE_MODE_KEY = 'bunsho_footnote_mode';
   const [footnoteMode, setFootnoteMode] = useState<FootnoteMode>(
     () => (localStorage.getItem(FOOTNOTE_MODE_KEY) as FootnoteMode) || 'scroll'
   );
-
-  const isSupabaseMode = !!supabase;
 
   useEffect(() => {
     if (!isSupabaseMode) {
@@ -98,13 +125,6 @@ const App: React.FC = () => {
     }
   }, [isSupabaseMode]);
 
-  // Supabaseモード: ページ遷移時にサーバーから当該ページ取得
-  useEffect(() => {
-    if (isSupabaseMode && view === 'list') {
-      fetchPageFromSupabase(currentPage, searchQuery);
-    }
-  }, [currentPage, view, isSupabaseMode, searchQuery]);
-
   // Supabaseモード: 作品閲覧時に個別取得
   useEffect(() => {
     if (isSupabaseMode && view === 'read' && activeNovelId) {
@@ -118,13 +138,6 @@ const App: React.FC = () => {
       fetchAllForAdmin();
     }
   }, [view, isAdminAuthenticated, isSupabaseMode]);
-
-  // Supabaseモード: 流星垓一覧取得
-  useEffect(() => {
-    if (isSupabaseMode && view === 'ryuseigai') {
-      fetchRyuseigaiFromSupabase();
-    }
-  }, [view, isSupabaseMode]);
 
   // Supabaseモード: 流星垓作品閲覧（共通 fetchNovelForRead を使用）
   useEffect(() => {
@@ -211,84 +224,6 @@ const App: React.FC = () => {
     setComments(savedComments ? JSON.parse(savedComments) : SEED_COMMENTS);
   };
 
-  // --- Supabase: サーバーサイドページング（一覧用: 20件ずつ） ---
-  const fetchPageFromSupabase = async (page: number, search?: string) => {
-    if (!supabase) return;
-    setIsLoading(true);
-    try {
-      const from = (page - 1) * NOVELS_PER_PAGE;
-      const to = from + NOVELS_PER_PAGE - 1;
-      const trimmed = (search ?? '').trim();
-
-      // 総件数取得（is_hidden=false かつ is_ryuseigai=false のみ、検索条件付き）
-      let countQuery = supabase
-        .from('novels')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_hidden', false)
-        .eq('is_ryuseigai', false);
-      if (trimmed) {
-        countQuery = countQuery.or(`title.ilike.%${trimmed}%,author.ilike.%${trimmed}%`);
-      }
-      const { count, error: countError } = await countQuery;
-      if (countError) throw countError;
-      setTotalNovelCount(count ?? 0);
-
-      // 当該ページの作品取得（流星垓送りの作品は除外）
-      let novelsQuery = supabase
-        .from('novels')
-        .select('*')
-        .eq('is_hidden', false)
-        .eq('is_ryuseigai', false)
-        .order('date', { ascending: false })
-        .range(from, to);
-      if (trimmed) {
-        novelsQuery = novelsQuery.or(`title.ilike.%${trimmed}%,author.ilike.%${trimmed}%`);
-      }
-      const { data: novelsData, error: novelsError } = await novelsQuery;
-      if (novelsError) throw novelsError;
-
-      const mappedNovels: Novel[] = (novelsData || []).map((n: any) => ({
-        id: n.id,
-        title: n.title,
-        author: n.author,
-        trip: n.trip,
-        body: n.body,
-        date: n.date,
-        viewCount: n.view_count ? Number(n.view_count) : 0,
-        isHidden: false,
-        isRyuseigai: !!n.is_ryuseigai,
-      }));
-
-      // 当該ページ作品のコメントのみ取得
-      const novelIds = mappedNovels.map((n) => n.id);
-      let mappedComments: Comment[] = [];
-      if (novelIds.length > 0) {
-        const { data: commentsData, error: commentsError } = await supabase
-          .from('comments')
-          .select('*')
-          .in('novel_id', novelIds);
-        if (commentsError) throw commentsError;
-        mappedComments = (commentsData || []).map((c: any) => ({
-          id: c.id,
-          novelId: c.novel_id,
-          name: c.name,
-          text: c.text,
-          date: c.date,
-          vote: c.vote,
-        }));
-      }
-
-      setNovels(mappedNovels);
-      setComments(mappedComments);
-    } catch (err: any) {
-      console.error('Supabase Error:', err);
-      setErrorMsg('データベースへの接続に失敗しました。オフラインモードで表示します。');
-      loadFromLocalStorage();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // --- Supabase: 作品個別取得（閲覧ページ用） ---
   const fetchNovelForRead = async (id: string) => {
     if (!supabase) return;
@@ -309,7 +244,10 @@ const App: React.FC = () => {
         body: novelData.body,
         date: novelData.date,
         viewCount: novelData.view_count ? Number(novelData.view_count) : 0,
+        commentCount: 0,
+        voteSum: 0,
         isHidden: !!novelData.is_hidden,
+        description: novelData.description ?? undefined,
       };
       setReadNovel(mapped);
 
@@ -359,8 +297,11 @@ const App: React.FC = () => {
         body: n.body,
         date: n.date,
         viewCount: n.view_count ? Number(n.view_count) : 0,
+        commentCount: 0,
+        voteSum: 0,
         isHidden: !!n.is_hidden,
         isRyuseigai: !!n.is_ryuseigai,
+        description: n.description ?? undefined,
       }));
 
       const mappedComments: Comment[] = (commentsData || []).map((c: any) => ({
@@ -379,59 +320,6 @@ const App: React.FC = () => {
     } catch (err: any) {
       console.error('Supabase Error (admin):', err);
       setErrorMsg('管理データの取得に失敗しました。');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // --- Supabase: 流星垓一覧取得 ---
-  const fetchRyuseigaiFromSupabase = async () => {
-    if (!supabase) return;
-    setIsLoading(true);
-    try {
-      const { data: novelsData, error: novelsError } = await supabase
-        .from('novels')
-        .select('*')
-        .eq('is_ryuseigai', true)
-        .eq('is_hidden', false);
-      if (novelsError) throw novelsError;
-
-      const mappedNovels: Novel[] = (novelsData || []).map((n: any) => ({
-        id: n.id,
-        title: n.title,
-        author: n.author,
-        trip: n.trip,
-        body: n.body,
-        date: n.date,
-        viewCount: n.view_count ? Number(n.view_count) : 0,
-        isHidden: false,
-        isRyuseigai: true,
-      }));
-
-      const novelIds = mappedNovels.map((n) => n.id);
-      let mappedComments: Comment[] = [];
-      if (novelIds.length > 0) {
-        const { data: commentsData, error: commentsError } = await supabase
-          .from('comments')
-          .select('*')
-          .in('novel_id', novelIds);
-        if (commentsError) throw commentsError;
-        mappedComments = (commentsData || []).map((c: any) => ({
-          id: c.id,
-          novelId: c.novel_id,
-          name: c.name,
-          text: c.text,
-          date: c.date,
-          vote: c.vote,
-        }));
-      }
-
-      setRyuseigaiNovels(mappedNovels);
-      setRyuseigaiComments(mappedComments);
-    } catch (err: any) {
-      console.error('Supabase Error (ryuseigai):', err);
-      setRyuseigaiNovels([]);
-      setRyuseigaiComments([]);
     } finally {
       setIsLoading(false);
     }
@@ -458,10 +346,14 @@ const App: React.FC = () => {
     }
   };
 
-  const handlePost = async (novel: Novel) => {
-    const novelToSave = { ...novel, date: getJSTISOString() };
+  const handlePost = async (novel: Novel): Promise<SubmitResult> => {
+    const novelToSave: Novel = {
+      ...novel,
+      date: getJSTISOString(),
+      commentCount: 0,
+      voteSum: 0,
+    };
     if (isSupabaseMode && supabase) {
-      setIsLoading(true);
       const { error } = await supabase.from('novels').insert([
         {
           id: novelToSave.id,
@@ -473,14 +365,14 @@ const App: React.FC = () => {
           date: novelToSave.date,
         },
       ]);
-      setIsLoading(false);
       if (error) {
-        alert(`文章の投稿中にエラーが発生しました: ${error.message}`);
-        return;
+        return { ok: false, message: `文章の投稿中にエラーが発生しました: ${error.message}` };
       }
+    } else {
+      setNovels([novelToSave, ...novels]);
     }
-    setNovels([novelToSave, ...novels]);
     navigate('/');
+    return { ok: true, novelId: novelToSave.id };
   };
 
   const handleComment = async (comment: Comment) => {
@@ -691,19 +583,42 @@ const App: React.FC = () => {
     return comments.filter((c) => ids.has(c.novelId));
   }, [comments, offlineRyuseigaiNovels, isSupabaseMode]);
 
+  const totalNovelCount = isSupabaseMode ? supabaseTotalCount : visibleNovels.length;
+
   // Supabaseモード: サーバーが総件数を返す / オフライン: クライアント計算
-  const totalPages = isSupabaseMode
-    ? Math.max(1, Math.ceil(totalNovelCount / NOVELS_PER_PAGE))
-    : Math.max(1, Math.ceil(visibleNovels.length / NOVELS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(totalNovelCount / NOVELS_PER_PAGE));
   const clampedPage = Math.min(currentPage, totalPages);
 
-  // Supabaseモード: visibleNovels（ソート済み）をそのまま使用 / オフライン: クライアントでスライス
+  // オフラインモード: クライアントでスライス
   const pagedNovels = useMemo(
-    () => isSupabaseMode
-      ? visibleNovels
-      : visibleNovels.slice((clampedPage - 1) * NOVELS_PER_PAGE, clampedPage * NOVELS_PER_PAGE),
-    [visibleNovels, clampedPage, isSupabaseMode],
+    () => visibleNovels.slice((clampedPage - 1) * NOVELS_PER_PAGE, clampedPage * NOVELS_PER_PAGE),
+    [visibleNovels, clampedPage],
   );
+
+  const offlineListState = useMemo((): NovelListState => {
+    if (pagedNovels.length === 0 && visibleNovels.length === 0) {
+      return { status: 'empty' };
+    }
+    return {
+      status: 'success',
+      items: novelsToSummaries(pagedNovels, comments),
+      totalCount: visibleNovels.length,
+    };
+  }, [pagedNovels, comments, visibleNovels]);
+
+  const offlineRyuseigaiListState = useMemo((): NovelListState => {
+    if (offlineRyuseigaiNovels.length === 0) {
+      return { status: 'empty' };
+    }
+    return {
+      status: 'success',
+      items: novelsToSummaries(offlineRyuseigaiNovels, offlineRyuseigaiComments),
+      totalCount: offlineRyuseigaiNovels.length,
+    };
+  }, [offlineRyuseigaiNovels, offlineRyuseigaiComments]);
+
+  const listStateForView = isSupabaseMode ? supabaseListState : offlineListState;
+  const ryuseigaiListStateForView = isSupabaseMode ? supabaseRyuseigaiListState : offlineRyuseigaiListState;
 
   // 作品閲覧: Supabaseモードは readNovel / オフラインは visibleNovels から検索
   const activeNovel = isSupabaseMode
@@ -895,7 +810,12 @@ const App: React.FC = () => {
           </form>
         )}
 
-        {view === 'list' && <NovelList novels={pagedNovels} comments={comments} />}
+        {view === 'list' && (
+          <NovelList
+            state={listStateForView}
+            onRetry={isSupabaseMode ? refreshList : undefined}
+          />
+        )}
         {view === 'list' && totalPages > 1 && (
           <nav className="pagination" aria-label="ページナビゲーション">
             {clampedPage > 1 && (
@@ -913,7 +833,11 @@ const App: React.FC = () => {
             )}
           </nav>
         )}
-        {view === 'post' && <PostForm onPost={handlePost} footnoteMode={footnoteMode} />}
+        {view === 'post' && (
+          <Suspense fallback={<ViewFallback />}>
+            <PostForm onPost={handlePost} footnoteMode={footnoteMode} />
+          </Suspense>
+        )}
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
             <div className="section-title">管理者ログイン</div>
@@ -954,41 +878,46 @@ const App: React.FC = () => {
           </div>
         )}
         {view === 'admin' && isAdminAuthenticated && (
-          <AdminDashboard
-            novels={isSupabaseMode ? adminNovels : novels}
-            comments={isSupabaseMode ? adminComments : comments}
-            hiddenNovelIds={hiddenNovelIds}
-            onEditNovel={handleEditNovel}
-            onDeleteNovel={handleDeleteNovel}
-            onToggleHideNovel={handleToggleHideNovel}
-            onBulkToggleHide={handleBulkToggleHide}
-            onToggleRyuseigai={handleToggleRyuseigai}
-            onResetSeedData={handleResetSeedData}
-            footnoteMode={footnoteMode}
-            onChangeFootnoteMode={(mode) => {
-              setFootnoteMode(mode);
-              localStorage.setItem(FOOTNOTE_MODE_KEY, mode);
-            }}
-          />
+          <Suspense fallback={<ViewFallback />}>
+            <AdminDashboard
+              novels={isSupabaseMode ? adminNovels : novels}
+              comments={isSupabaseMode ? adminComments : comments}
+              hiddenNovelIds={hiddenNovelIds}
+              onEditNovel={handleEditNovel}
+              onDeleteNovel={handleDeleteNovel}
+              onToggleHideNovel={handleToggleHideNovel}
+              onBulkToggleHide={handleBulkToggleHide}
+              onToggleRyuseigai={handleToggleRyuseigai}
+              onResetSeedData={handleResetSeedData}
+              footnoteMode={footnoteMode}
+              onChangeFootnoteMode={(mode) => {
+                setFootnoteMode(mode);
+                localStorage.setItem(FOOTNOTE_MODE_KEY, mode);
+              }}
+            />
+          </Suspense>
         )}
-        {view === 'read' && activeNovel && <NovelReader novel={activeNovel} comments={activeComments} onComment={handleComment} footnoteMode={footnoteMode} />}
+        {view === 'read' && activeNovel && (
+          <Suspense fallback={<ViewFallback />}>
+            <NovelReader novel={activeNovel} comments={activeComments} onComment={handleComment} footnoteMode={footnoteMode} />
+          </Suspense>
+        )}
         {view === 'read' && !activeNovel && !isLoading && <div style={{ padding: 8 }}>投稿が見つからないか、非表示に設定されています。<a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }}>一覧へ戻る</a></div>}
         {view === 'read' && !activeNovel && isLoading && <div style={{ padding: 8 }}>読み込み中...</div>}
 
         {/* 流星垓 */}
         {view === 'ryuseigai' && (
-          <RyuseigaiList
-            novels={isSupabaseMode ? ryuseigaiNovels : offlineRyuseigaiNovels}
-            comments={isSupabaseMode ? ryuseigaiComments : offlineRyuseigaiComments}
-          />
+          <RyuseigaiList state={ryuseigaiListStateForView} />
         )}
         {view === 'ryuseigai-read' && activeRyuseigaiNovel && (
-          <RyuseigaiReader
-            novel={activeRyuseigaiNovel}
-            comments={activeRyuseigaiComments}
-            onComment={handleComment}
-            footnoteMode={footnoteMode}
-          />
+          <Suspense fallback={<ViewFallback />}>
+            <RyuseigaiReader
+              novel={activeRyuseigaiNovel}
+              comments={activeRyuseigaiComments}
+              onComment={handleComment}
+              footnoteMode={footnoteMode}
+            />
+          </Suspense>
         )}
         {view === 'ryuseigai-read' && !activeRyuseigaiNovel && !isLoading && (
           <div className="ryuseigai-shell"><div className="ryuseigai-panel" style={{ padding: 18, textAlign: 'center' }}>ここには何もない。あるいは、まだ誰も辿り着いていない。</div></div>

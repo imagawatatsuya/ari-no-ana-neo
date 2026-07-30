@@ -1,3 +1,27 @@
+/** 一覧表示用（本文・コメント本文を含まない） */
+export interface NovelSummary {
+  id: string;
+  title: string;
+  author: string;
+  trip?: string;
+  date: string;
+  viewCount: number;
+  commentCount: number;
+  voteSum: number;
+  isRyuseigai?: boolean;
+  isHidden?: boolean;
+}
+
+export type NovelListState =
+  | { status: 'loading' }
+  | { status: 'success'; items: NovelSummary[]; totalCount: number; stale?: boolean }
+  | { status: 'empty' }
+  | { status: 'error'; message: string; cachedItems?: NovelSummary[]; cachedTotalCount?: number };
+
+export type SubmitResult =
+  | { ok: true; novelId: string }
+  | { ok: false; message: string };
+
 export interface Comment {
   id: string;
   novelId: string; // Foreign Key linking to Novel
@@ -8,17 +32,9 @@ export interface Comment {
   vote: number; // -2 to +2
 }
 
-export interface Novel {
-  id: string;
-  title: string;
+export interface Novel extends NovelSummary {
   description?: string; // 自由記述メッセージバー（作品ページ上部のグレー帯）
-  author: string; // 名前（識別用・トリップ生成元）
-  trip?: string; // トリップ（識別用）
   body: string; // Raw text
-  date: string;
-  viewCount: number;
-  isHidden?: boolean; // 管理者による非表示フラグ
-  isRyuseigai?: boolean; // 流星垓送りフラグ
 }
 
 export type ViewMode = 'list' | 'post' | 'read' | 'admin' | 'ryuseigai' | 'ryuseigai-read';

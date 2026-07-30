@@ -9,8 +9,20 @@ test.describe('アリの穴NEO - 一覧画面', () => {
 
   test('作品一覧テーブルが表示される', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.classic-table')).toBeVisible();
+    await expect(page.locator('.classic-table, .list-status-message')).toBeVisible();
     await expect(page.locator('.classic-table thead th').first()).toContainText('Title');
+  });
+
+  test('初回ロード中に空一覧メッセージを誤表示しない', async ({ page }) => {
+    await page.goto('/');
+    const loadingMsg = page.getByText('作品一覧を読み込んでいます……');
+    const emptyMsg = page.getByText('投稿がありません。');
+    if (await loadingMsg.isVisible()) {
+      await expect(emptyMsg).not.toBeVisible();
+    }
+    await expect(
+      page.locator('.classic-table, .list-status-error, .list-status-message'),
+    ).toBeVisible();
   });
 
   test('検索バーが表示される', async ({ page }) => {
