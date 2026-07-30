@@ -1,3 +1,7 @@
+/**
+ * 脚注・本文レンダラー（正: ari-no-ana-neo）
+ * ari-preview-editor へは GitHub Actions で自動同期
+ */
 import React, { useMemo, useState, useRef, useEffect, useCallback, Fragment } from 'react';
 
 export type FootnoteMode = 'scroll' | 'tooltip';

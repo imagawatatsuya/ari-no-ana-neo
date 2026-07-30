@@ -1,0 +1,169 @@
+/**
+ * FootnoteRenderer 共有スタイル
+ * 正: ari-no-ana-neo（このファイル）
+ * ari-preview-editor へは GitHub Actions で自動同期
+ */
+
+:root {
+  --footnote-ref: #cc0000;
+  --footnote-heading: #800000;
+  --footnote-text: #444444;
+  --footnote-border: #999999;
+  --body-link: #598AAF;
+}
+
+/* ezdogノウハウ: 本文両端揃え + 日本語組版 */
+.article-body {
+  padding: 8px;
+  font-size: 17px;
+  line-height: 1.75;
+  text-align: justify;
+  text-justify: inter-character;
+  letter-spacing: 0;
+  font-family: Georgia, '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, serif;
+  line-break: strict;
+  hanging-punctuation: allow-end;
+}
+
+/* ezdogノウハウ: 段落構造（<p>単位でjustifyコンテキスト生成） */
+.article-paragraphs p {
+  margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.article-paragraphs p.gyoukan {
+  margin-top: 6.8px;
+}
+
+.footnote-container {
+  line-height: 1.75;
+}
+
+.footnote-ref-link {
+  color: var(--footnote-ref);
+  font-weight: bold;
+  margin-left: 2px;
+  text-decoration: none;
+}
+.footnote-ref-link:hover {
+  text-decoration: underline;
+}
+
+.footnote-section {
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--footnote-border);
+}
+
+.footnote-heading {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--footnote-heading);
+}
+
+.footnote-list {
+  list-style: decimal;
+  padding-left: 20px;
+  font-size: 14px;
+  color: var(--footnote-text);
+}
+
+.footnote-list li {
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+.footnote-back-link {
+  text-decoration: none;
+  color: var(--body-link);
+  cursor: pointer;
+  margin-left: 4px;
+}
+.footnote-back-link:hover {
+  color: var(--footnote-ref);
+}
+
+.body-link {
+  color: var(--body-link);
+  word-break: break-all;
+}
+.body-link:hover {
+  text-decoration: underline;
+}
+
+.footnote-tooltip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 320px;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 4px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+  font-size: 13px;
+  line-height: 1.6;
+  animation: tooltip-fade-in 0.15s ease-out;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.footnote-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  border-radius: 4px 4px 0 0;
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--footnote-heading);
+}
+
+.footnote-tooltip-header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  padding: 0 2px;
+  line-height: 1;
+}
+.footnote-tooltip-header button:hover {
+  color: var(--footnote-ref);
+}
+
+.footnote-tooltip-body {
+  padding: 8px 10px;
+  color: #333;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .article-body {
+    text-align: justify;
+    text-justify: inter-character;
+    letter-spacing: 0;
+    font-size: 16px;
+    line-height: 1.8;
+    font-family: Georgia, '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, serif;
+  }
+
+  .article-paragraphs p {
+    text-align: justify;
+    text-justify: inter-ideograph;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+}
