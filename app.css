@@ -393,12 +393,12 @@ a:hover {
 }
 
 .point-box .point-value {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: bold;
 }
 
 .point-breakdown {
-  font-size: 13px;
+  font-size: 0.8125rem;
   margin-top: 4px;
 }
 
@@ -413,7 +413,7 @@ a:hover {
 .comment-post-success {
   margin: 6px 0 8px;
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   background: #f0f8f0;
   border: 1px solid #b8d8b8;
   color: var(--score-pos);
@@ -436,8 +436,8 @@ a:hover {
 
 .comment-text {
   white-space: pre-wrap;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: var(--line-height-read);
 }
 
 .comment-footer {
@@ -995,6 +995,26 @@ select:focus-visible {
     border-color: #3a5a3a;
     color: var(--score-pos);
   }
+
+  .footnote-tooltip {
+    background: var(--table-bg);
+    border-color: var(--footnote-border);
+    color: var(--text);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+  }
+
+  .footnote-tooltip-header {
+    background: var(--th-bg);
+    border-bottom-color: var(--table-border);
+  }
+
+  .footnote-tooltip-header button {
+    color: var(--point-gray);
+  }
+
+  .footnote-tooltip-body {
+    color: var(--footnote-text);
+  }
 }
 
 /* === 大画面（タブレット横・4K）: 補助テキストも根拠サイズに連動 === */
@@ -1007,6 +1027,8 @@ select:focus-visible {
   .comment-date,
   .comment-number,
   .comment-text,
+  .footnote-heading,
+  .footnote-list,
   .pagination,
   .list-cache-notice,
   .list-status-message,
@@ -1018,6 +1040,7 @@ select:focus-visible {
   .comment-form-count,
   .form-field-error,
   .form-message,
+  .comment-post-success,
   .point-breakdown,
   .help-body,
   .error-box {
@@ -1026,6 +1049,33 @@ select:focus-visible {
 
   .point-box .point-value {
     font-size: 1.25rem;
+  }
+
+  .ryuseigai-entry-meta,
+  .ryuseigai-footer,
+  .ryuseigai-point-label,
+  .ryuseigai-point-breakdown,
+  .ryuseigai-badge,
+  .ryuseigai-comment-form .comment-form-count,
+  .ryuseigai-comment-form .form-field-error {
+    font-size: 0.8125rem;
+  }
+
+  .ryuseigai-epigraph,
+  .ryuseigai-no-comments,
+  .ryuseigai-back-link,
+  .ryuseigai-entry-score,
+  .ryuseigai-shell .comment-footer,
+  .ryuseigai-subtitle,
+  .ryuseigai-empty,
+  .ryuseigai-entry-link,
+  .ryuseigai-section-title,
+  .ryuseigai-form-title {
+    font-size: 0.9375rem;
+  }
+
+  .ryuseigai-point-value {
+    font-size: 2.25rem;
   }
 }
 
@@ -1271,7 +1321,9 @@ select:focus-visible {
   min-height: 100vh;
   background: #0a0a0a;
   color: #b8b2a6;
-  padding: 8px;
+  padding: 8px var(--page-gutter);
+  font-size: 1rem;
+  line-height: var(--line-height-ui);
 }
 
 /* 流星垓内の共通組版クラス: 暗色上書き */
@@ -1344,6 +1396,27 @@ select:focus-visible {
   color: #d07070;
 }
 
+.ryuseigai-shell .footnote-tooltip {
+  background: #1a1a1a;
+  border-color: #4a4440;
+  color: #c8c2b6;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+}
+
+.ryuseigai-shell .footnote-tooltip-header {
+  background: #222222;
+  border-bottom-color: #3a3a3a;
+  color: #c99a9a;
+}
+
+.ryuseigai-shell .footnote-tooltip-header button {
+  color: #9a9488;
+}
+
+.ryuseigai-shell .footnote-tooltip-body {
+  color: #c8c2b6;
+}
+
 .ryuseigai-panel {
   max-width: min(45rem, 100%);
   margin: 0 auto;
@@ -1362,25 +1435,25 @@ select:focus-visible {
 }
 
 .ryuseigai-title {
-  font-size: 28px;
+  font-size: clamp(1.75rem, 1.5rem + 0.6vw, 2.25rem);
   font-weight: bold;
   color: #c99a9a;
-  letter-spacing: 12px;
+  letter-spacing: 0.35em;
   margin: 0 0 4px;
   text-shadow: 0 0 8px rgba(160, 60, 60, 0.5);
 }
 
 .ryuseigai-subtitle {
-  font-size: 14px;
+  font-size: 0.9375rem;
   color: #9a9488;
-  letter-spacing: 6px;
+  letter-spacing: 0.2em;
 }
 
 .ryuseigai-epigraph {
   margin-top: 12px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #9a9488;
-  line-height: 1.8;
+  line-height: var(--line-height-read);
   font-style: italic;
 }
 
@@ -1388,7 +1461,7 @@ select:focus-visible {
   text-align: center;
   padding: 32px 0;
   color: #9a9488;
-  font-size: 14px;
+  font-size: 0.9375rem;
 }
 
 .ryuseigai-entries {
@@ -1409,7 +1482,7 @@ select:focus-visible {
   color: #c99a9a;
   text-decoration: underline;
   text-decoration-color: #6a4a4a;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: bold;
 }
 .ryuseigai-entry:hover .ryuseigai-entry-link {
@@ -1420,12 +1493,12 @@ select:focus-visible {
 .ryuseigai-entry-score {
   float: right;
   color: #c08080;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: bold;
 }
 
 .ryuseigai-entry-meta {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #9a9488;
   margin-top: 3px;
 }
@@ -1433,7 +1506,7 @@ select:focus-visible {
 .ryuseigai-footer {
   margin-top: 24px;
   text-align: center;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #8a8478;
   border-top: 1px solid #333;
   padding-top: 12px;
@@ -1443,7 +1516,7 @@ select:focus-visible {
   color: #c99a9a;
   text-decoration: underline;
   text-decoration-color: #6a4a4a;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .ryuseigai-back-link:hover {
   color: #e0b0b0;
@@ -1463,13 +1536,13 @@ select:focus-visible {
 }
 
 .ryuseigai-point-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #a89a9a;
-  letter-spacing: 4px;
+  letter-spacing: 0.15em;
 }
 
 .ryuseigai-point-value {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: bold;
   color: #d05050;
   margin: 4px 0;
@@ -1477,13 +1550,13 @@ select:focus-visible {
 }
 
 .ryuseigai-point-breakdown {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #a89a9a;
 }
 
 /* 流星垓: コメント */
 .ryuseigai-section-title {
-  font-size: 14px;
+  font-size: 0.9375rem;
   font-weight: bold;
   color: #c99a9a;
   border-bottom: 1px solid #3a3a3a;
@@ -1492,7 +1565,7 @@ select:focus-visible {
 }
 
 .ryuseigai-no-comments {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #9a9488;
   padding: 12px 0;
   text-align: center;
@@ -1511,7 +1584,7 @@ select:focus-visible {
 }
 
 .ryuseigai-form-title {
-  font-size: 14px;
+  font-size: 0.9375rem;
   font-weight: bold;
   color: #c99a9a;
   margin-bottom: 8px;
@@ -1519,12 +1592,13 @@ select:focus-visible {
 
 .ryuseigai-textarea {
   width: 100%;
-  min-height: 100px;
+  min-height: 6.25rem;
   background: #1a1a1a;
   border: 1px solid #444;
   color: #c8c2b6;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 1rem;
+  line-height: var(--line-height-ui);
   padding: 8px;
   resize: vertical;
 }
@@ -1537,9 +1611,9 @@ select:focus-visible {
   background: #1a1a1a;
   border: 1px solid #444;
   color: #c8c2b6;
-  font-size: 14px;
+  font-size: 1rem;
   padding: 4px 8px;
-  width: 240px;
+  width: 15rem;
   max-width: 100%;
 }
 .ryuseigai-input:focus {
@@ -1551,7 +1625,7 @@ select:focus-visible {
   background: #1a1a1a;
   border: 1px solid #444;
   color: #c99a9a;
-  font-size: 14px;
+  font-size: 1rem;
   padding: 4px 8px;
 }
 .ryuseigai-select:focus {
@@ -1563,7 +1637,7 @@ select:focus-visible {
   background: #2a1a1a;
   border: 1px solid #5a3a3a;
   color: #c99a9a;
-  font-size: 14px;
+  font-size: 1rem;
   padding: 6px 24px;
   cursor: pointer;
   font-family: inherit;
@@ -1581,5 +1655,32 @@ select:focus-visible {
 .ryuseigai-badge {
   color: #6b4c4c;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 0.75rem;
+}
+
+.ryuseigai-author-block {
+  padding: 4px 8px;
+  font-size: 1rem;
+}
+
+.ryuseigai-author-block .ryuseigai-author-name {
+  margin-left: 3%;
+}
+
+.ryuseigai-form-row {
+  margin-top: 6px;
+  font-size: 1rem;
+}
+
+.ryuseigai-nav-top {
+  margin-bottom: 6px;
+}
+
+.ryuseigai-nav-bottom {
+  margin-top: 12px;
+}
+
+.ryuseigai-comment-form .comment-form-count,
+.ryuseigai-comment-form .form-field-error {
+  font-size: 0.8125rem;
 }

@@ -72,7 +72,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
   return (
     <div className="ryuseigai-shell">
       {/* 戻る */}
-      <div style={{ marginBottom: 6 }}>
+      <div className="ryuseigai-nav-top">
         <a href={BASE_PATH + '/ryuseigai'} onClick={(e) => { e.preventDefault(); navigate('/ryuseigai'); }} className="ryuseigai-back-link">← 流星垓へ戻る</a>
       </div>
 
@@ -97,9 +97,9 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
 
       <div className="article-date" style={{ textAlign: 'right' }}>{formatDate(novel.date)} に捨てられた</div>
 
-      <div style={{ padding: '4px 8px', fontSize: 16 }}>
+      <div className="ryuseigai-author-block">
         <b>■ 捨てた者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}
-        <div style={{ marginLeft: '3%' }}>{novel.author || '名無し'}</div>
+        <div className="ryuseigai-author-name">{novel.author || '名無し'}</div>
       </div>
 
       {/* 存在価値（流星垓独自） */}
@@ -163,7 +163,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
           {formError && (
             <div id="ryuseigai-comment-error" className="form-field-error" role="alert">{formError}</div>
           )}
-          <div style={{ marginTop: 6 }}>
+          <div className="ryuseigai-form-row">
             <b>■ 名</b>{' '}
             <input
               type="text"
@@ -173,7 +173,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
               className="ryuseigai-input"
             />
           </div>
-          <div style={{ marginTop: 6 }}>
+          <div className="ryuseigai-form-row">
             <b>■ 断罪</b>{' '}
             <select value={vote} onChange={(e) => setVote(Number(e.target.value))} className="ryuseigai-select">
               <option value={-500}>なぜ生まれてきた？ (-500)</option>
@@ -189,7 +189,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
       </div>
 
       {/* 戻る */}
-      <div style={{ marginTop: 12 }}>
+      <div className="ryuseigai-nav-bottom">
         <a href={BASE_PATH + '/ryuseigai'} onClick={(e) => { e.preventDefault(); navigate('/ryuseigai'); }} className="ryuseigai-back-link">← 流星垓へ戻る</a>
       </div>
     </div>

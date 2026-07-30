@@ -10,6 +10,8 @@
   --footnote-text: #444444;
   --footnote-border: #999999;
   --body-link: #598AAF;
+  --line-height-ui: 1.6;
+  --line-height-read: 1.75;
 }
 
 /* ezdogノウハウ: 本文両端揃え + 日本語組版 */
@@ -37,12 +39,13 @@
 }
 
 .footnote-container {
-  line-height: 1.75;
+  line-height: var(--line-height-read);
 }
 
 .footnote-ref-link {
   color: var(--footnote-ref);
   font-weight: bold;
+  font-size: 0.8125rem;
   margin-left: 2px;
   text-decoration: none;
 }
@@ -58,15 +61,16 @@
 
 .footnote-heading {
   font-weight: bold;
-  font-size: 14px;
+  font-size: 0.9375rem;
   margin-bottom: 6px;
   color: var(--footnote-heading);
 }
 
 .footnote-list {
   list-style: decimal;
-  padding-left: 20px;
-  font-size: 14px;
+  padding-left: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: var(--line-height-read);
   color: var(--footnote-text);
 }
 
@@ -96,14 +100,15 @@
 .footnote-tooltip {
   position: fixed;
   z-index: 1000;
-  max-width: 320px;
-  min-width: 180px;
-  background: #fff;
-  border: 1px solid #999;
+  max-width: min(20rem, calc(100vw - 2rem));
+  min-width: 11.25rem;
+  background: var(--table-bg, #fcfcfc);
+  border: 1px solid var(--footnote-border, #999);
   border-radius: 4px;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: var(--line-height-read);
+  color: var(--text, #333);
   animation: tooltip-fade-in 0.15s ease-out;
 }
 
@@ -122,11 +127,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px;
-  background: #f0f0f0;
-  border-bottom: 1px solid #ddd;
+  padding: 0.35rem 0.5rem;
+  background: var(--th-bg, #f0f0f0);
+  border-bottom: 1px solid var(--table-border, #ddd);
   border-radius: 4px 4px 0 0;
-  font-size: 11px;
+  font-size: 0.8125rem;
   font-weight: bold;
   color: var(--footnote-heading);
 }
@@ -135,19 +140,23 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 14px;
-  color: #666;
-  padding: 0 2px;
+  font-size: 1rem;
+  color: var(--point-gray, #666);
+  padding: 0 0.15rem;
   line-height: 1;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
 }
 .footnote-tooltip-header button:hover {
   color: var(--footnote-ref);
 }
 
 .footnote-tooltip-body {
-  padding: 8px 10px;
-  color: #333;
+  padding: 0.5rem 0.625rem;
+  color: var(--footnote-text, #333);
   word-break: break-word;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 @media (max-width: 640px) {
