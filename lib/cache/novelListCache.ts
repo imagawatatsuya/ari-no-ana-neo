@@ -18,6 +18,9 @@ export type NovelListCacheEntry = {
 const paramsKey = (params: NovelListQueryParams): string =>
   `${params.isRyuseigai}|${params.page}|${params.search.trim()}`;
 
+export const novelListParamsKey = (params: NovelListQueryParams): string =>
+  `${params.isRyuseigai}|${params.page}|${params.search.trim()}|${params.pageSize ?? ''}`;
+
 export function readNovelListCache(params: NovelListQueryParams): NovelListCacheEntry | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY);

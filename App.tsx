@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Novel, ViewMode, Comment, NovelListState, SubmitResult } from './types';
 import { SEED_NOVELS, SEED_COMMENTS } from './seedData';
 import { NovelList } from './components/NovelList';
@@ -71,17 +71,24 @@ const App: React.FC = () => {
   const [readComments, setReadComments] = useState<Comment[]>([]);
   const [adminNovels, setAdminNovels] = useState<Novel[]>([]);
   const [adminComments, setAdminComments] = useState<Comment[]>([]);
+  const readRequestIdRef = useRef(0);
 
   const isSupabaseMode = !!supabase;
 
   const { listState: supabaseListState, totalCount: supabaseTotalCount, refresh: refreshList } = useNovelList(
     isSupabaseMode && view === 'list',
-    { page: currentPage, search: searchQuery, isRyuseigai: false, pageSize: NOVELS_PER_PAGE },
+    useMemo(
+      () => ({ page: currentPage, search: searchQuery, isRyuseigai: false, pageSize: NOVELS_PER_PAGE }),
+      [currentPage, searchQuery],
+    ),
   );
 
   const { listState: supabaseRyuseigaiListState } = useNovelList(
     isSupabaseMode && view === 'ryuseigai',
-    { page: 1, search: '', isRyuseigai: true, pageSize: RYUSEIGAI_LIST_LIMIT },
+    useMemo(
+      () => ({ page: 1, search: '', isRyuseigai: true, pageSize: RYUSEIGAI_LIST_LIMIT }),
+      [],
+    ),
   );
   // 脚注表示モード（管理者設定）
   const FOOTNOTE_MODE_KEY = 'bunsho_footnote_mode';
@@ -126,6 +133,16 @@ const App: React.FC = () => {
   }, [isSupabaseMode]);
 
   // Supabaseモード: 作品閲覧時に個別取得
+  useLayoutEffect(() => {
+    if (!isSupabaseMode) return;
+    if (view !== 'read' && view !== 'ryuseigai-read') return;
+    if (!activeNovelId) return;
+
+    setReadNovel(null);
+    setReadComments([]);
+    setIsLoading(true);
+  }, [view, activeNovelId, isSupabaseMode]);
+
   useEffect(() => {
     if (isSupabaseMode && view === 'read' && activeNovelId) {
       fetchNovelForRead(activeNovelId);
@@ -227,7 +244,7 @@ const App: React.FC = () => {
   // --- Supabase: 作品個別取得（閲覧ページ用） ---
   const fetchNovelForRead = async (id: string) => {
     if (!supabase) return;
-    setIsLoading(true);
+    const requestId = ++readRequestIdRef.current;
     try {
       const { data: novelData, error: novelError } = await supabase
         .from('novels')
@@ -235,6 +252,7 @@ const App: React.FC = () => {
         .eq('id', id)
         .single();
       if (novelError) throw novelError;
+      if (requestId !== readRequestIdRef.current) return;
 
       const mapped: Novel = {
         id: novelData.id,
@@ -256,6 +274,8 @@ const App: React.FC = () => {
         .select('*')
         .eq('novel_id', id);
       if (commentsError) throw commentsError;
+      if (requestId !== readRequestIdRef.current) return;
+
       setReadComments((commentsData || []).map((c: any) => ({
         id: c.id,
         novelId: c.novel_id,
@@ -265,11 +285,14 @@ const App: React.FC = () => {
         vote: c.vote,
       })));
     } catch (err: any) {
+      if (requestId !== readRequestIdRef.current) return;
       console.error('Supabase Error (read):', err);
       setReadNovel(null);
       setReadComments([]);
     } finally {
-      setIsLoading(false);
+      if (requestId === readRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -620,20 +643,20 @@ const App: React.FC = () => {
   const listStateForView = isSupabaseMode ? supabaseListState : offlineListState;
   const ryuseigaiListStateForView = isSupabaseMode ? supabaseRyuseigaiListState : offlineRyuseigaiListState;
 
-  // 作品閲覧: Supabaseモードは readNovel / オフラインは visibleNovels から検索
+  // 作品閲覧: Supabaseモードは readNovel（ID一致時のみ） / オフラインは visibleNovels から検索
   const activeNovel = isSupabaseMode
-    ? readNovel
+    ? (readNovel?.id === activeNovelId ? readNovel : null)
     : visibleNovels.find((n) => n.id === activeNovelId) ?? null;
   const activeComments = isSupabaseMode
-    ? readComments
+    ? (readNovel?.id === activeNovelId ? readComments : [])
     : comments.filter((c) => c.novelId === activeNovelId);
 
   // 流星垓作品閲覧: 共通 readNovel/readComments を使用（オフラインのみ独自フィルタ）
   const activeRyuseigaiNovel = isSupabaseMode
-    ? readNovel
+    ? (readNovel?.id === activeNovelId ? readNovel : null)
     : offlineRyuseigaiNovels.find((n) => n.id === activeNovelId) ?? null;
   const activeRyuseigaiComments = isSupabaseMode
-    ? readComments
+    ? (readNovel?.id === activeNovelId ? readComments : [])
     : offlineRyuseigaiComments.filter((c) => c.novelId === activeNovelId);
 
   // SEO: document.title / meta / favicon / JSON-LD を動的切替

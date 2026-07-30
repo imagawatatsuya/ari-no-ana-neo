@@ -65,6 +65,21 @@ test.describe('アリの穴NEO - 投稿画面', () => {
 });
 
 test.describe('アリの穴NEO - 作品閲覧', () => {
+  test('作品切替時に前の作品内容が残らない', async ({ page }) => {
+    await page.goto('/');
+    const links = page.locator('.entry-title-link');
+    if (await links.count() < 2) return;
+
+    const title1 = (await links.nth(0).textContent())?.trim() ?? '';
+    const title2 = (await links.nth(1).textContent())?.trim() ?? '';
+
+    await links.nth(0).click();
+    await expect(page.locator('.article-title')).toHaveText(title1);
+    await page.locator('.back-link').first().click();
+    await links.nth(1).click();
+    await expect(page.locator('.article-title')).toHaveText(title2);
+  });
+
   test('作品リンクをクリックすると閲覧ページに遷移', async ({ page }) => {
     await page.goto('/');
     const firstLink = page.locator('.entry-title-link').first();

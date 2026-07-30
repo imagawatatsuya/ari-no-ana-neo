@@ -10,10 +10,9 @@ globalThis.localStorage = {
 };
 
 import { formatStarRatingFromAggregate } from './utils.ts';
-import { readNovelListCache, writeNovelListCache } from './lib/cache/novelListCache.ts';
+import { readNovelListCache, writeNovelListCache, novelListParamsKey } from './lib/cache/novelListCache.ts';
 import { readPostDraft, writePostDraft, clearPostDraft } from './lib/draftStorage.ts';
-import { novelsToSummaries } from './features/novels/novelSummaries.ts';
-import { LIST_NOVEL_COLUMNS, LIST_COMMENT_COLUMNS } from './features/novels/novelSummaries.ts';
+import { novelsToSummaries, LIST_NOVEL_COLUMNS, LIST_COMMENT_COLUMNS } from './features/novels/novelSummaries.ts';
 
 test('formatStarRatingFromAggregate: empty comments', () => {
   const result = formatStarRatingFromAggregate(0, 0);
@@ -84,6 +83,14 @@ test('novel list cache: invalid JSON is ignored', () => {
   localStorage.setItem('ari_novel_list_cache_v1', '{invalid');
   const cached = readNovelListCache({ page: 1, search: '', isRyuseigai: false });
   assert.equal(cached, null);
+});
+
+test('novelListParamsKey: isolates page and search', () => {
+  const page1 = novelListParamsKey({ page: 1, search: '', isRyuseigai: false });
+  const page2 = novelListParamsKey({ page: 2, search: '', isRyuseigai: false });
+  const search = novelListParamsKey({ page: 1, search: 'test', isRyuseigai: false });
+  assert.notEqual(page1, page2);
+  assert.notEqual(page1, search);
 });
 
 test('post draft: save, read, clear', () => {
