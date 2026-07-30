@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Novel, Comment } from '../types';
 import { formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { BASE_PATH, navigate } from '../router';
+import { useCommentPostFeedback } from '../features/comments/useCommentPostFeedback';
 
 interface RyuseigaiReaderProps {
   novel: Novel;
   comments: Comment[];
-  onComment: (comment: Comment) => void;
+  onComment: (comment: Comment) => Promise<boolean>;
   footnoteMode?: FootnoteMode;
 }
 
@@ -21,13 +22,8 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
   const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(-500);
   const [formError, setFormError] = useState('');
-  const [flashMessage, setFlashMessage] = useState('');
-
-  useEffect(() => {
-    if (!flashMessage) return;
-    const timer = window.setTimeout(() => setFlashMessage(''), 3000);
-    return () => window.clearTimeout(timer);
-  }, [flashMessage]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
 
   const voteSum = comments.reduce((acc, c) => acc + c.vote, 0);
   const totalScore = RYUSEIGAI_BASE_SCORE + voteSum;
@@ -35,8 +31,9 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
   const countWhy = comments.filter((c) => c.vote === -500).length;
   const countNotExist = comments.filter((c) => c.vote === -1000).length;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!commentText.trim()) {
       setFormError('声を入力してください。');
       return;
@@ -47,9 +44,11 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
     }
 
     setFormError('');
+    const commentId = Date.now().toString();
     const { trip } = generateTrip(commentName);
-    onComment({
-      id: Date.now().toString(),
+    setIsSubmitting(true);
+    const ok = await onComment({
+      id: commentId,
       novelId: novel.id,
       name: '',
       trip,
@@ -57,11 +56,17 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
       date: new Date().toISOString(),
       vote,
     });
+    setIsSubmitting(false);
+
+    if (!ok) {
+      setFormError('刻むことに失敗した。しばらくしてから再度試せ。');
+      return;
+    }
 
     setCommentText('');
     setCommentName('');
     setVote(-500);
-    setFlashMessage('刻んだ。');
+    onPostSuccess(commentId, '刻んだ。');
   };
 
   return (
@@ -107,13 +112,22 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
       </div>
 
       {/* 声（コメント一覧） */}
-      <div className="ryuseigai-section-title">声</div>
+      <div className="ryuseigai-section-title" id="comments-section">声</div>
+      {successMessage && (
+        <div className="comment-post-success comment-post-success--ryuseigai" role="status" aria-live="polite">
+          {successMessage}
+        </div>
+      )}
       {comments.length === 0 ? (
         <div className="ryuseigai-no-comments">まだ誰も何も言っていない。沈黙だけがここにある。</div>
       ) : (
         <div>
           {[...comments].reverse().map((c, idx) => (
-            <div className="comment-block" key={c.id}>
+            <div
+              className={`comment-block${c.id === highlightedId ? ' comment-block--new' : ''}`}
+              id={`comment-${c.id}`}
+              key={c.id}
+            >
               <div className="comment-text">{c.text}</div>
               <div className="comment-footer">
                 <span className="comment-number">{comments.length - idx}:</span>{' '}
@@ -130,11 +144,6 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
 
       {/* 声を刻むフォーム（流星垓独自） */}
       <div className="comment-form ryuseigai-comment-form">
-        {flashMessage && (
-          <div className="form-message form-message--info" role="status" aria-live="polite">
-            {flashMessage}
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="ryuseigai-form">
           <div className="ryuseigai-form-title">■ 声を刻む</div>
           <textarea
@@ -172,7 +181,9 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
             </select>
           </div>
           <div className="comment-form-actions">
-            <button type="submit" className="ryuseigai-button comment-form-action-primary">刻む</button>
+            <button type="submit" className="ryuseigai-button comment-form-action-primary" disabled={isSubmitting}>
+              {isSubmitting ? '刻み中...' : '刻む'}
+            </button>
           </div>
         </form>
       </div>

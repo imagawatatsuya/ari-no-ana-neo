@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Novel, Comment } from '../types';
 import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { BASE_PATH, navigate } from '../router';
+import { useCommentPostFeedback } from '../features/comments/useCommentPostFeedback';
 
 interface NovelReaderProps {
   novel: Novel;
   comments: Comment[];
-  onComment: (comment: Comment) => void;
+  onComment: (comment: Comment) => Promise<boolean>;
   footnoteMode?: FootnoteMode;
 }
 
@@ -35,13 +36,8 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
   const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(0);
   const [formError, setFormError] = useState('');
-  const [flashMessage, setFlashMessage] = useState('');
-
-  useEffect(() => {
-    if (!flashMessage) return;
-    const timer = window.setTimeout(() => setFlashMessage(''), 3000);
-    return () => window.clearTimeout(timer);
-  }, [flashMessage]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
 
   const { total, count } = calculateScore(comments);
 
@@ -60,8 +56,9 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
   const starsOn = '★'.repeat(filled);
   const starsOff = '★'.repeat(5 - filled);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!commentText.trim()) {
       setFormError('感想を入力してください。');
       return;
@@ -72,9 +69,11 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
     }
 
     setFormError('');
+    const commentId = Date.now().toString();
     const { trip } = generateTrip(commentName);
-    onComment({
-      id: Date.now().toString(),
+    setIsSubmitting(true);
+    const ok = await onComment({
+      id: commentId,
       novelId: novel.id,
       name: '',
       trip,
@@ -82,11 +81,17 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
       date: new Date().toISOString(),
       vote,
     });
+    setIsSubmitting(false);
+
+    if (!ok) {
+      setFormError('投稿に失敗しました。しばらくしてから再度お試しください。');
+      return;
+    }
 
     setCommentText('');
     setCommentName('');
     setVote(0);
-    setFlashMessage('感想を受け付けました。');
+    onPostSuccess(commentId, '感想を投稿しました。');
   };
 
   return (
@@ -147,13 +152,22 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
       </div>
 
       {/* 感想・批評 */}
-      <div className="section-title">感想・批評</div>
+      <div className="section-title" id="comments-section">感想・批評</div>
+      {successMessage && (
+        <div className="comment-post-success" role="status" aria-live="polite">
+          {successMessage}
+        </div>
+      )}
       {comments.length === 0 ? (
         <div style={{ fontSize: 14, padding: '8px 4px' }}>まだ感想はありません。</div>
       ) : (
         <div>
           {[...comments].reverse().map((c, idx) => (
-            <div className="comment-block" key={c.id}>
+            <div
+              className={`comment-block${c.id === highlightedId ? ' comment-block--new' : ''}`}
+              id={`comment-${c.id}`}
+              key={c.id}
+            >
               <div className="comment-text">{c.text}</div>
               <div className="comment-footer">
                 <span className="comment-number">{comments.length - idx}:</span>{' '}
@@ -168,11 +182,6 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
 
       {/* 感想投稿フォーム */}
       <div className="comment-form">
-        {flashMessage && (
-          <div className="form-message form-message--info" role="status" aria-live="polite">
-            {flashMessage}
-          </div>
-        )}
         <form onSubmit={handleSubmit}>
           <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 4 }}>■感想・批評(改行有効）</div>
           <textarea
@@ -208,8 +217,10 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
             <span className="vote-note">(採点はひとり１回まで。２回目以降の採点や作者の採点は集計されません)</span>
           </div>
           <div className="comment-form-actions">
-            <button type="submit" className="classic-button comment-form-action-primary">投稿</button>
-            <button type="button" className="classic-button" onClick={() => { setCommentText(''); setVote(0); setFormError(''); }}>クリア</button>
+            <button type="submit" className="classic-button comment-form-action-primary" disabled={isSubmitting}>
+              {isSubmitting ? '送信中...' : '投稿'}
+            </button>
+            <button type="button" className="classic-button" disabled={isSubmitting} onClick={() => { setCommentText(''); setVote(0); setFormError(''); }}>クリア</button>
           </div>
         </form>
       </div>

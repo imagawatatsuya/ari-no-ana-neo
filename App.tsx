@@ -398,7 +398,7 @@ const App: React.FC = () => {
     return { ok: true, novelId: novelToSave.id };
   };
 
-  const handleComment = async (comment: Comment) => {
+  const handleComment = async (comment: Comment): Promise<boolean> => {
     const commentToSave = { ...comment, date: getJSTISOString() };
     if (isSupabaseMode && supabase) {
       const { error } = await supabase.from('comments').insert([
@@ -412,13 +412,13 @@ const App: React.FC = () => {
         },
       ]);
       if (error) {
-        alert(`コメントの投稿中にエラーが発生しました: ${error.message}`);
-        return;
+        return false;
       }
       setReadComments((prev) => [...prev, commentToSave]);
     } else {
       setComments((prev) => [...prev, commentToSave]);
     }
+    return true;
   };
 
 
