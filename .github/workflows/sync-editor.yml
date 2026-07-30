@@ -16,6 +16,15 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      - name: Verify sync token is configured
+        env:
+          SYNC_TOKEN: ${{ secrets.PREVIEW_EDITOR_SYNC_TOKEN }}
+        run: |
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "::error::PREVIEW_EDITOR_SYNC_TOKEN が未設定です。セットアップ手順: docs/SYNC_EDITOR.md"
+            exit 1
+          fi
+
       - name: Checkout ari-no-ana-neo
         uses: actions/checkout@v4
 

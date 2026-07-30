@@ -50,18 +50,17 @@ test.describe('アリの穴NEO - 投稿画面', () => {
   test('投稿フォームが表示される', async ({ page }) => {
     await page.goto('/post');
     await expect(page.locator('.form-table')).toBeVisible();
+    await expect(page.locator('.post-form-tabs')).toBeVisible();
   });
 
   test('プレビュー→送信の2段階フロー', async ({ page }) => {
     await page.goto('/post');
-    // タイトルと本文を入力
     const inputs = page.locator('.form-table input[type="text"], .form-table textarea');
     await inputs.first().fill('E2Eテスト作品');
-    // 本文textarea
     await page.locator('.form-table textarea').fill('これはE2Eテストの本文です。');
-    // プレビューボタン
-    await page.getByText('プレビュー').click();
+    await page.getByRole('tab', { name: 'プレビュー' }).click();
     await expect(page.locator('body')).toContainText('E2Eテスト作品');
+    await expect(page.getByRole('button', { name: '投稿する' })).toBeVisible();
   });
 });
 

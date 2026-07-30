@@ -42,8 +42,10 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
     writePostDraft({ title, description, name, body });
   }, [title, description, name, body]);
 
-  // プレビュー用の生成データ
   const { name: authorName, trip } = generateTrip(name);
+  const livePageCount = formatManuscriptPages(body);
+  const previewDate = formatDate(new Date().toISOString());
+  const previewPageCount = formatManuscriptPages(body);
 
   const validate = (): boolean => {
     if (!title.trim()) {
@@ -57,8 +59,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
     return true;
   };
 
-  const handlePreview = (e: React.FormEvent) => {
-    e.preventDefault();
+  const switchToPreview = () => {
     if (!validate()) return;
     setMode('preview');
   };
@@ -100,35 +101,143 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
       setDescription('');
       setName('');
       setBody('');
+      setMode('input');
     } catch {
       alert('投稿中にエラーが発生しました。入力内容は保持されています。');
       setIsSubmitting(false);
     }
   };
 
-  const handleBack = () => {
-    setMode('input');
+  const handleSubmitClick = () => {
+    if (!window.confirm('この内容で投稿しますか？')) return;
+    void handleSubmit();
   };
 
-  // ===== プレビュー画面 =====
-  if (mode === 'preview') {
-    const previewDate = formatDate(new Date().toISOString());
-    const pageCount = formatManuscriptPages(body);
+  return (
+    <div className="post-form">
+      <div className="post-form-header">
+        <a
+          href={BASE_PATH + '/'}
+          className="post-form-back"
+          onClick={(e) => { e.preventDefault(); navigate('/'); }}
+        >
+          戻る
+        </a>
+        <div className="section-title">■ 新規投稿</div>
+      </div>
 
-    return (
-      <div>
-        <div style={{ marginBottom: 6 }}>
-          <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); handleBack(); }}>&nbsp;修正する</a>
+      <div className="post-form-tabs" role="tablist" aria-label="投稿モード">
+        <button
+          type="button"
+          role="tab"
+          id="post-tab-input"
+          aria-selected={mode === 'input'}
+          aria-controls="post-panel-input"
+          className={`post-form-tab${mode === 'input' ? ' post-form-tab--active' : ''}`}
+          onClick={() => setMode('input')}
+        >
+          入力
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="post-tab-preview"
+          aria-selected={mode === 'preview'}
+          aria-controls="post-panel-preview"
+          className={`post-form-tab${mode === 'preview' ? ' post-form-tab--active' : ''}`}
+          onClick={switchToPreview}
+        >
+          プレビュー
+        </button>
+      </div>
+
+      <div
+        id="post-panel-input"
+        role="tabpanel"
+        aria-labelledby="post-tab-input"
+        className={`post-form-panel${mode !== 'input' ? ' post-form-panel--hidden' : ''}`}
+        hidden={mode !== 'input'}
+      >
+        <form onSubmit={(e) => { e.preventDefault(); switchToPreview(); }}>
+          <table className="form-table">
+            <tbody>
+              <tr>
+                <td className="form-label">タイトル</td>
+                <td>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    maxLength={MAX_TITLE}
+                    style={{ width: '100%' }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">メッセージ</td>
+                <td>
+                  <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    maxLength={MAX_DESCRIPTION}
+                    placeholder="作品ページ上部に表示される自由記述欄（任意）"
+                    style={{ width: '100%' }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">名前</td>
+                <td>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    maxLength={MAX_NAME}
+                    placeholder="名無し（トリップ: 名前#pass）"
+                    style={{ width: '100%' }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">本文</td>
+                <td>
+                  <textarea
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    maxLength={MAX_BODY}
+                    style={{ minHeight: 280 }}
+                  />
+                  <div className="post-form-stats">
+                    <span>文字数: {countBodyCharacters(body).toLocaleString()}文字</span>
+                    {livePageCount && <span>原稿用紙: {livePageCount}</span>}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+
+        <div className="post-form-note">
+          ※ HTMLタグは使えません。改行はそのまま保持されます。
         </div>
+      </div>
 
+      <div
+        id="post-panel-preview"
+        role="tabpanel"
+        aria-labelledby="post-tab-preview"
+        className={`post-form-panel${mode !== 'preview' ? ' post-form-panel--hidden' : ''}`}
+        hidden={mode !== 'preview'}
+      >
         <table className="article-table">
           <tbody>
             <tr>
               <td className="article-title">{title}</td>
             </tr>
-            {pageCount && (
+            {previewPageCount && (
               <tr>
-                <td className="article-page-count">{pageCount}</td>
+                <td className="article-page-count">{previewPageCount}</td>
               </tr>
             )}
             <tr>
@@ -147,98 +256,32 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
 
         <div className="article-date" style={{ textAlign: 'right' }}>{previewDate} 公開（予定）</div>
 
-        <div style={{ padding: '4px 8px', fontSize: 16 }}>
+        <div className="post-form-author">
           <b>■作者</b>{trip && <span>＜{trip.replace('◆', '')}＞</span>} <b>からのメッセージ</b>
           <div style={{ marginLeft: '3%' }}>{authorName}</div>
         </div>
-
-        <div style={{ marginTop: 16, textAlign: 'center' }}>
-          <button type="button" className="classic-button" onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? '送信中...' : '投稿する'}
-          </button>{' '}
-          <button type="button" className="classic-button" onClick={handleBack}>修正する</button>
-        </div>
       </div>
-    );
-  }
 
-  // ===== 入力画面 =====
-  const livePageCount = formatManuscriptPages(body);
-
-  return (
-    <div>
-      <div style={{ marginBottom: 6 }}>
-        <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }}>&nbsp;戻る</a>
-      </div>
-      <div className="section-title">■ 新規投稿</div>
-      <form onSubmit={handlePreview} style={{ marginTop: 6 }}>
-        <table className="form-table">
-          <tbody>
-            <tr>
-              <td className="form-label">タイトル</td>
-              <td>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  maxLength={MAX_TITLE}
-                  style={{ width: '100%' }}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="form-label">メッセージ</td>
-              <td>
-                <input
-                  type="text"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  maxLength={MAX_DESCRIPTION}
-                  placeholder="作品ページ上部に表示される自由記述欄（任意）"
-                  style={{ width: '100%' }}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="form-label">名前</td>
-              <td>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  maxLength={MAX_NAME}
-                  placeholder="名無し（トリップ: 名前#pass）"
-                  style={{ width: '100%' }}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="form-label">本文</td>
-              <td>
-                <textarea
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  maxLength={MAX_BODY}
-                  style={{ minHeight: 280 }}
-                />
-                <div style={{ fontSize: 13, marginTop: 2, color: 'var(--point-gray)', display: 'flex', gap: 12 }}>
-                  <span>文字数: {countBodyCharacters(body).toLocaleString()}文字</span>
-                  {livePageCount && <span>原稿用紙: {livePageCount}</span>}
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td />
-              <td style={{ textAlign: 'center' }}>
-                <button type="submit" className="classic-button">プレビュー</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </form>
-
-      <div style={{ marginTop: 6, fontSize: 12 }}>
-        ※ HTMLタグは使えません。改行はそのまま保持されます。
+      <div className="post-form-actions">
+        {mode === 'input' ? (
+          <button type="button" className="classic-button post-form-action-primary" onClick={switchToPreview}>
+            プレビュー
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="classic-button post-form-action-primary"
+              onClick={handleSubmitClick}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? '送信中...' : '投稿する'}
+            </button>
+            <button type="button" className="classic-button" onClick={() => setMode('input')}>
+              入力に戻る
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

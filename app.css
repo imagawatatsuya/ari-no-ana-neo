@@ -456,6 +456,87 @@ a:hover {
   font-size: 14px;
 }
 
+/* === 投稿フォーム === */
+.post-form {
+  position: relative;
+}
+
+.post-form-header {
+  margin-bottom: 6px;
+}
+
+.post-form-back {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.post-form-tabs {
+  display: flex;
+  gap: 0;
+  margin: 8px 0 0;
+  border: 1px solid var(--table-border);
+  background: var(--table-bg);
+}
+
+.post-form-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-right: 1px solid var(--table-border);
+  background: var(--th-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.post-form-tab:last-child {
+  border-right: none;
+}
+.post-form-tab--active {
+  background: var(--table-bg);
+  box-shadow: inset 0 -2px 0 var(--footnote-ref);
+}
+
+.post-form-panel {
+  margin-top: 8px;
+}
+.post-form-panel--hidden {
+  display: none;
+}
+
+.post-form-stats {
+  font-size: 13px;
+  margin-top: 2px;
+  color: var(--point-gray);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.post-form-note {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.post-form-author {
+  padding: 4px 8px;
+  font-size: 16px;
+}
+
+.post-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 8px 0;
+}
+
+.post-form-action-primary {
+  font-weight: bold;
+}
+
 input[type='text'],
 input[type='email'],
 input[type='password'],
@@ -910,6 +991,31 @@ select:focus-visible {
   }
   .form-label { width: auto; padding-bottom: 2px; }
   .form-table td { padding: 2px 6px 6px; }
+
+  /* --- 投稿フォーム: 固定アクションバー --- */
+  .post-form {
+    padding-bottom: 72px;
+  }
+  .post-form-actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    margin: 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--body-bg);
+    border-top: 1px solid var(--table-border);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .post-form-tab {
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .post-form-back {
+    padding: 6px 0;
+    min-height: 36px;
+  }
 
   /* --- 入力要素: iOSズーム防止 & 幅統一 --- */
   input[type='text'],
