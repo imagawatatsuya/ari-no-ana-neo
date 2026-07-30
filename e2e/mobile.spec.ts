@@ -16,11 +16,20 @@ test.describe('モバイル - 投稿画面', () => {
     await expect(page.locator('.post-form-actions')).toBeVisible();
   });
 
-  test('必須未入力時にインラインエラーが出る', async ({ page }) => {
+  test('必須未入力時は投稿でインラインエラーが出る', async ({ page }) => {
     await page.goto('/post');
     await page.getByRole('tab', { name: 'プレビュー' }).click();
+    await expect(page.getByRole('button', { name: '投稿する' })).toBeVisible();
+    await page.getByRole('button', { name: '投稿する' }).click();
     await expect(page.locator('#post-error-title')).toBeVisible();
     await expect(page.locator('#post-error-body')).toBeVisible();
+  });
+
+  test('未入力でもプレビュータブに切り替えられる', async ({ page }) => {
+    await page.goto('/post');
+    await page.getByRole('tab', { name: 'プレビュー' }).click();
+    await expect(page.locator('.article-title')).toContainText('タイトル未入力');
+    await expect(page.locator('#post-error-title')).not.toBeVisible();
   });
 
   test('固定アクションバーが表示される', async ({ page }) => {

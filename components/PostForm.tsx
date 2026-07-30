@@ -64,7 +64,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
   };
 
   const switchToPreview = () => {
-    if (!validate()) return;
+    setFieldErrors({});
     setFormMessage(null);
     setMode('preview');
   };
@@ -117,6 +117,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
   };
 
   const handleSubmitClick = () => {
+    if (!validate()) return;
     if (!window.confirm('この内容で投稿しますか？')) return;
     void handleSubmit();
   };
@@ -267,7 +268,9 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode }) => {
         <table className="article-table">
           <tbody>
             <tr>
-              <td className="article-title">{title}</td>
+              <td className={title.trim() ? 'article-title' : 'article-title article-subtitle-empty'}>
+                {title.trim() || '（タイトル未入力）'}
+              </td>
             </tr>
             {previewPageCount && (
               <tr>
