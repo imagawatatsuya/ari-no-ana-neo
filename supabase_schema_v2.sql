@@ -10,6 +10,10 @@ create table if not exists public.novels (
   author text not null,
   trip text,
   body text not null,
+  -- 投稿者の意図。本文自体は常に原文で保存する。
+  author_indent_mode text not null default 'raw',
+  constraint novels_author_indent_mode
+    check (author_indent_mode in ('none', 'jisage', 'raw')),
   date timestamptz not null default now(),
   view_count integer not null default 0 check (view_count >= 0),
   is_hidden boolean not null default false,
@@ -155,6 +159,11 @@ for select using (auth.uid() = user_id);
 -- Migration for existing databases (run once):
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false;
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS description text;
+-- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS author_indent_mode text NOT NULL DEFAULT 'raw';
+-- ALTER TABLE public.novels DROP CONSTRAINT IF EXISTS novels_author_indent_mode,
+--   DROP CONSTRAINT IF EXISTS novels_author_indent_mode_check;
+-- ALTER TABLE public.novels ADD CONSTRAINT novels_author_indent_mode
+--   CHECK (author_indent_mode IN ('none', 'jisage', 'raw'));
 
 -- Migration: 流星垓機能 (Ryuseigai)
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_ryuseigai boolean NOT NULL DEFAULT false;

@@ -31,6 +31,16 @@ export const IndentModeControl: React.FC<IndentModeControlProps> = ({ mode, onCh
       />
       自動字下げあり
     </label>
+    <label>
+      <input
+        type="radio"
+        name={name}
+        value="author"
+        checked={mode === 'author'}
+        onChange={() => onChange('author')}
+      />
+      投稿者設定に従う
+    </label>
     <span className="indent-mode-note">{note}</span>
   </fieldset>
 );

@@ -14,6 +14,7 @@
 - **5段階評価** — 感想投稿時に「とても良い / 良い / 普通 / 良くない / 最悪」を付与
 - **2段階投稿** — 入力 → プレビュー確認 → 送信のフロー（原稿用紙換算枚数表示付き）
 - **脚注レンダラー** — 本文内のURL自動リンク化 + 脚注構文のポップアップ表示
+- **字下げ設定** — 投稿者の意図（自動字下げなし / 自動字下げあり）と、読者の表示設定（なし / 自動 / 投稿者設定）を分離して管理。旧投稿は原文どおりに表示
 - **サーバーサイドページング** — Supabaseモードでは20件/页のサーバー側ページング
 - **オフラインフォールバック** — Supabase未設定時は localStorage + シードデータで動作
 - **管理ダッシュボード** — Supabase Auth ログイン + RLS で編集 / 削除 / 非表示を制御
@@ -73,6 +74,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 1. [Supabase](https://supabase.com/) で新しいプロジェクトを作成
 2. `supabase_schema_v2.sql` の内容をコピー
 3. Supabaseの SQL Editor で実行してテーブル / RLS / policy / RPC を作成
+   - 既存DBには `supabase/migrations/20260812_author_indent_mode.sql` も適用してください
 4. Supabase Auth で管理者ユーザーを作成（Email+Password）
 5. 作成したユーザーID（auth.users.id）を `admin_users` に登録
 

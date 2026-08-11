@@ -3,6 +3,7 @@ import { Novel, Comment, ReaderIndentMode } from '../types';
 import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { IndentModeControl } from './IndentModeControl';
+import { formatReaderBody } from '../services/jisageAdapter';
 import { BASE_PATH, navigate } from '../router';
 import { useCommentPostFeedback } from '../features/comments/useCommentPostFeedback';
 
@@ -141,7 +142,13 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
           {/* 本文: .font_body { font-size:100%; line-height:150% } */}
           <tr>
             <td className="article-body">
-              <FootnoteRenderer content={novel.body} indentMode={indentMode} footnoteMode={footnoteMode} />
+              <FootnoteRenderer
+                content={novel.body}
+                indentMode={indentMode}
+                authorIndentMode={novel.authorIndentMode}
+                footnoteMode={footnoteMode}
+                formatBody={formatReaderBody}
+              />
             </td>
           </tr>
         </tbody>

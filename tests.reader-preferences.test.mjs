@@ -9,7 +9,8 @@ test('reader preference defaults to no automatic indentation', () => {
   assert.equal(parseReaderIndentMode('{"indentMode":"unknown"}'), 'none');
 });
 
-test('reader preference accepts only the supported jisage mode', () => {
+test('reader preference accepts all three display modes', () => {
   assert.equal(parseReaderIndentMode('{"indentMode":"jisage"}'), 'jisage');
   assert.equal(parseReaderIndentMode('{"indentMode":"none"}'), 'none');
+  assert.equal(parseReaderIndentMode('{"indentMode":"author"}'), 'author');
 });

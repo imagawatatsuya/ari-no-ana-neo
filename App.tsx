@@ -1,11 +1,13 @@
 import React, { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Novel, ViewMode, Comment, NovelListState, SubmitResult, ReaderIndentMode } from './types';
+import { Novel, ViewMode, Comment, NovelListState, SubmitResult, ReaderIndentMode, normalizeAuthorIndentMode } from './types';
 import { SEED_NOVELS, SEED_COMMENTS } from './seedData';
 import { NovelList } from './components/NovelList';
 import { RyuseigaiList } from './components/RyuseigaiList';
+import { IndentModeControl } from './components/IndentModeControl';
 import { supabase } from './services/supabaseClient';
 import { deleteNovelAndComments, editNovelInList, toggleHiddenNovelId } from './adminOps';
 import { loadReaderIndentMode, saveReaderIndentMode } from './services/readerPreferences';
+import { insertNovelWithAuthorIndentFallback } from './services/supabaseCompatibility';
 import { FootnoteMode } from './components/FootnoteRenderer';
 import { BASE_PATH, navigate } from './router';
 import { useNovelList } from './features/novels/useNovelList';
@@ -274,6 +276,7 @@ const App: React.FC = () => {
         voteSum: 0,
         isHidden: !!novelData.is_hidden,
         description: novelData.description ?? undefined,
+        authorIndentMode: normalizeAuthorIndentMode(novelData.author_indent_mode, 'raw'),
       };
       setReadNovel(mapped);
 
@@ -333,6 +336,7 @@ const App: React.FC = () => {
         isHidden: !!n.is_hidden,
         isRyuseigai: !!n.is_ryuseigai,
         description: n.description ?? undefined,
+        authorIndentMode: normalizeAuthorIndentMode(n.author_indent_mode, 'raw'),
       }));
 
       const mappedComments: Comment[] = (commentsData || []).map((c: any) => ({
@@ -389,20 +393,28 @@ const App: React.FC = () => {
       voteSum: 0,
     };
     if (isSupabaseMode && supabase) {
-      const { error } = await supabase.from('novels').insert([
-        {
-          id: novelToSave.id,
-          title: novelToSave.title,
-          description: novelToSave.description || null,
-          author: novelToSave.author,
-          trip: novelToSave.trip || null,
-          body: novelToSave.body,
-          date: novelToSave.date,
-        },
-      ]);
+      const payload = {
+        id: novelToSave.id,
+        title: novelToSave.title,
+        description: novelToSave.description || null,
+        author: novelToSave.author,
+        trip: novelToSave.trip || null,
+        body: novelToSave.body,
+        author_indent_mode: novelToSave.authorIndentMode ?? 'none',
+        date: novelToSave.date,
+      };
+      const { error, notice } = await insertNovelWithAuthorIndentFallback(
+        supabase.from('novels'),
+        payload,
+        novelToSave.authorIndentMode ?? 'none',
+      );
+
       if (error) {
-        return { ok: false, message: `文章の投稿中にエラーが発生しました: ${error.message}` };
+        return { ok: false, message: `文章の投稿中にエラーが発生しました: ${error.message ?? 'Supabaseへの保存に失敗しました。'}` };
       }
+
+      navigate('/');
+      return { ok: true, novelId: novelToSave.id, notice };
     } else {
       setNovels([novelToSave, ...novels]);
     }
@@ -801,7 +813,7 @@ const App: React.FC = () => {
         {view !== 'read' && view !== 'post' && view !== 'ryuseigai' && view !== 'ryuseigai-read' && (<>
         {/* 上部ナビ (右寄せ: オリジナルCGI準拠) */}
         <div className="top-nav">
-          <a href={BASE_PATH + '/post'} onClick={(e) => { e.preventDefault(); navigate('/post'); }}>&gt;&gt;新規投稿</a> ｜ <a href={BASE_PATH + '/admin'} onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>&gt;&gt;管理者用</a> ｜ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>&gt;&gt;ヘルプ</button>{isAdminAuthenticated && <> ｜ <button type="button" className="help-link-btn" onClick={handleAdminLogout}>&gt;&gt;ログアウト</button></>}
+          <a href={BASE_PATH + '/post'} onClick={(e) => { e.preventDefault(); navigate('/post'); }}>&gt;&gt;新規投稿</a> ｜ <a href={BASE_PATH + '/admin'} onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>&gt;&gt;管理者用</a> ｜ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>&gt;&gt;設定 / ヘルプ</button>{isAdminAuthenticated && <> ｜ <button type="button" className="help-link-btn" onClick={handleAdminLogout}>&gt;&gt;ログアウト</button></>}
         </div>
 
         {/* タイトル領域 (中央) */}
@@ -887,7 +899,7 @@ const App: React.FC = () => {
         )}
         {view === 'post' && (
           <Suspense fallback={<ViewFallback />}>
-            <PostForm onPost={handlePost} initialIndentMode={readerIndentMode} footnoteMode={footnoteMode} />
+            <PostForm onPost={handlePost} footnoteMode={footnoteMode} />
           </Suspense>
         )}
         {view === 'admin' && !isAdminAuthenticated && (
@@ -975,6 +987,8 @@ const App: React.FC = () => {
               comments={activeRyuseigaiComments}
               onComment={handleComment}
               footnoteMode={footnoteMode}
+              indentMode={readerIndentMode}
+              onIndentModeChange={setReaderIndentMode}
             />
           </Suspense>
         )}
@@ -1003,6 +1017,16 @@ const App: React.FC = () => {
                 <button type="button" className="classic-button" onClick={() => setShowHelp(false)}>閉</button>
               </div>
               <div className="help-body">
+                <section className="help-settings" aria-labelledby="help-indent-settings-title">
+                  <h2 id="help-indent-settings-title" className="section-title">■ 字下げ設定</h2>
+                  <p>作品本文の行頭字下げを、読者ごとに切り替えられます。設定はこのブラウザに保存されます。</p>
+                  <IndentModeControl
+                    mode={readerIndentMode}
+                    onChange={setReaderIndentMode}
+                    name="settings-reader-indent-mode"
+                    note="脚注には字下げを適用しません。"
+                  />
+                </section>
                 <p><b>■ 閲覧</b></p>
                 <p>一覧からタイトルをクリックすると作品を読めます。作品内の <span className="footnote-ref-link">[1]</span> 等の番号は脚注へのリンクです。</p>
                 <p><b>■ 投稿</b></p>

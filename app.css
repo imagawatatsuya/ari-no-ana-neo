@@ -826,6 +826,20 @@ select {
   font-size: 14px;
 }
 
+.help-settings {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--comment-border);
+}
+
+.help-settings .section-title {
+  margin-bottom: 6px;
+}
+
+.help-settings p {
+  margin: 4px 0 8px;
+}
+
 /* === Admin === */
 .admin-edit-box {
   margin-top: 10px;

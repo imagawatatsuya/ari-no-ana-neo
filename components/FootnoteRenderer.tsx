@@ -3,15 +3,28 @@
  * ari-preview-editor へは GitHub Actions で自動同期
  */
 import React, { useMemo, useState, useRef, useEffect, useCallback, Fragment } from 'react';
-import type { ReaderIndentMode } from '../types';
-import { formatReaderBody } from '../services/jisageAdapter';
 
 export type FootnoteMode = 'scroll' | 'tooltip';
+type AuthorIndentMode = 'none' | 'jisage' | 'raw';
+type ReaderIndentMode = 'none' | 'jisage' | 'author';
+export type BodyFormatter = (
+  body: string,
+  mode: ReaderIndentMode,
+  authorIndentMode?: AuthorIndentMode,
+) => string;
+
+const passThroughBody = (body: string): string => body;
 
 type FootnoteRendererProps = {
   content: string;
   indentMode?: ReaderIndentMode;
+  authorIndentMode?: AuthorIndentMode;
   footnoteMode?: FootnoteMode;
+  /**
+   * Injected by the main app so this file remains portable for the
+   * ari-preview-editor sync target.
+   */
+  formatBody?: BodyFormatter;
 };
 
 // =====================================================================
@@ -74,7 +87,13 @@ const renderTextWithLinks = (text: string) => {
   );
 };
 
-export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, indentMode = 'none', footnoteMode = 'scroll' }) => {
+export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({
+  content,
+  indentMode = 'none',
+  authorIndentMode = 'raw',
+  footnoteMode = 'scroll',
+  formatBody = passThroughBody,
+}) => {
   const [activeTooltip, setActiveTooltip] = useState<{ index: number; text: string; x: number; y: number } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -140,8 +159,11 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, ind
 
     // Footnote definitions are removed before applying jisage. This keeps the
     // footnote parser stable and ensures footnote text is never indented.
-    return { mainContent: formatReaderBody(cleanedContent, indentMode), footnotes: notes };
-  }, [content, indentMode]);
+    return {
+      mainContent: formatBody(cleanedContent, indentMode, authorIndentMode),
+      footnotes: notes,
+    };
+  }, [content, indentMode, authorIndentMode, formatBody]);
 
   const renderInline = (text: string) => {
     const parts = text.split(/(\[\^.+?\])/g);

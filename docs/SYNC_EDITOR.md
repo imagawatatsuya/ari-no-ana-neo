@@ -2,6 +2,10 @@
 
 本番リポジトリ [ari-no-ana-neo](https://github.com/imagawatatsuya/ari-no-ana-neo) を**正**とし、執筆用ツール [ari-preview-editor](https://github.com/imagawatatsuya/ari-preview-editor) へレンダリング部分を自動同期する。
 
+`ari-preview-editor` は本文の入力・表示だけを行うレンダリング用ツールで、Supabaseへの投稿・`authorIndentMode` の保存経路ではない。投稿者設定と投稿payloadの正本は本リポジトリの `components/PostForm.tsx` とする。将来プレビューエディタから投稿する場合は、`docs/INDENTATION_SPEC.md` の契約に従って別途投稿連携を実装する。
+
+同期対象の `FootnoteRenderer.tsx` は外部の型・サービスをimportせず、字下げ処理は本番アプリから `formatBody` として注入する。本プレビューエディタでは未指定時の原文表示を使うため、同期後も単独でビルドできる。
+
 ## 同期されるファイル
 
 | 本番（正） | 執筆ツール（自動更新） |

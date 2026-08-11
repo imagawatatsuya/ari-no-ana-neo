@@ -95,9 +95,9 @@ test('novelListParamsKey: isolates page and search', () => {
 
 test('post draft: save, read, clear', () => {
   storage.clear();
-  writePostDraft({ title: 't', description: 'd', name: 'n', body: 'b' });
+  writePostDraft({ title: 't', description: 'd', name: 'n', body: 'b', authorIndentMode: 'jisage' });
   const draft = readPostDraft();
-  assert.deepEqual(draft, { title: 't', description: 'd', name: 'n', body: 'b' });
+  assert.deepEqual(draft, { title: 't', description: 'd', name: 'n', body: 'b', authorIndentMode: 'jisage' });
   clearPostDraft();
   assert.equal(readPostDraft(), null);
 });

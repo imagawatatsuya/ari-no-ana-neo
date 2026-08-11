@@ -23,6 +23,21 @@ test('jisage mode preserves blank lines, existing indentation, and line endings'
   assert.equal(formatReaderBody(input, 'jisage'), expected);
 });
 
+test('two or more full-width spaces are preserved as author expression', () => {
+  const input = '本文\n　　間を置く演出\n次の本文';
+  const expected = '　本文\n　　間を置く演出\n　次の本文';
+  assert.equal(formatReaderBody(input, 'jisage'), expected);
+});
+
+test('reader choice has final priority over the author preference', () => {
+  const input = '本文\n次の本文';
+  assert.equal(formatReaderBody(input, 'none', 'jisage'), input);
+  assert.equal(formatReaderBody(input, 'author'), input);
+  assert.equal(formatReaderBody(input, 'author', 'none'), input);
+  assert.equal(formatReaderBody(input, 'author', 'raw'), input);
+  assert.equal(formatReaderBody(input, 'author', 'jisage'), '　本文\n　次の本文');
+});
+
 test('the application policy keeps the broad novel exclusions explicit', () => {
   assert.ok(ARI_NO_ANA_EXCLUDE_STARTS_WITH.includes('「'));
   assert.ok(ARI_NO_ANA_EXCLUDE_STARTS_WITH.includes('['));

@@ -1,3 +1,5 @@
+import { AuthorIndentMode, normalizeAuthorIndentMode } from '../types';
+
 const DRAFT_KEY = 'ari_post_draft_v1';
 
 export type PostDraft = {
@@ -5,6 +7,7 @@ export type PostDraft = {
   description: string;
   name: string;
   body: string;
+  authorIndentMode: AuthorIndentMode;
 };
 
 export function readPostDraft(): PostDraft | null {
@@ -18,6 +21,9 @@ export function readPostDraft(): PostDraft | null {
       description: typeof parsed.description === 'string' ? parsed.description : '',
       name: typeof parsed.name === 'string' ? parsed.name : '',
       body: parsed.body,
+      // A draft is a new author's choice, so its missing value follows the
+      // site's no-automatic-indentation convention rather than legacy posts.
+      authorIndentMode: normalizeAuthorIndentMode(parsed.authorIndentMode, 'none'),
     };
   } catch {
     return null;

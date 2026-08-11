@@ -19,7 +19,7 @@ export type NovelListState =
   | { status: 'error'; message: string; cachedItems?: NovelSummary[]; cachedTotalCount?: number };
 
 export type SubmitResult =
-  | { ok: true; novelId: string }
+  | { ok: true; novelId: string; notice?: string }
   | { ok: false; message: string };
 
 export interface Comment {
@@ -35,11 +35,23 @@ export interface Comment {
 export interface Novel extends NovelSummary {
   description?: string; // 自由記述メッセージバー（作品ページ上部のグレー帯）
   body: string; // Raw text
+  /** 投稿者の意図。旧投稿で未保存の場合は raw として扱う。 */
+  authorIndentMode?: AuthorIndentMode;
 }
 
 export type ViewMode = 'list' | 'post' | 'read' | 'admin' | 'ryuseigai' | 'ryuseigai-read';
 
-export type ReaderIndentMode = 'none' | 'jisage';
+export type AuthorIndentMode = 'none' | 'jisage' | 'raw';
+
+export type ReaderIndentMode = 'none' | 'jisage' | 'author';
+
+export const isAuthorIndentMode = (value: unknown): value is AuthorIndentMode =>
+  value === 'none' || value === 'jisage' || value === 'raw';
+
+export const normalizeAuthorIndentMode = (
+  value: unknown,
+  fallback: AuthorIndentMode = 'raw',
+): AuthorIndentMode => (isAuthorIndentMode(value) ? value : fallback);
 
 export enum VoteValue {
   BEST = 2,

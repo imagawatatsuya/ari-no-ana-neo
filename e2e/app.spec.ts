@@ -31,6 +31,14 @@ test.describe('アリの穴NEO - 一覧画面', () => {
     await expect(page.locator('.search-input')).toBeVisible();
   });
 
+  test('設定 / ヘルプから字下げ設定を変更できる', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /設定 \/ ヘルプ/ }).click();
+    await expect(page.getByRole('heading', { name: '字下げ設定' })).toBeVisible();
+    await page.getByRole('radio', { name: '自動字下げあり' }).check();
+    await expect(page.getByRole('radio', { name: '自動字下げあり' })).toBeChecked();
+  });
+
   test('検索で作品が絞り込まれる', async ({ page }) => {
     await page.goto('/');
     await page.locator('.search-input').fill('テスト');
@@ -66,14 +74,35 @@ test.describe('アリの穴NEO - 投稿画面', () => {
   test('投稿プレビューで字下げを確認でき、脚注は字下げされない', async ({ page }) => {
     await page.goto('/#post');
     await page.locator('.form-table input[type="text"]').first().fill('字下げ確認作品');
-    await page.locator('.form-table textarea').fill('本文です。\n[^note]\n[^note]: 注釈本文です。');
+    await page.locator('.form-table textarea').fill('本文です。\n　　手動の間\n[^note]\n[^note]: 注釈本文です。');
     await page.getByRole('tab', { name: 'プレビュー' }).click();
 
-    await page.getByRole('radio', { name: '自動字下げあり' }).check();
-    await expect(page.locator('.article-body')).toContainText('本文です。');
+    const authorIndentControl = page.locator('[data-testid="author-indent-mode-control"]:visible');
+    await authorIndentControl.getByRole('radio', { name: '自動字下げあり' }).check();
+    await expect(page.locator('.article-body')).toContainText('　本文です。');
+    await expect(page.locator('.article-body')).toContainText('　　手動の間');
     await expect(page.locator('.footnote-list')).toContainText('注釈本文です。');
     const footnoteText = await page.locator('.footnote-list').innerText();
     expect(footnoteText).not.toContain('　注釈本文です。');
+  });
+
+  test('投稿者の字下げ意図が本文と分離して保存される', async ({ page }) => {
+    await page.goto('/post');
+    await page.locator('.form-table input[type="text"]').first().fill('投稿者設定保存テスト');
+    await page.locator('.form-table textarea').fill('本文です。');
+    await page.getByRole('tab', { name: 'プレビュー' }).click();
+
+    const authorIndentControl = page.locator('[data-testid="author-indent-mode-control"]:visible');
+    await authorIndentControl.getByRole('radio', { name: '自動字下げあり' }).check();
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.getByRole('button', { name: '投稿する' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect.poll(async () => page.evaluate(() => {
+      const raw = localStorage.getItem('bunsho_novels_v2');
+      if (!raw) return null;
+      const novels = JSON.parse(raw) as Array<{ title: string; authorIndentMode?: string }>;
+      return novels.find((novel) => novel.title === '投稿者設定保存テスト')?.authorIndentMode ?? null;
+    })).toBe('jisage');
   });
 });
 
@@ -124,6 +153,11 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
     await expect(articleBody).toContainText('　これは');
     expect(noIndentText).not.toContain('　これは');
 
+    await page.getByRole('radio', { name: '投稿者設定に従う' }).check();
+    const authorModeText = await articleBody.innerText();
+    expect(authorModeText).not.toContain('　これは');
+
+    await page.getByRole('radio', { name: '自動字下げあり' }).check();
     await page.reload();
     await expect(page.getByRole('radio', { name: '自動字下げあり' })).toBeChecked();
   });

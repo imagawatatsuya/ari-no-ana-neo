@@ -13,7 +13,10 @@ export const parseReaderIndentMode = (raw: string | null): ReaderIndentMode => {
 
   try {
     const parsed = JSON.parse(raw) as Partial<ReaderPreferences>;
-    return parsed.indentMode === 'jisage' ? 'jisage' : DEFAULT_READER_INDENT_MODE;
+    if (parsed.indentMode === 'jisage' || parsed.indentMode === 'author') {
+      return parsed.indentMode;
+    }
+    return DEFAULT_READER_INDENT_MODE;
   } catch {
     return DEFAULT_READER_INDENT_MODE;
   }

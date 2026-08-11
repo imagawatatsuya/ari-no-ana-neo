@@ -34,6 +34,22 @@ select public.list_public_novels(0, 5, null, false);
 
 フォールバックでも動作はするが、作品数が増えると一覧表示が遅くなる。
 
+## 投稿者字下げ意図（必須）
+
+ファイル: `supabase/migrations/20260812_author_indent_mode.sql`
+
+`novels.author_indent_mode` 列を追加する。既存投稿は `raw`（原文どおり）として扱い、本文は変更しない。新規投稿をSupabaseモードで受け付ける前に適用する。未適用の旧DBでも投稿は互換リトライで継続できるが、`jisage` の投稿者設定は保存されず、画面に警告が出る。
+
+```sql
+select column_name, column_default
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'novels'
+  and column_name = 'author_indent_mode';
+```
+
+`column_default` が `'raw'::text` などになっていれば適用済み。
+
 ## 注意
 
 - マイグレーションは **本番 Supabase プロジェクト** に対して実行する

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Novel, Comment } from '../types';
+import { Novel, Comment, ReaderIndentMode } from '../types';
 import { formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
+import { IndentModeControl } from './IndentModeControl';
+import { formatReaderBody } from '../services/jisageAdapter';
 import { BASE_PATH, navigate } from '../router';
 import { useCommentPostFeedback } from '../features/comments/useCommentPostFeedback';
 
@@ -10,6 +12,8 @@ interface RyuseigaiReaderProps {
   comments: Comment[];
   onComment: (comment: Comment) => Promise<boolean>;
   footnoteMode?: FootnoteMode;
+  indentMode: ReaderIndentMode;
+  onIndentModeChange: (mode: ReaderIndentMode) => void;
 }
 
 const MAX_COMMENT_LENGTH = 500;
@@ -17,7 +21,14 @@ const MAX_COMMENT_LENGTH = 500;
 /** 流星垓の初期ポイント */
 const RYUSEIGAI_BASE_SCORE = -300;
 
-export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comments, onComment, footnoteMode }) => {
+export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
+  novel,
+  comments,
+  onComment,
+  footnoteMode,
+  indentMode,
+  onIndentModeChange,
+}) => {
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(-500);
@@ -76,6 +87,13 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
         <a href={BASE_PATH + '/ryuseigai'} onClick={(e) => { e.preventDefault(); navigate('/ryuseigai'); }} className="ryuseigai-back-link">← 流星垓へ戻る</a>
       </div>
 
+      <IndentModeControl
+        mode={indentMode}
+        onChange={onIndentModeChange}
+        name="ryuseigai-reader-indent-mode"
+        note="読者ごとの表示設定です。脚注には適用しません。"
+      />
+
       {/* 作品本文: 共通組版システム */}
       <table className="article-table">
         <tbody>
@@ -89,7 +107,13 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({ novel, comment
           )}
           <tr>
             <td className="article-body">
-              <FootnoteRenderer content={novel.body} footnoteMode={footnoteMode} />
+              <FootnoteRenderer
+                content={novel.body}
+                indentMode={indentMode}
+                authorIndentMode={novel.authorIndentMode}
+                footnoteMode={footnoteMode}
+                formatBody={formatReaderBody}
+              />
             </td>
           </tr>
         </tbody>

@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Novel, ReaderIndentMode, SubmitResult } from '../types';
+import { AuthorIndentMode, Novel, SubmitResult } from '../types';
 import { generateTrip, formatManuscriptPages, formatDate, countBodyCharacters } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
-import { IndentModeControl } from './IndentModeControl';
+import { AuthorIndentModeControl } from './AuthorIndentModeControl';
+import { formatReaderBody } from '../services/jisageAdapter';
 import { BASE_PATH, navigate } from '../router';
 import { clearPostDraft, readPostDraft, writePostDraft } from '../lib/draftStorage';
 
 interface PostFormProps {
   onPost: (novel: Novel) => Promise<SubmitResult>;
-  initialIndentMode?: ReaderIndentMode;
+  initialAuthorIndentMode?: AuthorIndentMode;
   footnoteMode?: FootnoteMode;
 }
 
@@ -22,9 +23,9 @@ const MAX_BODY = 100000;
 const SPAM_COOLDOWN_MS = 60 * 1000;
 const LAST_POST_KEY = 'bunsho_last_post_at';
 
-export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initialIndentMode = 'none' }) => {
+export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initialAuthorIndentMode = 'none' }) => {
   const [mode, setMode] = useState<'input' | 'preview'>('input');
-  const [previewIndentMode, setPreviewIndentMode] = useState<ReaderIndentMode>(initialIndentMode);
+  const [authorIndentMode, setAuthorIndentMode] = useState<AuthorIndentMode>(initialAuthorIndentMode);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [name, setName] = useState('');
@@ -32,6 +33,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ title?: string; body?: string }>({});
   const [formMessage, setFormMessage] = useState<{ type: 'error' | 'info'; text: string } | null>(null);
+  const [isDraftLoaded, setIsDraftLoaded] = useState(false);
 
   useEffect(() => {
     const draft = readPostDraft();
@@ -40,12 +42,15 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
       setDescription(draft.description);
       setName(draft.name);
       setBody(draft.body);
+      setAuthorIndentMode(draft.authorIndentMode);
     }
+    setIsDraftLoaded(true);
   }, []);
 
   useEffect(() => {
-    writePostDraft({ title, description, name, body });
-  }, [title, description, name, body]);
+    if (!isDraftLoaded) return;
+    writePostDraft({ title, description, name, body, authorIndentMode });
+  }, [title, description, name, body, authorIndentMode, isDraftLoaded]);
 
   const { name: authorName, trip } = generateTrip(name);
   const livePageCount = formatManuscriptPages(body);
@@ -92,6 +97,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         author: authorName,
         trip,
         body,
+        authorIndentMode,
         date: new Date().toISOString(),
         viewCount: 0,
         commentCount: 0,
@@ -104,12 +110,17 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         return;
       }
 
+      if (result.notice) {
+        window.alert(result.notice);
+      }
+
       sessionStorage.setItem(LAST_POST_KEY, String(Date.now()));
       clearPostDraft();
       setTitle('');
       setDescription('');
       setName('');
       setBody('');
+      setAuthorIndentMode('none');
       setFieldErrors({});
       setFormMessage({ type: 'info', text: '投稿が完了しました。' });
       setMode('input');
@@ -257,8 +268,14 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         </form>
 
         <div className="post-form-note">
-          ※ HTMLタグは使えません。改行はそのまま保持されます。
+          ※ HTMLタグは使えません。改行はそのまま保持されます。本文の字下げ設定は投稿者の意図として保存されます。
         </div>
+        <AuthorIndentModeControl
+          mode={authorIndentMode}
+          onChange={setAuthorIndentMode}
+          name="post-author-indent-mode-input"
+          note="読者の表示設定とは別に保存されます。二字以上を含む手動空白は常に保持されます。"
+        />
       </div>
 
       <div
@@ -268,11 +285,11 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         className={`post-form-panel${mode !== 'preview' ? ' post-form-panel--hidden' : ''}`}
         hidden={mode !== 'preview'}
        >
-        <IndentModeControl
-          mode={previewIndentMode}
-          onChange={setPreviewIndentMode}
-          name="post-preview-indent-mode"
-          note="プレビューだけの設定です。投稿本文は原文のまま保存されます。"
+         <AuthorIndentModeControl
+           mode={authorIndentMode}
+           onChange={setAuthorIndentMode}
+           name="post-author-indent-mode-preview"
+           note="投稿者の意図を確認するプレビューです。投稿本文は原文のまま保存されます。"
         />
         <table className="article-table">
           <tbody>
@@ -294,7 +311,13 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
             </tr>
             <tr>
               <td className="article-body">
-                <FootnoteRenderer content={body} indentMode={previewIndentMode} footnoteMode={footnoteMode} />
+                <FootnoteRenderer
+                  content={body}
+                  indentMode="author"
+                  authorIndentMode={authorIndentMode}
+                  footnoteMode={footnoteMode}
+                  formatBody={formatReaderBody}
+                />
               </td>
             </tr>
           </tbody>
