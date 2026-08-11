@@ -1,10 +1,17 @@
-import React, { useMemo, Fragment } from 'react';
+/**
+ * 脚注・本文レンダラー（正: ari-no-ana-neo）
+ * ari-preview-editor へは GitHub Actions で自動同期
+ */
+import React, { useMemo, useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import type { ReaderIndentMode } from '../types';
 import { formatReaderBody } from '../services/jisageAdapter';
+
+export type FootnoteMode = 'scroll' | 'tooltip';
 
 type FootnoteRendererProps = {
   content: string;
   indentMode?: ReaderIndentMode;
+  footnoteMode?: FootnoteMode;
 };
 
 // =====================================================================
@@ -12,15 +19,8 @@ type FootnoteRendererProps = {
 // 以下の正規表現のいずれかにマッチするURLは、リンクにならず黒文字のまま表示されます。
 // =====================================================================
 const BLOCKED_PATTERNS: RegExp[] = [
-  // 1. "example" ドメインを含むものを全ブロック (.com, .net, .org など全て)
-  // 例: https://example.com, https://example.net/page, https://www.example.org
   /^https:\/\/(www\.)?example\.[a-z]+(\/|$)/,
-
-  // 2. 具体的な危険ドメインの部分一致（サブドメインも含む）
-  // 例: https://bad-site.com, https://phishing.bad-site.com
   /bad-site\.com/,
-
-  // 3. ローカルホストやプライベートIP（誤ってリンク化させないため）
   /^https:\/\/localhost/,
   /^https:\/\/192\.168\./,
   /^https:\/\/10\./,
@@ -28,7 +28,6 @@ const BLOCKED_PATTERNS: RegExp[] = [
 
 // テキスト内のhttpsリンクを検出して<a>タグに変換する関数
 const renderTextWithLinks = (text: string) => {
-  // 空白・"・<・> を区切り文字として認識
   const parts = text.split(/(https:\/\/[^\s"<>]+)/g);
 
   return (
@@ -38,7 +37,6 @@ const renderTextWithLinks = (text: string) => {
           let url = part;
           let suffix = '';
           
-          // 末尾の除外対象記号（句読点など）を判定
           const invalidSuffixRegex = /[。、.,)\]\}!?:;"'）］｝><]$/;
           
           while (url.length > 8 && invalidSuffixRegex.test(url)) {
@@ -46,8 +44,6 @@ const renderTextWithLinks = (text: string) => {
             url = url.slice(0, -1);
           }
 
-          // 【修正】ブロックリスト（正規表現）によるチェック
-          // 登録されたパターンのいずれかにマッチした場合、リンク化を中止します
           const isBlocked = BLOCKED_PATTERNS.some(pattern => pattern.test(url));
 
           if (isBlocked) {
@@ -72,14 +68,42 @@ const renderTextWithLinks = (text: string) => {
             </Fragment>
           );
         }
-        // 通常テキスト
         return <Fragment key={index}>{part}</Fragment>;
       })}
     </>
   );
 };
 
-export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, indentMode = 'none' }) => {
+export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, indentMode = 'none', footnoteMode = 'scroll' }) => {
+  const [activeTooltip, setActiveTooltip] = useState<{ index: number; text: string; x: number; y: number } | null>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!activeTooltip) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setActiveTooltip(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeTooltip]);
+
+  const handleFootnoteClick = useCallback((e: React.MouseEvent, footnoteIndex: number, footnoteText: string) => {
+    e.preventDefault();
+    if (footnoteMode === 'tooltip') {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setActiveTooltip({
+        index: footnoteIndex,
+        text: footnoteText,
+        x: rect.left,
+        y: rect.bottom + 6,
+      });
+    } else {
+      document.getElementById(`footnote-${footnoteIndex}`)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [footnoteMode]);
+
   const { mainContent, footnotes } = useMemo(() => {
     if (!content) return { mainContent: '', footnotes: [] };
 
@@ -119,8 +143,8 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, ind
     return { mainContent: formatReaderBody(cleanedContent, indentMode), footnotes: notes };
   }, [content, indentMode]);
 
-  const renderContent = () => {
-    const parts = mainContent.split(/(\[\^.+?\])/g);
+  const renderInline = (text: string) => {
+    const parts = text.split(/(\[\^.+?\])/g);
     return parts.map((part, index) => {
       const match = part.match(/\[\^(.+?)\]/);
       if (match) {
@@ -132,10 +156,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, ind
               <a 
                 href={`#footnote-${footnote.index}`}
                 className="footnote-ref-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById(`footnote-${footnote.index}`)?.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={(e) => handleFootnoteClick(e, footnote.index, footnote.text)}
               >
                 [{footnote.index}]
               </a>
@@ -143,7 +164,6 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, ind
           );
         }
       }
-      // 通常テキスト
       return (
         <Fragment key={index}>
           {part.split('\n').map((line, i) => (
@@ -157,11 +177,37 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, ind
     });
   };
 
+  const renderContent = () => {
+    const paragraphs = mainContent.split(/\n\n+/).filter(p => p.trim() !== '');
+    return paragraphs.map((para, idx) => (
+      <p key={idx} className={idx > 0 ? 'gyoukan' : undefined}>
+        {renderInline(para)}
+      </p>
+    ));
+  };
+
   return (
     <div className="footnote-container">
-      <div style={{ whiteSpace: 'pre-wrap' }}>
+      <div className="article-paragraphs">
         {renderContent()}
       </div>
+
+      {/* ツールチップ表示 */}
+      {activeTooltip && footnoteMode === 'tooltip' && (
+        <div
+          ref={tooltipRef}
+          className="footnote-tooltip"
+          style={{ left: activeTooltip.x, top: activeTooltip.y }}
+        >
+          <div className="footnote-tooltip-header">
+            <span>脚注 {activeTooltip.index}</span>
+            <button onClick={() => setActiveTooltip(null)} aria-label="閉じる">×</button>
+          </div>
+          <div className="footnote-tooltip-body">
+            {renderTextWithLinks(activeTooltip.text)}
+          </div>
+        </div>
+      )}
       
       {footnotes.length > 0 && (
         <div className="footnote-section">

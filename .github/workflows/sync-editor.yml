@@ -1,0 +1,55 @@
+name: Sync editor to preview-editor
+
+# ari-no-ana-neo のエディタを執筆ツール (ari-preview-editor) へ一方向同期する。
+# セットアップ手順: docs/SYNC_EDITOR.md
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'components/FootnoteRenderer.tsx'
+      - 'styles/footnote-renderer.css'
+      - '.github/workflows/sync-editor.yml'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify sync token is configured
+        env:
+          SYNC_TOKEN: ${{ secrets.PREVIEW_EDITOR_SYNC_TOKEN }}
+        run: |
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "::error::PREVIEW_EDITOR_SYNC_TOKEN が未設定です。セットアップ手順: docs/SYNC_EDITOR.md"
+            exit 1
+          fi
+
+      - name: Checkout ari-no-ana-neo
+        uses: actions/checkout@v4
+
+      - name: Checkout ari-preview-editor
+        uses: actions/checkout@v4
+        with:
+          repository: imagawatatsuya/ari-preview-editor
+          token: ${{ secrets.PREVIEW_EDITOR_SYNC_TOKEN }}
+          path: preview-editor
+
+      - name: Copy synced editor files
+        run: |
+          cp components/FootnoteRenderer.tsx preview-editor/components/FootnoteRenderer.tsx
+          mkdir -p preview-editor/styles
+          cp styles/footnote-renderer.css preview-editor/styles/footnote-renderer.css
+
+      - name: Commit and push
+        working-directory: preview-editor
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/FootnoteRenderer.tsx styles/footnote-renderer.css
+          if git diff --staged --quiet; then
+            echo "No changes to sync"
+            exit 0
+          fi
+          git commit -m "sync: update editor from ari-no-ana-neo@${GITHUB_SHA:0:7}"
+          git push

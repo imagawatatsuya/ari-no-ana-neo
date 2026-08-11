@@ -141,12 +141,20 @@ export const formatManuscriptPages = (text: string): string => {
 
 // 5段階の星レーティング文字列を生成 (オリジナルの★★★★☆形式)
 export const formatStarRating = (comments: any[]): { stars: string; score: string } => {
-  const { total, count, avg } = calculateScore(comments);
-  if (count === 0) return { stars: '☆☆☆☆☆', score: '(0/0)' };
-  // avg is -2 to +2, map to 0-5 stars
+  const { total, count } = calculateScore(comments);
+  return formatStarRatingFromAggregate(total, count);
+};
+
+/** 集計済み voteSum / commentCount から星レーティングを生成 */
+export const formatStarRatingFromAggregate = (
+  voteSum: number,
+  commentCount: number,
+): { stars: string; score: string } => {
+  if (commentCount === 0) return { stars: '☆☆☆☆☆', score: '(0/0)' };
+  const avg = voteSum / commentCount;
   const normalized = Math.round(((avg + 2) / 4) * 5);
   const filled = Math.max(0, Math.min(5, normalized));
   const stars = '★'.repeat(filled) + '☆'.repeat(5 - filled);
-  const score = `(${total}/${count})`;
+  const score = `(${voteSum}/${commentCount})`;
   return { stars, score };
 };

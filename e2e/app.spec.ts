@@ -9,8 +9,20 @@ test.describe('アリの穴NEO - 一覧画面', () => {
 
   test('作品一覧テーブルが表示される', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.classic-table')).toBeVisible();
+    await expect(page.locator('.classic-table, .list-status-message')).toBeVisible();
     await expect(page.locator('.classic-table thead th').first()).toContainText('Title');
+  });
+
+  test('初回ロード中に空一覧メッセージを誤表示しない', async ({ page }) => {
+    await page.goto('/');
+    const loadingMsg = page.getByText('作品一覧を読み込んでいます……');
+    const emptyMsg = page.getByText('投稿がありません。');
+    if (await loadingMsg.isVisible()) {
+      await expect(emptyMsg).not.toBeVisible();
+    }
+    await expect(
+      page.locator('.classic-table, .list-status-error, .list-status-message'),
+    ).toBeVisible();
   });
 
   test('検索バーが表示される', async ({ page }) => {
@@ -36,27 +48,26 @@ test.describe('アリの穴NEO - 一覧画面', () => {
 
 test.describe('アリの穴NEO - 投稿画面', () => {
   test('投稿フォームが表示される', async ({ page }) => {
-    await page.goto('/#post');
+    await page.goto('/post');
     await expect(page.locator('.form-table')).toBeVisible();
+    await expect(page.locator('.post-form-tabs')).toBeVisible();
   });
 
   test('プレビュー→送信の2段階フロー', async ({ page }) => {
-    await page.goto('/#post');
-    // タイトルと本文を入力
+    await page.goto('/post');
     const inputs = page.locator('.form-table input[type="text"], .form-table textarea');
     await inputs.first().fill('E2Eテスト作品');
-    // 本文textarea
     await page.locator('.form-table textarea').fill('これはE2Eテストの本文です。');
-    // プレビューボタン
-    await page.getByText('プレビュー').click();
+    await page.getByRole('tab', { name: 'プレビュー' }).click();
     await expect(page.locator('body')).toContainText('E2Eテスト作品');
+    await expect(page.getByRole('button', { name: '投稿する' })).toBeVisible();
   });
 
   test('投稿プレビューで字下げを確認でき、脚注は字下げされない', async ({ page }) => {
     await page.goto('/#post');
     await page.locator('.form-table input[type="text"]').first().fill('字下げ確認作品');
     await page.locator('.form-table textarea').fill('本文です。\n[^note]\n[^note]: 注釈本文です。');
-    await page.getByText('プレビュー', { exact: true }).click();
+    await page.getByRole('tab', { name: 'プレビュー' }).click();
 
     await page.getByRole('radio', { name: '自動字下げあり' }).check();
     await expect(page.locator('.article-body')).toContainText('本文です。');
@@ -67,13 +78,28 @@ test.describe('アリの穴NEO - 投稿画面', () => {
 });
 
 test.describe('アリの穴NEO - 作品閲覧', () => {
+  test('作品切替時に前の作品内容が残らない', async ({ page }) => {
+    await page.goto('/');
+    const links = page.locator('.entry-title-link');
+    if (await links.count() < 2) return;
+
+    const title1 = (await links.nth(0).textContent())?.trim() ?? '';
+    const title2 = (await links.nth(1).textContent())?.trim() ?? '';
+
+    await links.nth(0).click();
+    await expect(page.locator('.article-title')).toHaveText(title1);
+    await page.locator('.back-link').first().click();
+    await links.nth(1).click();
+    await expect(page.locator('.article-title')).toHaveText(title2);
+  });
+
   test('作品リンクをクリックすると閲覧ページに遷移', async ({ page }) => {
     await page.goto('/');
     const firstLink = page.locator('.entry-title-link').first();
     if (await firstLink.isVisible()) {
       const title = await firstLink.textContent();
       await firstLink.click();
-      await expect(page).toHaveURL(/#read\//);
+      await expect(page).toHaveURL(/\/read\//);
       await expect(page.locator('body')).toContainText(title!);
     }
   });
@@ -105,7 +131,7 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
 
 test.describe('アリの穴NEO - 管理画面', () => {
   test('管理画面にログインフォームが表示される', async ({ page }) => {
-    await page.goto('/#admin');
+    await page.goto('/admin');
     await expect(page.locator('body')).toContainText('管理者ログイン');
   });
 });

@@ -12,6 +12,7 @@
     "preview:static": "python3 -m http.server 4173"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.39.0",
     "jisage-core": "git+https://github.com/imagawatatsuya/jisage-core.git#6c60354",
     "react": "^18.3.1",

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Comment, Novel } from '../types';
 import { formatDate } from '../utils';
+import { FootnoteMode } from './FootnoteRenderer';
 
 type FilterTab = 'all' | 'published' | 'hidden';
 
@@ -12,7 +13,10 @@ interface AdminDashboardProps {
   onDeleteNovel: (id: string) => Promise<void>;
   onToggleHideNovel: (id: string, nextHidden: boolean) => Promise<void>;
   onBulkToggleHide: (ids: string[], nextHidden: boolean) => Promise<void>;
+  onToggleRyuseigai: (id: string, nextRyuseigai: boolean) => Promise<void>;
   onResetSeedData: () => void;
+  footnoteMode: FootnoteMode;
+  onChangeFootnoteMode: (mode: FootnoteMode) => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -23,7 +27,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteNovel,
   onToggleHideNovel,
   onBulkToggleHide,
+  onToggleRyuseigai,
   onResetSeedData,
+  footnoteMode,
+  onChangeFootnoteMode,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
@@ -133,6 +140,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <button type="button" className="classic-button" onClick={onResetSeedData}>テスト用ダミーデータを再投入</button>
       </div>
 
+      <div style={{ marginBottom: 12, padding: '8px 12px', background: 'var(--admin-bulk-bg)', border: '1px solid var(--admin-bulk-border)', fontSize: 13 }}>
+        <b>脚注クリック動作:</b>{' '}
+        <label style={{ marginRight: 12 }}>
+          <input type="radio" name="footnoteMode" checked={footnoteMode === 'scroll'} onChange={() => onChangeFootnoteMode('scroll')} /> スクロール
+        </label>
+        <label>
+          <input type="radio" name="footnoteMode" checked={footnoteMode === 'tooltip'} onChange={() => onChangeFootnoteMode('tooltip')} /> ツールチップ
+        </label>
+      </div>
+
       {/* フィルタタブ */}
       <div className="admin-filter-tabs">
         <button type="button" className={`admin-tab${filterTab === 'all' ? ' admin-tab-active' : ''}`} onClick={() => { setFilterTab('all'); setSelectedIds(new Set()); }}>
@@ -188,12 +205,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <td>{novel.author}</td>
                 <td style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>{formatDate(novel.date)}</td>
                 <td style={{ textAlign: 'center' }}>
-                  <span className={hidden ? 'score-neg' : 'score-pos'}>{hidden ? '非表示' : '公開'}</span>
+                  <span className={hidden ? 'score-neg' : novel.isRyuseigai ? 'ryuseigai-badge' : 'score-pos'}>{hidden ? '非表示' : novel.isRyuseigai ? '流星垓' : '公開'}</span>
                 </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   <button type="button" className="classic-button" onClick={() => startEdit(novel)}>編集</button>{' '}
                   <button type="button" className="classic-button" onClick={() => handleDelete(novel.id)}>削除</button>{' '}
-                  <button type="button" className="classic-button" onClick={() => handleToggleHide(novel.id, !hidden)}>{hidden ? '表示する' : '非表示'}</button>
+                  <button type="button" className="classic-button" onClick={() => handleToggleHide(novel.id, !hidden)}>{hidden ? '表示する' : '非表示'}</button>{' '}
+                  <button type="button" className="classic-button" onClick={() => onToggleRyuseigai(novel.id, !novel.isRyuseigai)}>{novel.isRyuseigai ? '流星垓から戻す' : '流星垓へ'}</button>
                 </td>
               </tr>
             );

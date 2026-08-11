@@ -1,5 +1,7 @@
 /* 文章アリの穴NEO - 2005年オリジナル "Anthology V1.7" デザイン完全再現 */
 
+@import './styles/footnote-renderer.css';
+
 :root {
   color-scheme: light dark;
 
@@ -9,12 +11,12 @@
   --link: #3D3832;
   --link-visited: #7a7a72;
   --table-border: #D3CEC0;
-  --table-bg: #FCFCFC;
+  --table-bg: #FFFFFF;
   --th-bg: #CCCCCC;
   --comment-border: #C0BAAF;
   --stars-on: #598AAF;
-  --stars-off: #E3E3D9;
-  --point-gray: #767676;
+  --stars-off: #D0D0C6;
+  --point-gray: #5a5a52;
   --hr-color: #808080;
   --subtitle-bg: #D3CEC0;
   --subtitle-empty: #B0AAA0;
@@ -58,6 +60,14 @@
   /* ヘルプモーダル */
   --modal-backdrop: rgba(0,0,0,0.3);
 
+  /* タイポグラフィ（スマホ〜4K、投稿・閲覧向け） */
+  --font-root: clamp(16px, 15px + 0.35vw, 21px);
+  --line-height-ui: 1.6;
+  --line-height-read: 1.75;
+  --content-max: 68rem;
+  --article-max: 46rem;
+  --page-gutter: clamp(10px, 2.5vw, 36px);
+
   /* ezdogノウハウ: 日本語組版ルート設定 */
   line-break: strict;
   hanging-punctuation: allow-end;
@@ -66,14 +76,18 @@
 
 * { box-sizing: border-box; }
 
+html {
+  font-size: var(--font-root);
+}
+
 body {
-  margin: 8px;
+  margin: 0;
   padding: 0;
   background: var(--body-bg);
   color: var(--text);
   font-family: "Times New Roman", "MS PGothic", "Osaka", serif;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: var(--line-height-ui);
   word-break: break-word;
   overflow-wrap: break-word;
 }
@@ -90,11 +104,11 @@ a:hover {
 }
 
 /* === Shell === */
-/* 元サイトは固定幅なし・ブラウザ全幅 (table width="100%") */
 .site-shell {
   width: 100%;
-  margin: 0;
-  padding: 0;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 8px var(--page-gutter) 24px;
 }
 
 .site-panel {
@@ -105,7 +119,7 @@ a:hover {
 /* === Top nav (right-aligned, matching original CGI) === */
 .top-nav {
   text-align: right;
-  font-size: 16px;
+  font-size: 1rem;
   margin-bottom: 4px;
 }
 
@@ -117,7 +131,7 @@ a:hover {
 /* === Title area (centered) === */
 .site-pretitle {
   text-align: center;
-  font-size: 12px;
+  font-size: 0.8125rem;
   font-weight: normal;
   color: var(--text);
 }
@@ -138,14 +152,14 @@ a:hover {
 
 .site-subtitle {
   text-align: center;
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--text);
   padding-bottom: 4px;
 }
 
 /* === Stats row === */
 .stats-row {
-  font-size: 14px;
+  font-size: 0.9375rem;
   padding: 1px 0;
   margin-bottom: 4px;
   display: flex;
@@ -158,6 +172,29 @@ a:hover {
   color: var(--link);
 }
 
+/* === List toolbar (stats + search, connected to table) === */
+.list-toolbar {
+  background: var(--th-bg);
+  border: 1px solid var(--comment-border);
+  border-bottom: none;
+  padding: 6px 8px 8px;
+  margin-bottom: 0;
+}
+
+.list-toolbar .stats-row {
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+
+.list-toolbar .search-bar {
+  margin-bottom: 0;
+}
+
+.list-toolbar + .classic-table,
+.list-toolbar + .list-cache-notice + .classic-table {
+  border-top: none;
+}
+
 /* === Search bar === */
 .search-bar {
   display: flex;
@@ -167,9 +204,9 @@ a:hover {
 }
 .search-input {
   flex: 1;
-  max-width: 260px;
-  padding: 2px 6px;
-  font-size: 14px;
+  max-width: min(100%, 22rem);
+  padding: 4px 8px;
+  font-size: 1rem;
   border: 1px solid var(--table-border);
   background: var(--table-bg);
 }
@@ -177,22 +214,28 @@ a:hover {
 /* === Main table (list) === */
 .classic-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid var(--table-border);
+  border: 1px solid var(--comment-border);
   background: var(--table-bg);
-  font-size: 16px;
+  font-size: 1rem;
   margin-bottom: 0;
 }
 
+.classic-table .col-date { width: 11rem; }
+.classic-table .col-comments { width: 3rem; }
+.classic-table .col-point { width: 6.5rem; }
+
 .classic-table th {
   background: var(--th-bg);
-  font-size: 14px;
+  font-size: 0.9375rem;
   font-weight: bold;
   text-align: center;
   padding: 3px 0;
   color: var(--text);
   border: none;
+  border-bottom: 1px solid var(--comment-border);
 }
 
 .classic-table td {
@@ -202,6 +245,21 @@ a:hover {
 }
 
 /* === List entry rows === */
+.entry-group {
+  cursor: pointer;
+  border-bottom: 1px solid var(--hr-color);
+}
+.entry-group:hover {
+  background: #f6f6f0;
+}
+.entry-group:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}
+.entry-group:hover .entry-title-link {
+  text-decoration: underline;
+}
+
 .entry-title-row td {
   padding: 6px 4px 2px;
 }
@@ -210,27 +268,24 @@ a:hover {
   font-weight: bold;
   color: var(--link);
   text-decoration: none;
-  font-size: 16px;
-}
-.entry-title-link:hover {
-  text-decoration: underline;
+  font-size: 1.0625rem;
 }
 
 .entry-date {
-  font-size: 12px;
-  text-align: center;
+  font-size: 0.8125rem;
+  text-align: right;
   white-space: nowrap;
   vertical-align: top;
 }
 
 .entry-comments {
-  font-size: 12px;
+  font-size: 0.8125rem;
   text-align: center;
   vertical-align: top;
 }
 
 .entry-point {
-  font-size: 12px;
+  font-size: 0.8125rem;
   white-space: nowrap;
   vertical-align: top;
 }
@@ -244,19 +299,22 @@ a:hover {
 }
 
 .point-score {
-  color: var(--point-gray);
-  font-size: 12px;
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 .entry-meta-row td {
   padding: 0 4px 6px;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 0.8125rem;
+  color: #5a564e;
 }
 
 .entry-new-badge {
   color: var(--footnote-ref);
-  font-size: 11px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.06em;
   margin-left: 4px;
 }
 
@@ -273,16 +331,15 @@ a:hover {
   border: 1px solid var(--comment-border);
   color: var(--text);
   font-weight: bold;
-  font-size: 14px;
+  font-size: 0.9375rem;
   text-align: center;
-  padding: 3px 10px;
+  padding: 6px 10px;
   margin: 8px 0 0;
 }
 
 /* === Article / Reader page === */
-/* 元サイト: <table width="90%" cellspacing="4" cellpadding="8" align="center"> — 枠線・背景なし */
 .article-table {
-  width: 90%;
+  width: min(100%, var(--article-max));
   margin: 0 auto 8px;
   border-collapse: separate;
   border-spacing: 4px;
@@ -353,18 +410,6 @@ a:hover {
   user-select: none;
 }
 
-/* ezdogノウハウ: 本文両端揃え + 日本語組版 */
-.article-body {
-  padding: 8px;
-  font-size: 17px;
-  line-height: 1.75;
-  white-space: pre-wrap;
-  text-align: justify;
-  text-justify: inter-character;
-  letter-spacing: 0;
-  font-family: Georgia, '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, serif;
-}
-
 /* ezdogノウハウ: 約物制御スパン */
 .nihongo {
   font-feature-settings: "halt" 1;
@@ -384,12 +429,12 @@ a:hover {
 }
 
 .article-date {
-  font-size: 16px;
+  font-size: 1rem;
   padding: 4px 8px;
 }
 
 .article-author {
-  font-size: 16px;
+  font-size: 1rem;
   padding: 4px 8px;
 }
 
@@ -399,7 +444,7 @@ a:hover {
 
 .article-author-msg {
   margin-left: 3%;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 /* === Point box === */
@@ -414,12 +459,12 @@ a:hover {
 }
 
 .point-box .point-value {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: bold;
 }
 
 .point-breakdown {
-  font-size: 13px;
+  font-size: 0.8125rem;
   margin-top: 4px;
 }
 
@@ -431,10 +476,34 @@ a:hover {
   margin-bottom: 4px;
 }
 
+.comment-post-success {
+  margin: 6px 0 8px;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  background: #f0f8f0;
+  border: 1px solid #b8d8b8;
+  color: var(--score-pos);
+}
+
+.comment-block--new {
+  animation: comment-highlight 3s ease-out;
+}
+
+@keyframes comment-highlight {
+  0%, 20% {
+    background: #fff8d0;
+    box-shadow: inset 0 0 0 1px #e0c860;
+  }
+  100% {
+    background: var(--table-bg);
+    box-shadow: none;
+  }
+}
+
 .comment-text {
   white-space: pre-wrap;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: var(--line-height-read);
 }
 
 .comment-footer {
@@ -492,9 +561,135 @@ a:hover {
 }
 
 .form-label {
-  width: 90px;
+  width: 6.5rem;
   font-weight: bold;
+  font-size: 0.9375rem;
+}
+
+/* === 投稿フォーム === */
+.post-form {
+  position: relative;
+}
+
+.post-form-header {
+  margin-bottom: 6px;
+}
+
+.post-form-back {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.post-form-tabs {
+  display: flex;
+  gap: 0;
+  margin: 8px 0 0;
+  border: 1px solid var(--table-border);
+  background: var(--table-bg);
+}
+
+.post-form-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-right: 1px solid var(--table-border);
+  background: var(--th-bg);
+  color: var(--text);
+  font-family: inherit;
   font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.post-form-tab:last-child {
+  border-right: none;
+}
+.post-form-tab--active {
+  background: var(--table-bg);
+  box-shadow: inset 0 -2px 0 var(--footnote-ref);
+}
+
+.post-form-panel {
+  margin-top: 8px;
+}
+.post-form-panel--hidden {
+  display: none;
+}
+
+.post-form-stats {
+  font-size: 13px;
+  margin-top: 2px;
+  color: var(--point-gray);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.post-form-note {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.post-form-author {
+  padding: 4px 8px;
+  font-size: 16px;
+}
+
+.post-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 8px 0;
+}
+
+.post-form-action-primary {
+  font-weight: bold;
+}
+
+.form-field-error {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--error-text);
+}
+
+.form-message {
+  margin: 8px 0;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--table-border);
+}
+.form-message--error {
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+.form-message--info {
+  background: #f0f8f0;
+  border-color: #b8d8b8;
+  color: var(--score-pos);
+}
+
+.comment-form {
+  margin-top: 14px;
+}
+
+.comment-form-count {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--point-gray);
+}
+
+.comment-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.comment-form-action-primary {
+  font-weight: bold;
 }
 
 input[type='text'],
@@ -502,28 +697,30 @@ input[type='email'],
 input[type='password'],
 textarea {
   border: 1px solid var(--input-border);
-  padding: 2px 4px;
+  padding: 4px 8px;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 1rem;
   background: var(--input-bg);
   color: var(--input-text);
 }
 
 textarea {
   width: 100%;
+  line-height: var(--line-height-ui);
 }
 
 select {
   font-family: inherit;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 .classic-button {
   border: 2px outset var(--button-border);
   background: var(--button-bg);
   color: var(--button-text);
-  padding: 2px 8px;
-  font-size: 14px;
+  padding: 4px 12px;
+  font-size: 1rem;
+  min-height: 2.25rem;
   cursor: pointer;
   font-family: inherit;
 }
@@ -547,7 +744,7 @@ select {
   background: transparent;
   color: var(--link);
   text-decoration: none;
-  font-size: 16px;
+  font-size: 1rem;
   cursor: pointer;
   padding: 0;
   font-family: inherit;
@@ -557,6 +754,24 @@ select {
 }
 
 /* === Footer === */
+.list-status-message {
+  padding: 18px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.list-status-error {
+  color: var(--point-red, #c00);
+}
+
+.list-cache-notice {
+  margin: 6px 0 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+}
+
 .site-footer {
   margin-top: 10px;
   padding-top: 4px;
@@ -698,64 +913,6 @@ select {
   margin: 8px 0;
 }
 
-/* === Footnotes === */
-.footnote-container {
-  line-height: 1.75;
-}
-
-.footnote-ref-link {
-  color: var(--footnote-ref);
-  font-weight: bold;
-  margin-left: 2px;
-  text-decoration: none;
-}
-.footnote-ref-link:hover {
-  text-decoration: underline;
-}
-
-.footnote-section {
-  margin-top: 24px;
-  padding-top: 12px;
-  border-top: 1px solid var(--footnote-border);
-}
-
-.footnote-heading {
-  font-weight: bold;
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: var(--footnote-heading);
-}
-
-.footnote-list {
-  list-style: decimal;
-  padding-left: 20px;
-  font-size: 14px;
-  color: var(--footnote-text);
-}
-
-.footnote-list li {
-  margin-bottom: 4px;
-  padding-left: 4px;
-}
-
-.footnote-back-link {
-  text-decoration: none;
-  color: var(--body-link);
-  cursor: pointer;
-  margin-left: 4px;
-}
-.footnote-back-link:hover {
-  color: var(--footnote-ref);
-}
-
-.body-link {
-  color: var(--body-link);
-  word-break: break-all;
-}
-.body-link:hover {
-  text-decoration: underline;
-}
-
 /* === Pagination (元CGIドットナビ再現) === */
 .pagination {
   display: flex;
@@ -854,8 +1011,8 @@ select:focus-visible {
     --th-bg: #33332c;
     --comment-border: #4a4640;
     --stars-on: #6a9abf;
-    --stars-off: #3a3a34;
-    --point-gray: #9a9a90;
+    --stars-off: #2e2e28;
+    --point-gray: #b0aca4;
     --hr-color: #5a5a52;
     --subtitle-bg: #3a3832;
     --subtitle-empty: #6a665e;
@@ -892,25 +1049,127 @@ select:focus-visible {
     --point-bg: #26261f;
     --modal-backdrop: rgba(0,0,0,0.6);
   }
+
+  .list-cache-notice {
+    background: #2a2a24;
+    border-color: #4a4640;
+    color: var(--point-gray);
+  }
+
+  .form-message--info {
+    background: #1e2a1e;
+    border-color: #3a5a3a;
+    color: var(--score-pos);
+  }
+
+  .footnote-tooltip {
+    background: var(--table-bg);
+    border-color: var(--footnote-border);
+    color: var(--text);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+  }
+
+  .footnote-tooltip-header {
+    background: var(--th-bg);
+    border-bottom-color: var(--table-border);
+  }
+
+  .footnote-tooltip-header button {
+    color: var(--point-gray);
+  }
+
+  .footnote-tooltip-body {
+    color: var(--footnote-text);
+  }
+
+  .entry-group:hover {
+    background: #2e2e28;
+  }
+
+  .entry-meta-row td {
+    color: #a8a4a0;
+  }
+}
+
+/* === 大画面（タブレット横・4K）: 補助テキストも根拠サイズに連動 === */
+@media (min-width: 1024px) {
+  .entry-meta-row td,
+  .entry-date,
+  .entry-point,
+  .entry-comments,
+  .point-score,
+  .comment-footer,
+  .comment-date,
+  .comment-number,
+  .comment-text,
+  .footnote-heading,
+  .footnote-list,
+  .pagination,
+  .list-cache-notice,
+  .list-status-message,
+  .site-footer,
+  .footer-script,
+  .vote-note,
+  .post-form-note,
+  .post-form-stats,
+  .comment-form-count,
+  .form-field-error,
+  .form-message,
+  .comment-post-success,
+  .point-breakdown,
+  .help-body,
+  .error-box {
+    font-size: 0.9375rem;
+  }
+
+  .point-box .point-value {
+    font-size: 1.25rem;
+  }
+
+  .entry-new-badge {
+    font-size: 0.8125rem;
+  }
+
+  .ryuseigai-entry-meta,
+  .ryuseigai-footer,
+  .ryuseigai-point-label,
+  .ryuseigai-point-breakdown,
+  .ryuseigai-badge,
+  .ryuseigai-comment-form .comment-form-count,
+  .ryuseigai-comment-form .form-field-error {
+    font-size: 0.875rem;
+  }
+
+  .ryuseigai-epigraph,
+  .ryuseigai-no-comments,
+  .ryuseigai-back-link,
+  .ryuseigai-entry-score,
+  .ryuseigai-shell .comment-footer,
+  .ryuseigai-subtitle,
+  .ryuseigai-empty,
+  .ryuseigai-entry-link,
+  .ryuseigai-section-title,
+  .ryuseigai-form-title {
+    font-size: 0.9375rem;
+  }
+
+  .ryuseigai-point-value {
+    font-size: 2.25rem;
+  }
 }
 
 /* === Responsive (mobile only — desktop はオリジナル CGI デザインを維持) === */
 @media (max-width: 640px) {
+  .site-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
   /* --- 基本: 余白確保 & ezdog組版維持 --- */
   body {
     margin: 8px;
     word-break: break-word;
     overflow-wrap: break-word;
-  }
-
-  /* --- ezdogノウハウ: モバイル本文組版 --- */
-  .article-body {
-    text-align: justify;
-    text-justify: inter-character;
-    letter-spacing: 0;
-    font-size: 16px;
-    line-height: 1.8;
-    font-family: Georgia, '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, serif;
   }
 
   /* コメント本文も両端揃え */
@@ -945,7 +1204,8 @@ select:focus-visible {
     border: 1px solid var(--table-border);
   }
   .classic-table thead { display: none; }
-  .classic-table tbody { display: block; }
+  .classic-table tbody,
+  .classic-table tbody.entry-group { display: block; }
   .classic-table tr { display: block; }
   .classic-table td { display: block; width: auto; }
 
@@ -962,18 +1222,21 @@ select:focus-visible {
     flex-basis: 100%;
     padding: 0;
   }
-  /* タイトルリンク: タップ領域拡大 */
+  /* エントリ全体がタップ領域 */
+  .entry-group {
+    border-bottom-color: var(--table-border);
+  }
   .entry-title-link {
-    display: inline-block;
-    padding: 4px 0;
-    min-height: 36px;
-    line-height: 28px;
+    display: inline;
+    padding: 0;
+    min-height: 0;
+    line-height: inherit;
   }
   .entry-title-row .entry-date {
     padding: 0;
     text-align: left;
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .entry-title-row .entry-comments {
     display: none; /* meta行の［N件］と重複するため非表示 */
@@ -982,7 +1245,7 @@ select:focus-visible {
     padding: 0;
     text-align: left;
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .entry-point br { display: none; }
   .entry-point .point-score { margin-left: 4px; }
@@ -990,11 +1253,8 @@ select:focus-visible {
   /* メタ行 */
   .entry-meta-row td {
     padding: 2px 8px 12px;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
-
-  /* セパレータ行 */
-  .entry-separator { margin: 0 8px; }
 
   /* --- フォーム: 縦積み --- */
   .form-table, .form-table tbody, .form-table tr, .form-table td {
@@ -1002,6 +1262,48 @@ select:focus-visible {
   }
   .form-label { width: auto; padding-bottom: 2px; }
   .form-table td { padding: 2px 6px 6px; }
+
+  /* --- 投稿フォーム: 固定アクションバー --- */
+  .post-form {
+    padding-bottom: 72px;
+  }
+  .post-form-actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    margin: 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--body-bg);
+    border-top: 1px solid var(--table-border);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .post-form-tab {
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .post-form-back {
+    padding: 6px 0;
+    min-height: 36px;
+  }
+
+  /* --- コメントフォーム: 入力欄付近でのみ下部に張り付く --- */
+  .comment-form-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    margin: 10px -8px 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--body-bg);
+    border-top: 1px solid var(--table-border);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .ryuseigai-comment-form .comment-form-actions {
+    background: #0a0a0a;
+    border-top-color: #3a3a3a;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
+  }
 
   /* --- 入力要素: iOSズーム防止 & 幅統一 --- */
   input[type='text'],
@@ -1087,4 +1389,404 @@ select:focus-visible {
     display: inline-flex;
     align-items: center;
   }
+
+  .ryuseigai-entry {
+    padding: 16px 12px;
+  }
+}
+
+/* ============================================================
+   流星垓 (Ryuseigai) — 社会の掃き溜めをイメージした暗黒UI
+   WCAG 2.1 AA 準拠（コントラスト比 4.5:1 以上を確保）
+   おどろおどろしいテーマはライト/ダークモード共通
+   ============================================================ */
+
+.ryuseigai-shell {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #b8b2a6;
+  padding: 8px var(--page-gutter);
+  font-size: 1rem;
+  line-height: var(--line-height-ui);
+}
+
+/* 流星垓内の共通組版クラス: 暗色上書き */
+.ryuseigai-shell .article-title {
+  color: #c99a9a;
+}
+.ryuseigai-shell .article-body {
+  color: #c8c2b6;
+}
+.ryuseigai-shell .article-page-count {
+  color: #9a9488;
+}
+.ryuseigai-shell .article-date {
+  color: #9a9488;
+}
+.ryuseigai-shell .comment-block {
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.comment-post-success--ryuseigai {
+  background: #1a1510;
+  border-color: #4a3a30;
+  color: #c99a9a;
+}
+
+.ryuseigai-shell .comment-block--new {
+  animation-name: comment-highlight-ryuseigai;
+}
+
+@keyframes comment-highlight-ryuseigai {
+  0%, 20% {
+    background: #2a2018;
+    box-shadow: inset 0 0 0 1px #6a4a40;
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+.ryuseigai-shell .comment-text {
+  color: #b8b2a6;
+}
+.ryuseigai-shell .comment-footer {
+  color: #9a9488;
+}
+.ryuseigai-shell .comment-number {
+  color: #9a9488;
+}
+.ryuseigai-shell .comment-host {
+  color: #a8a296;
+}
+.ryuseigai-shell .comment-date {
+  color: #8a8478;
+}
+
+/* 流星垓: 脚注セクション視認性確保（暗色背景固定） */
+.ryuseigai-shell .footnote-section {
+  border-top-color: #4a4440;
+}
+.ryuseigai-shell .footnote-heading {
+  color: #c99a9a;
+}
+.ryuseigai-shell .footnote-list {
+  color: #c8c2b6;
+}
+.ryuseigai-shell .footnote-back-link {
+  color: #6a9abf;
+}
+.ryuseigai-shell .footnote-ref-link {
+  color: #d07070;
+}
+
+.ryuseigai-shell .footnote-tooltip {
+  background: #1a1a1a;
+  border-color: #4a4440;
+  color: #c8c2b6;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+}
+
+.ryuseigai-shell .footnote-tooltip-header {
+  background: #222222;
+  border-bottom-color: #3a3a3a;
+  color: #c99a9a;
+}
+
+.ryuseigai-shell .footnote-tooltip-header button {
+  color: #9a9488;
+}
+
+.ryuseigai-shell .footnote-tooltip-body {
+  color: #c8c2b6;
+}
+
+.ryuseigai-panel {
+  max-width: min(45rem, 100%);
+  margin: 0 auto;
+  background: #111111;
+  border: 1px solid #3a3a3a;
+  padding: 24px 16px;
+  color: #b8b2a6;
+  font-family: "MS PGothic", "Osaka", monospace;
+}
+
+.ryuseigai-header {
+  text-align: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 16px;
+}
+
+.ryuseigai-title {
+  font-size: clamp(1.75rem, 1.5rem + 0.6vw, 2.25rem);
+  font-weight: bold;
+  color: #c99a9a;
+  letter-spacing: 0.35em;
+  margin: 0 0 4px;
+  text-shadow: 0 0 8px rgba(160, 60, 60, 0.5);
+}
+
+.ryuseigai-subtitle {
+  font-size: 0.9375rem;
+  color: #9a9488;
+  letter-spacing: 0.2em;
+}
+
+.ryuseigai-epigraph {
+  margin-top: 12px;
+  font-size: 0.8125rem;
+  color: #9a9488;
+  line-height: var(--line-height-read);
+  font-style: italic;
+}
+
+.ryuseigai-empty {
+  text-align: center;
+  padding: 32px 0;
+  color: #9a9488;
+  font-size: 0.9375rem;
+}
+
+.ryuseigai-entries {
+  border-top: 1px solid #333;
+}
+
+.ryuseigai-entry {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "title score"
+    "meta meta";
+  align-items: start;
+  gap: 0 12px;
+  padding: 14px 10px;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.ryuseigai-entry:hover {
+  background: #181414;
+}
+.ryuseigai-entry:focus-visible {
+  outline: 2px solid #c99a9a;
+  outline-offset: -2px;
+}
+
+.ryuseigai-entry-link {
+  grid-area: title;
+  color: #c99a9a;
+  text-decoration: underline;
+  text-decoration-color: #6a4a4a;
+  font-size: 0.9375rem;
+  font-weight: bold;
+}
+.ryuseigai-entry:hover .ryuseigai-entry-link {
+  color: #e0b0b0;
+  text-decoration-color: #c99a9a;
+}
+
+.ryuseigai-entry-score {
+  grid-area: score;
+  color: #c08080;
+  font-size: 0.8125rem;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  background: #1a1510;
+  border: 1px solid #4a3535;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.ryuseigai-entry-meta {
+  grid-area: meta;
+  font-size: 0.8125rem;
+  color: #a8a296;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.ryuseigai-entry:hover .ryuseigai-entry-meta {
+  color: #c0bab0;
+}
+
+.ryuseigai-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #8a8478;
+  border-top: 1px solid #333;
+  padding-top: 12px;
+}
+
+.ryuseigai-back-link {
+  color: #c99a9a;
+  text-decoration: underline;
+  text-decoration-color: #6a4a4a;
+  font-size: 0.8125rem;
+}
+.ryuseigai-back-link:hover {
+  color: #e0b0b0;
+}
+.ryuseigai-back-link:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 2px;
+}
+
+/* 流星垓: ポイントボックス */
+.ryuseigai-point-box {
+  border: 1px solid #4a3535;
+  background: #1a0f0f;
+  padding: 12px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.ryuseigai-point-label {
+  font-size: 0.75rem;
+  color: #a89a9a;
+  letter-spacing: 0.15em;
+}
+
+.ryuseigai-point-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #d05050;
+  margin: 4px 0;
+  text-shadow: 0 0 6px rgba(180, 50, 50, 0.5);
+}
+
+.ryuseigai-point-breakdown {
+  font-size: 0.75rem;
+  color: #a89a9a;
+}
+
+/* 流星垓: コメント */
+.ryuseigai-section-title {
+  font-size: 0.9375rem;
+  font-weight: bold;
+  color: #c99a9a;
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.ryuseigai-no-comments {
+  font-size: 0.8125rem;
+  color: #9a9488;
+  padding: 12px 0;
+  text-align: center;
+}
+
+.ryuseigai-comment-vote {
+  color: #d08080;
+  font-weight: bold;
+}
+
+/* 流星垓: フォーム */
+.ryuseigai-form {
+  border: 1px solid #3a3a3a;
+  padding: 12px;
+  background: #0d0d0d;
+}
+
+.ryuseigai-form-title {
+  font-size: 0.9375rem;
+  font-weight: bold;
+  color: #c99a9a;
+  margin-bottom: 8px;
+}
+
+.ryuseigai-textarea {
+  width: 100%;
+  min-height: 6.25rem;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #c8c2b6;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: var(--line-height-ui);
+  padding: 8px;
+  resize: vertical;
+}
+.ryuseigai-textarea:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 1px;
+}
+
+.ryuseigai-input {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #c8c2b6;
+  font-size: 1rem;
+  padding: 4px 8px;
+  width: 15rem;
+  max-width: 100%;
+}
+.ryuseigai-input:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 1px;
+}
+
+.ryuseigai-select {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #c99a9a;
+  font-size: 1rem;
+  padding: 4px 8px;
+}
+.ryuseigai-select:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 1px;
+}
+
+.ryuseigai-button {
+  background: #2a1a1a;
+  border: 1px solid #5a3a3a;
+  color: #c99a9a;
+  font-size: 1rem;
+  padding: 6px 24px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ryuseigai-button:hover {
+  background: #3a2020;
+  color: #e0b0b0;
+}
+.ryuseigai-button:focus {
+  outline: 2px solid #c99a9a;
+  outline-offset: 2px;
+}
+
+/* 管理画面: 流星垓バッジ */
+.ryuseigai-badge {
+  color: #6b4c4c;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+.ryuseigai-author-block {
+  padding: 4px 8px;
+  font-size: 1rem;
+}
+
+.ryuseigai-author-block .ryuseigai-author-name {
+  margin-left: 3%;
+}
+
+.ryuseigai-form-row {
+  margin-top: 6px;
+  font-size: 1rem;
+}
+
+.ryuseigai-nav-top {
+  margin-bottom: 6px;
+}
+
+.ryuseigai-nav-bottom {
+  margin-top: 12px;
+}
+
+.ryuseigai-comment-form .comment-form-count,
+.ryuseigai-comment-form .form-field-error {
+  font-size: 0.8125rem;
 }

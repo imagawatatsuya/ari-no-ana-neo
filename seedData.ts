@@ -13,6 +13,8 @@ export const SEED_NOVELS: Novel[] = [
 （続く...）`,
     date: '2005-05-23T14:30:00+09:00',
     viewCount: 1543,
+    commentCount: 0,
+    voteSum: 0,
   },
   {
     id: '2',
@@ -25,6 +27,8 @@ export const SEED_NOVELS: Novel[] = [
 
 私の人生は今や、純粋なパターンマッチングに過ぎない。`,
     viewCount: 890,
+    commentCount: 0,
+    voteSum: 0,
   },
   {
     id: '3',
@@ -35,6 +39,8 @@ export const SEED_NOVELS: Novel[] = [
 プロセスは静かに肥大化し、誰にも気づかれずに息を吸い続ける。私はログを追い、finally節の置き忘れを見つけた。`,
     date: '2005-05-24T22:40:00+09:00',
     viewCount: 742,
+    commentCount: 0,
+    voteSum: 0,
   },
   {
     id: '4',
@@ -46,6 +52,8 @@ export const SEED_NOVELS: Novel[] = [
 バックアップは神話ではない。検証済みの復旧手順だけが、明日を保証する。`,
     date: '2005-05-25T02:05:00+09:00',
     viewCount: 1210,
+    commentCount: 0,
+    voteSum: 0,
   },
   {
     id: '5',
@@ -56,6 +64,8 @@ export const SEED_NOVELS: Novel[] = [
 レイアウトが1pxずれるたびに、私はブラウザごとの差分と和解する術を覚えていく。`,
     date: '2005-05-25T11:30:00+09:00',
     viewCount: 665,
+    commentCount: 0,
+    voteSum: 0,
   },
 ];
 

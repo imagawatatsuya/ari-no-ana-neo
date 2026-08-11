@@ -1,13 +1,41 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Novel, ViewMode, Comment, ReaderIndentMode } from './types';
+import React, { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Novel, ViewMode, Comment, NovelListState, SubmitResult, ReaderIndentMode } from './types';
 import { SEED_NOVELS, SEED_COMMENTS } from './seedData';
 import { NovelList } from './components/NovelList';
-import { NovelReader } from './components/NovelReader';
-import { PostForm } from './components/PostForm';
-import { AdminDashboard } from './components/AdminDashboard';
+import { RyuseigaiList } from './components/RyuseigaiList';
 import { supabase } from './services/supabaseClient';
 import { deleteNovelAndComments, editNovelInList, toggleHiddenNovelId } from './adminOps';
 import { loadReaderIndentMode, saveReaderIndentMode } from './services/readerPreferences';
+import { FootnoteMode } from './components/FootnoteRenderer';
+import { BASE_PATH, navigate } from './router';
+import { useNovelList } from './features/novels/useNovelList';
+import { novelsToSummaries } from './features/novels/novelSummaries';
+import { NOVELS_PER_PAGE, RYUSEIGAI_LIST_LIMIT } from './services/supabase/novelQueries';
+
+const AdminDashboard = lazy(() =>
+  import('./components/AdminDashboard').then((module) => ({
+    default: module.AdminDashboard,
+  })),
+);
+const PostForm = lazy(() =>
+  import('./components/PostForm').then((module) => ({
+    default: module.PostForm,
+  })),
+);
+const NovelReader = lazy(() =>
+  import('./components/NovelReader').then((module) => ({
+    default: module.NovelReader,
+  })),
+);
+const RyuseigaiReader = lazy(() =>
+  import('./components/RyuseigaiReader').then((module) => ({
+    default: module.RyuseigaiReader,
+  })),
+);
+
+const ViewFallback: React.FC = () => (
+  <div className="list-status-message" role="status" aria-busy="true">読み込み中……</div>
+);
 
 const getJSTISOString = () => {
   const jstDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
@@ -24,7 +52,6 @@ const HIDDEN_IDS_STORAGE_KEY = 'bunsho_hidden_novel_ids_v1';
 const ADMIN_AUTH_STORAGE_KEY = 'bunsho_admin_auth_v1';
 const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
 const localAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD?.trim() || '';
-const NOVELS_PER_PAGE = 20;
 
 const App: React.FC = () => {
   const isSupabaseMode = !!supabase;
@@ -42,14 +69,34 @@ const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  // サーバーサイドページング用
-  const [totalNovelCount, setTotalNovelCount] = useState(0);
   const [readNovel, setReadNovel] = useState<Novel | null>(null);
   const [readComments, setReadComments] = useState<Comment[]>([]);
   const [adminNovels, setAdminNovels] = useState<Novel[]>([]);
   const [adminComments, setAdminComments] = useState<Comment[]>([]);
   const [readerIndentMode, setReaderIndentMode] = useState<ReaderIndentMode>(() => loadReaderIndentMode());
   const [isLocalDataLoaded, setIsLocalDataLoaded] = useState(isSupabaseMode);
+  const readRequestIdRef = useRef(0);
+
+  const { listState: supabaseListState, totalCount: supabaseTotalCount, refresh: refreshList } = useNovelList(
+    isSupabaseMode && view === 'list',
+    useMemo(
+      () => ({ page: currentPage, search: searchQuery, isRyuseigai: false, pageSize: NOVELS_PER_PAGE }),
+      [currentPage, searchQuery],
+    ),
+  );
+
+  const { listState: supabaseRyuseigaiListState } = useNovelList(
+    isSupabaseMode && view === 'ryuseigai',
+    useMemo(
+      () => ({ page: 1, search: '', isRyuseigai: true, pageSize: RYUSEIGAI_LIST_LIMIT }),
+      [],
+    ),
+  );
+  // 脚注表示モード（管理者設定）
+  const FOOTNOTE_MODE_KEY = 'bunsho_footnote_mode';
+  const [footnoteMode, setFootnoteMode] = useState<FootnoteMode>(
+    () => (localStorage.getItem(FOOTNOTE_MODE_KEY) as FootnoteMode) || 'scroll'
+  );
 
   useEffect(() => {
     if (!isSupabaseMode) {
@@ -88,14 +135,17 @@ const App: React.FC = () => {
     }
   }, [isSupabaseMode]);
 
-  // Supabaseモード: ページ遷移時にサーバーから当該ページ取得
-  useEffect(() => {
-    if (isSupabaseMode && view === 'list') {
-      fetchPageFromSupabase(currentPage, searchQuery);
-    }
-  }, [currentPage, view, isSupabaseMode, searchQuery]);
-
   // Supabaseモード: 作品閲覧時に個別取得
+  useLayoutEffect(() => {
+    if (!isSupabaseMode) return;
+    if (view !== 'read' && view !== 'ryuseigai-read') return;
+    if (!activeNovelId) return;
+
+    setReadNovel(null);
+    setReadComments([]);
+    setIsLoading(true);
+  }, [view, activeNovelId, isSupabaseMode]);
+
   useEffect(() => {
     if (isSupabaseMode && view === 'read' && activeNovelId) {
       fetchNovelForRead(activeNovelId);
@@ -109,26 +159,58 @@ const App: React.FC = () => {
     }
   }, [view, isAdminAuthenticated, isSupabaseMode]);
 
+  // Supabaseモード: 流星垓作品閲覧（共通 fetchNovelForRead を使用）
   useEffect(() => {
-    const handleHashChange = () => {
+    if (isSupabaseMode && view === 'ryuseigai-read' && activeNovelId) {
+      fetchNovelForRead(activeNovelId);
+    }
+  }, [view, activeNovelId, isSupabaseMode]);
+
+  useEffect(() => {
+    const parseRoute = () => {
+      // GitHub Pages 404.html リダイレクト処理
+      const stored = sessionStorage.getItem('__spa_path');
+      if (stored) {
+        sessionStorage.removeItem('__spa_path');
+        window.history.replaceState({}, '', stored);
+      }
+
+      // 旧ハッシュURL互換: #read/123 等を /read/123 にリダイレクト
       const hash = window.location.hash;
-      if (hash.startsWith('#read/')) {
-        setActiveNovelId(hash.replace('#read/', ''));
+      if (hash && hash !== '#' && hash !== '#main-content') {
+        const route = hash.slice(1); // '#read/123' → 'read/123'
+        const newPath = BASE_PATH + '/' + route;
+        window.history.replaceState({}, '', newPath);
+      }
+
+      let path = window.location.pathname;
+      if (BASE_PATH && path.startsWith(BASE_PATH)) {
+        path = path.slice(BASE_PATH.length) || '/';
+      }
+
+      if (path.startsWith('/ryuseigai/read/')) {
+        setActiveNovelId(path.replace('/ryuseigai/read/', ''));
+        setView('ryuseigai-read');
+      } else if (path === '/ryuseigai') {
+        setView('ryuseigai');
+        setActiveNovelId(null);
+      } else if (path.startsWith('/read/')) {
+        setActiveNovelId(path.replace('/read/', ''));
         setView('read');
-      } else if (hash === '#post') {
+      } else if (path === '/post') {
         setView('post');
         setActiveNovelId(null);
-      } else if (hash === '#admin') {
+      } else if (path === '/admin') {
         if (!isSupabaseMode && !localAdminPassword) {
           setErrorMsg('管理画面は無効です。オフライン運用では VITE_ADMIN_PASSWORD を設定してください。');
           setView('list');
-          window.location.hash = '';
+          navigate('/');
           return;
         }
         setView('admin');
         setActiveNovelId(null);
-      } else if (hash.startsWith('#page/')) {
-        const pageNum = parseInt(hash.replace('#page/', ''), 10);
+      } else if (path.startsWith('/page/')) {
+        const pageNum = parseInt(path.replace('/page/', ''), 10);
         setCurrentPage(isNaN(pageNum) ? 1 : Math.max(1, pageNum));
         setView('list');
         setActiveNovelId(null);
@@ -139,13 +221,13 @@ const App: React.FC = () => {
       }
     };
 
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    parseRoute();
+    window.addEventListener('popstate', parseRoute);
+    return () => window.removeEventListener('popstate', parseRoute);
   }, [isSupabaseMode]);
 
   useEffect(() => {
-    if (view === 'read' && activeNovelId) {
+    if ((view === 'read' || view === 'ryuseigai-read') && activeNovelId) {
       incrementViewCount(activeNovelId);
       window.scrollTo(0, 0);
     }
@@ -167,85 +249,10 @@ const App: React.FC = () => {
     setComments(savedComments ? JSON.parse(savedComments) : SEED_COMMENTS);
   };
 
-  // --- Supabase: サーバーサイドページング（一覧用: 20件ずつ） ---
-  const fetchPageFromSupabase = async (page: number, search?: string) => {
-    if (!supabase) return;
-    setIsLoading(true);
-    try {
-      const from = (page - 1) * NOVELS_PER_PAGE;
-      const to = from + NOVELS_PER_PAGE - 1;
-      const trimmed = (search ?? '').trim();
-
-      // 総件数取得（is_hidden=false のみ、検索条件付き）
-      let countQuery = supabase
-        .from('novels')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_hidden', false);
-      if (trimmed) {
-        countQuery = countQuery.or(`title.ilike.%${trimmed}%,author.ilike.%${trimmed}%`);
-      }
-      const { count, error: countError } = await countQuery;
-      if (countError) throw countError;
-      setTotalNovelCount(count ?? 0);
-
-      // 当該ページの作品取得
-      let novelsQuery = supabase
-        .from('novels')
-        .select('*')
-        .eq('is_hidden', false)
-        .order('date', { ascending: false })
-        .range(from, to);
-      if (trimmed) {
-        novelsQuery = novelsQuery.or(`title.ilike.%${trimmed}%,author.ilike.%${trimmed}%`);
-      }
-      const { data: novelsData, error: novelsError } = await novelsQuery;
-      if (novelsError) throw novelsError;
-
-      const mappedNovels: Novel[] = (novelsData || []).map((n: any) => ({
-        id: n.id,
-        title: n.title,
-        author: n.author,
-        trip: n.trip,
-        body: n.body,
-        date: n.date,
-        viewCount: n.view_count ? Number(n.view_count) : 0,
-        isHidden: false,
-      }));
-
-      // 当該ページ作品のコメントのみ取得
-      const novelIds = mappedNovels.map((n) => n.id);
-      let mappedComments: Comment[] = [];
-      if (novelIds.length > 0) {
-        const { data: commentsData, error: commentsError } = await supabase
-          .from('comments')
-          .select('*')
-          .in('novel_id', novelIds);
-        if (commentsError) throw commentsError;
-        mappedComments = (commentsData || []).map((c: any) => ({
-          id: c.id,
-          novelId: c.novel_id,
-          name: c.name,
-          text: c.text,
-          date: c.date,
-          vote: c.vote,
-        }));
-      }
-
-      setNovels(mappedNovels);
-      setComments(mappedComments);
-    } catch (err: any) {
-      console.error('Supabase Error:', err);
-      setErrorMsg('データベースへの接続に失敗しました。オフラインモードで表示します。');
-      loadFromLocalStorage();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // --- Supabase: 作品個別取得（閲覧ページ用） ---
   const fetchNovelForRead = async (id: string) => {
     if (!supabase) return;
-    setIsLoading(true);
+    const requestId = ++readRequestIdRef.current;
     try {
       const { data: novelData, error: novelError } = await supabase
         .from('novels')
@@ -253,6 +260,7 @@ const App: React.FC = () => {
         .eq('id', id)
         .single();
       if (novelError) throw novelError;
+      if (requestId !== readRequestIdRef.current) return;
 
       const mapped: Novel = {
         id: novelData.id,
@@ -262,7 +270,10 @@ const App: React.FC = () => {
         body: novelData.body,
         date: novelData.date,
         viewCount: novelData.view_count ? Number(novelData.view_count) : 0,
+        commentCount: 0,
+        voteSum: 0,
         isHidden: !!novelData.is_hidden,
+        description: novelData.description ?? undefined,
       };
       setReadNovel(mapped);
 
@@ -271,6 +282,8 @@ const App: React.FC = () => {
         .select('*')
         .eq('novel_id', id);
       if (commentsError) throw commentsError;
+      if (requestId !== readRequestIdRef.current) return;
+
       setReadComments((commentsData || []).map((c: any) => ({
         id: c.id,
         novelId: c.novel_id,
@@ -280,11 +293,14 @@ const App: React.FC = () => {
         vote: c.vote,
       })));
     } catch (err: any) {
+      if (requestId !== readRequestIdRef.current) return;
       console.error('Supabase Error (read):', err);
       setReadNovel(null);
       setReadComments([]);
     } finally {
-      setIsLoading(false);
+      if (requestId === readRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -312,7 +328,11 @@ const App: React.FC = () => {
         body: n.body,
         date: n.date,
         viewCount: n.view_count ? Number(n.view_count) : 0,
+        commentCount: 0,
+        voteSum: 0,
         isHidden: !!n.is_hidden,
+        isRyuseigai: !!n.is_ryuseigai,
+        description: n.description ?? undefined,
       }));
 
       const mappedComments: Comment[] = (commentsData || []).map((c: any) => ({
@@ -335,6 +355,7 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (!isSupabaseMode && isLocalDataLoaded) {
@@ -360,10 +381,14 @@ const App: React.FC = () => {
     }
   };
 
-  const handlePost = async (novel: Novel) => {
-    const novelToSave = { ...novel, date: getJSTISOString() };
+  const handlePost = async (novel: Novel): Promise<SubmitResult> => {
+    const novelToSave: Novel = {
+      ...novel,
+      date: getJSTISOString(),
+      commentCount: 0,
+      voteSum: 0,
+    };
     if (isSupabaseMode && supabase) {
-      setIsLoading(true);
       const { error } = await supabase.from('novels').insert([
         {
           id: novelToSave.id,
@@ -375,17 +400,17 @@ const App: React.FC = () => {
           date: novelToSave.date,
         },
       ]);
-      setIsLoading(false);
       if (error) {
-        alert(`文章の投稿中にエラーが発生しました: ${error.message}`);
-        return;
+        return { ok: false, message: `文章の投稿中にエラーが発生しました: ${error.message}` };
       }
+    } else {
+      setNovels([novelToSave, ...novels]);
     }
-    setNovels([novelToSave, ...novels]);
-    window.location.hash = '';
+    navigate('/');
+    return { ok: true, novelId: novelToSave.id };
   };
 
-  const handleComment = async (comment: Comment) => {
+  const handleComment = async (comment: Comment): Promise<boolean> => {
     const commentToSave = { ...comment, date: getJSTISOString() };
     if (isSupabaseMode && supabase) {
       const { error } = await supabase.from('comments').insert([
@@ -399,14 +424,15 @@ const App: React.FC = () => {
         },
       ]);
       if (error) {
-        alert(`コメントの投稿中にエラーが発生しました: ${error.message}`);
-        return;
+        return false;
       }
       setReadComments((prev) => [...prev, commentToSave]);
     } else {
       setComments((prev) => [...prev, commentToSave]);
     }
+    return true;
   };
+
 
   const handleEditNovel = async (id: string, patch: Pick<Novel, 'title' | 'author' | 'trip' | 'body'>) => {
     if (!isAdminAuthenticated) {
@@ -464,7 +490,7 @@ const App: React.FC = () => {
     }
     setHiddenNovelIds((prev) => prev.filter((hiddenId) => hiddenId !== id));
     if (activeNovelId === id) {
-      window.location.hash = '';
+      navigate('/');
     }
   };
 
@@ -532,6 +558,29 @@ const App: React.FC = () => {
     alert('ダミーデータを再投入しました。');
   };
 
+  // --- 流星垓送りトグル ---
+  const handleToggleRyuseigai = async (id: string, nextRyuseigai: boolean) => {
+    if (!isAdminAuthenticated) {
+      alert('管理者認証が必要です。');
+      return;
+    }
+
+    if (isSupabaseMode) {
+      setAdminNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
+      setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
+    } else {
+      setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
+    }
+
+    if (isSupabaseMode && supabase) {
+      const { error } = await supabase.from('novels').update({ is_ryuseigai: nextRyuseigai }).eq('id', id);
+      if (error) {
+        console.error('Failed to sync is_ryuseigai:', error);
+        setErrorMsg('流星垓状態の同期に失敗しました。');
+      }
+    }
+  };
+
   // --- 検索ハンドラ ---
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -547,36 +596,159 @@ const App: React.FC = () => {
 
   // --- ページング計算（モード分岐） ---
   const visibleNovels = useMemo(() => {
-    let list = novels.filter((novel) => !hiddenNovelIds.includes(novel.id));
+    let list = novels.filter((novel) => !hiddenNovelIds.includes(novel.id) && !novel.isRyuseigai);
     // オフラインモード: クライアント側で検索フィルタ
     if (!isSupabaseMode && searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter((n) => n.title.toLowerCase().includes(q) || n.author.toLowerCase().includes(q));
     }
-    return list;
+    // 新着順（投稿日時降順）で統一
+    return [...list].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [novels, hiddenNovelIds, isSupabaseMode, searchQuery]);
 
+  // --- 流星垓作品（オフラインモード用） ---
+  const offlineRyuseigaiNovels = useMemo(() => {
+    if (isSupabaseMode) return [];
+    return novels.filter((n) => n.isRyuseigai && !hiddenNovelIds.includes(n.id));
+  }, [novels, hiddenNovelIds, isSupabaseMode]);
+
+  const offlineRyuseigaiComments = useMemo(() => {
+    if (isSupabaseMode) return [];
+    const ids = new Set(offlineRyuseigaiNovels.map((n) => n.id));
+    return comments.filter((c) => ids.has(c.novelId));
+  }, [comments, offlineRyuseigaiNovels, isSupabaseMode]);
+
+  const totalNovelCount = isSupabaseMode ? supabaseTotalCount : visibleNovels.length;
+
   // Supabaseモード: サーバーが総件数を返す / オフライン: クライアント計算
-  const totalPages = isSupabaseMode
-    ? Math.max(1, Math.ceil(totalNovelCount / NOVELS_PER_PAGE))
-    : Math.max(1, Math.ceil(visibleNovels.length / NOVELS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(totalNovelCount / NOVELS_PER_PAGE));
   const clampedPage = Math.min(currentPage, totalPages);
 
-  // Supabaseモード: novels は既に当該ページ分 / オフライン: クライアントでスライス
+  // オフラインモード: クライアントでスライス
   const pagedNovels = useMemo(
-    () => isSupabaseMode
-      ? novels
-      : visibleNovels.slice((clampedPage - 1) * NOVELS_PER_PAGE, clampedPage * NOVELS_PER_PAGE),
-    [novels, visibleNovels, clampedPage, isSupabaseMode],
+    () => visibleNovels.slice((clampedPage - 1) * NOVELS_PER_PAGE, clampedPage * NOVELS_PER_PAGE),
+    [visibleNovels, clampedPage],
   );
 
-  // 作品閲覧: Supabaseモードは readNovel / オフラインは visibleNovels から検索
+  const offlineListState = useMemo((): NovelListState => {
+    if (pagedNovels.length === 0 && visibleNovels.length === 0) {
+      return { status: 'empty' };
+    }
+    return {
+      status: 'success',
+      items: novelsToSummaries(pagedNovels, comments),
+      totalCount: visibleNovels.length,
+    };
+  }, [pagedNovels, comments, visibleNovels]);
+
+  const offlineRyuseigaiListState = useMemo((): NovelListState => {
+    if (offlineRyuseigaiNovels.length === 0) {
+      return { status: 'empty' };
+    }
+    return {
+      status: 'success',
+      items: novelsToSummaries(offlineRyuseigaiNovels, offlineRyuseigaiComments),
+      totalCount: offlineRyuseigaiNovels.length,
+    };
+  }, [offlineRyuseigaiNovels, offlineRyuseigaiComments]);
+
+  const listStateForView = isSupabaseMode ? supabaseListState : offlineListState;
+  const ryuseigaiListStateForView = isSupabaseMode ? supabaseRyuseigaiListState : offlineRyuseigaiListState;
+
+  // 作品閲覧: Supabaseモードは readNovel（ID一致時のみ） / オフラインは visibleNovels から検索
   const activeNovel = isSupabaseMode
-    ? readNovel
+    ? (readNovel?.id === activeNovelId ? readNovel : null)
     : visibleNovels.find((n) => n.id === activeNovelId) ?? null;
   const activeComments = isSupabaseMode
-    ? readComments
+    ? (readNovel?.id === activeNovelId ? readComments : [])
     : comments.filter((c) => c.novelId === activeNovelId);
+
+  // 流星垓作品閲覧: 共通 readNovel/readComments を使用（オフラインのみ独自フィルタ）
+  const activeRyuseigaiNovel = isSupabaseMode
+    ? (readNovel?.id === activeNovelId ? readNovel : null)
+    : offlineRyuseigaiNovels.find((n) => n.id === activeNovelId) ?? null;
+  const activeRyuseigaiComments = isSupabaseMode
+    ? (readNovel?.id === activeNovelId ? readComments : [])
+    : offlineRyuseigaiComments.filter((c) => c.novelId === activeNovelId);
+
+  // SEO: document.title / meta / favicon / JSON-LD を動的切替
+  useEffect(() => {
+    const SITE_NAME = '文章アリの穴NEO';
+    const BASE_URL = 'https://imagawatatsuya.github.io/ari-no-ana-neo/';
+    const defaultTitle = SITE_NAME;
+    const defaultDesc = '文章アリの穴NEO - 匿名投稿・添削できる修行場所。2005年のテキスト投稿サイト「文章アリの穴」をオマージュした再現サイト。';
+    const defaultIcon = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐜</text></svg>";
+
+    const ryuseigaiTitle = '流星垓';
+    const ryuseigaiDesc = 'ここに捨てられたものは、まだ息をしている。救済はない。ただ、在る。';
+    const ryuseigaiIcon = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☄️</text></svg>";
+
+    // 現在閲覧中の作品（通常 or 流星垓）
+    const readingNovel = view === 'read' ? activeNovel : view === 'ryuseigai-read' ? activeRyuseigaiNovel : null;
+    const isRyuseigaiView = view === 'ryuseigai' || view === 'ryuseigai-read';
+
+    let title: string;
+    let desc: string;
+    let icon: string;
+
+    if (readingNovel) {
+      // 記事個別: 「作品名｜作者名 - サイト名」
+      const authorDisplay = readingNovel.author || '名無し';
+      title = `${readingNovel.title}｜${authorDisplay} - ${SITE_NAME}`;
+      // 本文冒頭120文字を description に（脚注記法・URL除去）
+      const plainBody = readingNovel.body
+        .replace(/\[\^.+?\]/g, '')
+        .replace(/https?:\/\/[^\s]+/g, '')
+        .replace(/[\n\r\u3000\t]/g, ' ')
+        .trim();
+      desc = plainBody.slice(0, 120) || defaultDesc;
+      icon = isRyuseigaiView ? ryuseigaiIcon : defaultIcon;
+    } else if (isRyuseigaiView) {
+      title = ryuseigaiTitle;
+      desc = ryuseigaiDesc;
+      icon = ryuseigaiIcon;
+    } else {
+      title = defaultTitle;
+      desc = defaultDesc;
+      icon = defaultIcon;
+    }
+
+    document.title = title;
+
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', desc);
+
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', desc);
+
+    const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null;
+    if (favicon) favicon.href = icon;
+
+    // JSON-LD 構造化データ（記事閲覧時のみ）
+    const existingLd = document.getElementById('seo-jsonld');
+    if (existingLd) existingLd.remove();
+
+    if (readingNovel) {
+      const ld = {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: readingNovel.title,
+        author: { '@type': 'Person', name: readingNovel.author || '名無し' },
+        datePublished: readingNovel.date ? readingNovel.date.slice(0, 10) : undefined,
+        description: desc,
+        mainEntityOfPage: { '@type': 'WebPage', '@id': BASE_URL },
+        publisher: { '@type': 'Organization', name: SITE_NAME },
+      };
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = 'seo-jsonld';
+      script.textContent = JSON.stringify(ld);
+      document.head.appendChild(script);
+    }
+  }, [view, activeNovel, activeRyuseigaiNovel]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -625,34 +797,36 @@ const App: React.FC = () => {
     <div className="site-shell">
       <a href="#main-content" className="skip-link">本文へスキップ</a>
       <div className="site-panel">
-        {/* 作品ページ（read）と投稿ページ（post）にはヘッダを表示しない — 元サイト準拠 */}
-        {view !== 'read' && view !== 'post' && (<>
+        {/* 作品ページ（read/post）と流星垓には通常ヘッダを表示しない */}
+        {view !== 'read' && view !== 'post' && view !== 'ryuseigai' && view !== 'ryuseigai-read' && (<>
         {/* 上部ナビ (右寄せ: オリジナルCGI準拠) */}
         <div className="top-nav">
-          <a href="#post">&gt;&gt;新規投稿</a> ｜ <a href="#admin">&gt;&gt;管理者用</a> ｜ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>&gt;&gt;ヘルプ</button>{isAdminAuthenticated && <> ｜ <button type="button" className="help-link-btn" onClick={handleAdminLogout}>&gt;&gt;ログアウト</button></>}
+          <a href={BASE_PATH + '/post'} onClick={(e) => { e.preventDefault(); navigate('/post'); }}>&gt;&gt;新規投稿</a> ｜ <a href={BASE_PATH + '/admin'} onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>&gt;&gt;管理者用</a> ｜ <button type="button" className="help-link-btn" onClick={() => setShowHelp(true)}>&gt;&gt;ヘルプ</button>{isAdminAuthenticated && <> ｜ <button type="button" className="help-link-btn" onClick={handleAdminLogout}>&gt;&gt;ログアウト</button></>}
         </div>
 
         {/* タイトル領域 (中央) */}
         <div className="site-pretitle">２ｃｈ文章</div>
         <h1 className="site-title">
-          <a href="#">アリの穴NEO</a>
+          <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }}>アリの穴NEO</a>
         </h1>
         <div className="site-subtitle">匿名投稿・添削できる修行場所。煽り・罵倒は覚悟の上で</div>
 
-        {/* ステータス行 */}
-        <div className="stats-row">
-          <span>
-            {isSupabaseMode
-              ? `全 ${totalNovelCount} 作品`
-              : visibleNovels.length === novels.length
-                ? `全 ${novels.length} 作品`
-                : `全 ${novels.length} 作品中 ${visibleNovels.length} 表示`}
-            {totalPages > 1 && ` [ ${clampedPage}/${totalPages} ページ ]`}
-          </span>
-          <span>
-            モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
-          </span>
-        </div>
+        {/* ステータス行（管理画面のみ。一覧は list-toolbar 内） */}
+        {view === 'admin' && (
+          <div className="stats-row">
+            <span>
+              {isSupabaseMode
+                ? `全 ${totalNovelCount} 作品`
+                : visibleNovels.length === novels.length
+                  ? `全 ${novels.length} 作品`
+                  : `全 ${novels.length} 作品中 ${visibleNovels.length} 表示`}
+              {totalPages > 1 && ` [ ${clampedPage}/${totalPages} ページ ]`}
+            </span>
+            <span>
+              モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
+            </span>
+          </div>
+        )}
         </>)}
 
         {errorMsg && <div className="error-box" role="alert">{errorMsg}</div>}
@@ -660,38 +834,62 @@ const App: React.FC = () => {
         <main id="main-content">
 
         {view === 'list' && (
-          <form className="search-bar" onSubmit={handleSearch} role="search" aria-label="作品検索">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="タイトル / 作者で検索"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-            <button type="submit" className="classic-button">検索</button>
-            {searchQuery && <button type="button" className="classic-button" onClick={handleSearchClear}>解除</button>}
-          </form>
+          <div className="list-toolbar">
+            <div className="stats-row">
+              <span>
+                {isSupabaseMode
+                  ? `全 ${totalNovelCount} 作品`
+                  : visibleNovels.length === novels.length
+                    ? `全 ${novels.length} 作品`
+                    : `全 ${novels.length} 作品中 ${visibleNovels.length} 表示`}
+                {totalPages > 1 && ` [ ${clampedPage}/${totalPages} ページ ]`}
+              </span>
+              <span>
+                モード: {isSupabaseMode ? 'オンライン' : 'オフライン'} / 管理人: アリOB
+              </span>
+            </div>
+            <form className="search-bar" onSubmit={handleSearch} role="search" aria-label="作品検索">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="タイトル / 作者で検索"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+              <button type="submit" className="classic-button">検索</button>
+              {searchQuery && <button type="button" className="classic-button" onClick={handleSearchClear}>解除</button>}
+            </form>
+          </div>
         )}
 
-        {view === 'list' && <NovelList novels={pagedNovels} comments={comments} />}
+        {view === 'list' && (
+          <NovelList
+            state={listStateForView}
+            onRetry={isSupabaseMode ? refreshList : undefined}
+          />
+        )}
         {view === 'list' && totalPages > 1 && (
           <nav className="pagination" aria-label="ページナビゲーション">
             {clampedPage > 1 && (
-              <a href={`#page/${clampedPage - 1}`} className="pagination-arrow">&lt;&lt; 前へ</a>
+              <a href={BASE_PATH + `/page/${clampedPage - 1}`} onClick={(e) => { e.preventDefault(); navigate(`/page/${clampedPage - 1}`); }} className="pagination-arrow">&lt;&lt; 前へ</a>
             )}
             <span className="pagination-dots">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) =>
                 p === clampedPage
                   ? <span key={p} className="pagination-dot pagination-dot-active" aria-current="page">●</span>
-                  : <a key={p} href={`#page/${p}`} className="pagination-dot">○</a>
+                  : <a key={p} href={BASE_PATH + `/page/${p}`} onClick={(e) => { e.preventDefault(); navigate(`/page/${p}`); }} className="pagination-dot">○</a>
               )}
             </span>
             {clampedPage < totalPages && (
-              <a href={`#page/${clampedPage + 1}`} className="pagination-arrow">次へ &gt;&gt;</a>
+              <a href={BASE_PATH + `/page/${clampedPage + 1}`} onClick={(e) => { e.preventDefault(); navigate(`/page/${clampedPage + 1}`); }} className="pagination-arrow">次へ &gt;&gt;</a>
             )}
           </nav>
         )}
-        {view === 'post' && <PostForm onPost={handlePost} initialIndentMode={readerIndentMode} />}
+        {view === 'post' && (
+          <Suspense fallback={<ViewFallback />}>
+            <PostForm onPost={handlePost} initialIndentMode={readerIndentMode} footnoteMode={footnoteMode} />
+          </Suspense>
+        )}
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
             <div className="section-title">管理者ログイン</div>
@@ -732,36 +930,70 @@ const App: React.FC = () => {
           </div>
         )}
         {view === 'admin' && isAdminAuthenticated && (
-          <AdminDashboard
-            novels={isSupabaseMode ? adminNovels : novels}
-            comments={isSupabaseMode ? adminComments : comments}
-            hiddenNovelIds={hiddenNovelIds}
-            onEditNovel={handleEditNovel}
-            onDeleteNovel={handleDeleteNovel}
-            onToggleHideNovel={handleToggleHideNovel}
-            onBulkToggleHide={handleBulkToggleHide}
-            onResetSeedData={handleResetSeedData}
-          />
+          <Suspense fallback={<ViewFallback />}>
+            <AdminDashboard
+              novels={isSupabaseMode ? adminNovels : novels}
+              comments={isSupabaseMode ? adminComments : comments}
+              hiddenNovelIds={hiddenNovelIds}
+              onEditNovel={handleEditNovel}
+              onDeleteNovel={handleDeleteNovel}
+              onToggleHideNovel={handleToggleHideNovel}
+              onBulkToggleHide={handleBulkToggleHide}
+              onToggleRyuseigai={handleToggleRyuseigai}
+              onResetSeedData={handleResetSeedData}
+              footnoteMode={footnoteMode}
+              onChangeFootnoteMode={(mode) => {
+                setFootnoteMode(mode);
+                localStorage.setItem(FOOTNOTE_MODE_KEY, mode);
+              }}
+            />
+          </Suspense>
         )}
         {view === 'read' && activeNovel && (
-          <NovelReader
-            novel={activeNovel}
-            comments={activeComments}
-            onComment={handleComment}
-            indentMode={readerIndentMode}
-            onIndentModeChange={setReaderIndentMode}
-          />
+          <Suspense fallback={<ViewFallback />}>
+            <NovelReader
+              novel={activeNovel}
+              comments={activeComments}
+              onComment={handleComment}
+              footnoteMode={footnoteMode}
+              indentMode={readerIndentMode}
+              onIndentModeChange={setReaderIndentMode}
+            />
+          </Suspense>
         )}
-        {view === 'read' && !activeNovel && !isLoading && <div style={{ padding: 8 }}>投稿が見つからないか、非表示に設定されています。<a href="#">一覧へ戻る</a></div>}
+        {view === 'read' && !activeNovel && !isLoading && <div style={{ padding: 8 }}>投稿が見つからないか、非表示に設定されています。<a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }}>一覧へ戻る</a></div>}
         {view === 'read' && !activeNovel && isLoading && <div style={{ padding: 8 }}>読み込み中...</div>}
+
+        {/* 流星垓 */}
+        {view === 'ryuseigai' && (
+          <RyuseigaiList state={ryuseigaiListStateForView} />
+        )}
+        {view === 'ryuseigai-read' && activeRyuseigaiNovel && (
+          <Suspense fallback={<ViewFallback />}>
+            <RyuseigaiReader
+              novel={activeRyuseigaiNovel}
+              comments={activeRyuseigaiComments}
+              onComment={handleComment}
+              footnoteMode={footnoteMode}
+            />
+          </Suspense>
+        )}
+        {view === 'ryuseigai-read' && !activeRyuseigaiNovel && !isLoading && (
+          <div className="ryuseigai-shell"><div className="ryuseigai-panel" style={{ padding: 18, textAlign: 'center' }}>ここには何もない。あるいは、まだ誰も辿り着いていない。</div></div>
+        )}
+        {view === 'ryuseigai-read' && !activeRyuseigaiNovel && isLoading && (
+          <div className="ryuseigai-shell"><div className="ryuseigai-panel" style={{ padding: 18, textAlign: 'center' }}>……</div></div>
+        )}
         </main>
 
-        {/* フッター */}
+        {/* フッター（流星垓には表示しない） */}
+        {view !== 'ryuseigai' && view !== 'ryuseigai-read' && (<>
         <hr className="hr-standard" />
         <div className="site-footer">
           <div className="footer-script">Based on Anthology V1.7  Script by YASUU!!</div>
           <div style={{ fontSize: 12, marginTop: 2 }}>総アクセス数: {isSupabaseMode ? '―' : visibleNovels.reduce((acc, n) => acc + n.viewCount, 0)} hits / 稼働環境: React + {isSupabaseMode ? 'Supabase' : 'LocalStorage'}</div>
         </div>
+        </>)}
 
         {showHelp && (
           <div className="help-backdrop" onClick={() => setShowHelp(false)}>
@@ -771,13 +1003,14 @@ const App: React.FC = () => {
                 <button type="button" className="classic-button" onClick={() => setShowHelp(false)}>閉</button>
               </div>
               <div className="help-body">
-                <p><b>Supabase利用時の設定</b></p>
-                <ol>
-                  <li><code>supabase_schema_v2.sql</code> を SQL Editor で実行</li>
-                  <li><code>.env</code> に URL / ANON KEY を設定</li>
-                  <li>本番は <code>supabase.auth</code> とRLSで管理者のみ更新・削除を許可</li>
-                  <li>GitHub Actions の Secrets に同値を設定</li>
-                </ol>
+                <p><b>■ 閲覧</b></p>
+                <p>一覧からタイトルをクリックすると作品を読めます。作品内の <span className="footnote-ref-link">[1]</span> 等の番号は脚注へのリンクです。</p>
+                <p><b>■ 投稿</b></p>
+                <p>「新規投稿」から作品を投稿できます。タイトル・本文を入力し、プレビュー確認後に送信してください。本文内の <code>[^1]</code> と <code>[^1]: 脚注テキスト</code> で脚注を使えます。</p>
+                <p><b>■ 感想・評価</b></p>
+                <p>作品ページ下部から感想を投稿できます。評価（とても良い～最悪）を選んで投票してください。</p>
+                <p><b>■ その他</b></p>
+                <p>当サイトは2005年のテキスト投稿サイト「文章アリの穴」をオマージュした再現サイトです。煽り・罵倒は覚悟の上で。</p>
                 <div style={{ textAlign: 'center' }}>
                   <button type="button" className="classic-button" onClick={() => setShowHelp(false)}>閉じる</button>
                 </div>
