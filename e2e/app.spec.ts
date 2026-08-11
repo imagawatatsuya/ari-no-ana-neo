@@ -51,6 +51,19 @@ test.describe('アリの穴NEO - 投稿画面', () => {
     await page.getByText('プレビュー').click();
     await expect(page.locator('body')).toContainText('E2Eテスト作品');
   });
+
+  test('投稿プレビューで字下げを確認でき、脚注は字下げされない', async ({ page }) => {
+    await page.goto('/#post');
+    await page.locator('.form-table input[type="text"]').first().fill('字下げ確認作品');
+    await page.locator('.form-table textarea').fill('本文です。\n[^note]\n[^note]: 注釈本文です。');
+    await page.getByText('プレビュー', { exact: true }).click();
+
+    await page.getByRole('radio', { name: '自動字下げあり' }).check();
+    await expect(page.locator('.article-body')).toContainText('本文です。');
+    await expect(page.locator('.footnote-list')).toContainText('注釈本文です。');
+    const footnoteText = await page.locator('.footnote-list').innerText();
+    expect(footnoteText).not.toContain('　注釈本文です。');
+  });
 });
 
 test.describe('アリの穴NEO - 作品閲覧', () => {
@@ -73,6 +86,20 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
       const scrollY = await page.evaluate(() => window.scrollY);
       expect(scrollY).toBe(0);
     }
+  });
+
+  test('読者は自動字下げを切り替えられ、設定が保持される', async ({ page }) => {
+    await page.goto('/#read/1');
+    const articleBody = page.locator('.article-body');
+    const noIndentText = await articleBody.innerText();
+
+    await expect(page.getByRole('radio', { name: '自動字下げなし' })).toBeChecked();
+    await page.getByRole('radio', { name: '自動字下げあり' }).check();
+    await expect(articleBody).toContainText('　これは');
+    expect(noIndentText).not.toContain('　これは');
+
+    await page.reload();
+    await expect(page.getByRole('radio', { name: '自動字下げあり' })).toBeChecked();
   });
 });
 

@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Novel, Comment } from '../types';
+import { Novel, Comment, ReaderIndentMode } from '../types';
 import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer } from './FootnoteRenderer';
+import { IndentModeControl } from './IndentModeControl';
 
 interface NovelReaderProps {
   novel: Novel;
   comments: Comment[];
   onComment: (comment: Comment) => void;
+  indentMode: ReaderIndentMode;
+  onIndentModeChange: (mode: ReaderIndentMode) => void;
 }
 
 const MAX_COMMENT_LENGTH = 500;
@@ -28,7 +31,13 @@ const badgeClass = (v: number): string => {
   return 'comment-badge comment-badge-neutral';
 };
 
-export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onComment }) => {
+export const NovelReader: React.FC<NovelReaderProps> = ({
+  novel,
+  comments,
+  onComment,
+  indentMode,
+  onIndentModeChange,
+}) => {
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
   const [vote, setVote] = useState(0);
@@ -81,6 +90,13 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
         <a href="#" className="back-link">&nbsp;戻る</a>
       </div>
 
+      <IndentModeControl
+        mode={indentMode}
+        onChange={onIndentModeChange}
+        name="reader-indent-mode"
+        note="読者ごとの表示設定です。脚注には適用しません。"
+      />
+
       {/* 記事テーブル: 元サイト <table width="90%" cellspacing="4" cellpadding="8" align="center"> */}
       <table className="article-table">
         <tbody>
@@ -104,7 +120,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({ novel, comments, onCom
           {/* 本文: .font_body { font-size:100%; line-height:150% } */}
           <tr>
             <td className="article-body">
-              <FootnoteRenderer content={novel.body} />
+              <FootnoteRenderer content={novel.body} indentMode={indentMode} />
             </td>
           </tr>
         </tbody>

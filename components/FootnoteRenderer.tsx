@@ -1,7 +1,10 @@
 import React, { useMemo, Fragment } from 'react';
+import type { ReaderIndentMode } from '../types';
+import { formatReaderBody } from '../services/jisageAdapter';
 
 type FootnoteRendererProps = {
   content: string;
+  indentMode?: ReaderIndentMode;
 };
 
 // =====================================================================
@@ -76,7 +79,7 @@ const renderTextWithLinks = (text: string) => {
   );
 };
 
-export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) => {
+export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content, indentMode = 'none' }) => {
   const { mainContent, footnotes } = useMemo(() => {
     if (!content) return { mainContent: '', footnotes: [] };
 
@@ -111,8 +114,10 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({ content }) =
       text: footnotesMap.get(id) || '',
     }));
 
-    return { mainContent: cleanedContent, footnotes: notes };
-  }, [content]);
+    // Footnote definitions are removed before applying jisage. This keeps the
+    // footnote parser stable and ensures footnote text is never indented.
+    return { mainContent: formatReaderBody(cleanedContent, indentMode), footnotes: notes };
+  }, [content, indentMode]);
 
   const renderContent = () => {
     const parts = mainContent.split(/(\[\^.+?\])/g);

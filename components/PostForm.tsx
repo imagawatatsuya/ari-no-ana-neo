@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Novel } from '../types';
+import { Novel, ReaderIndentMode } from '../types';
 import { generateTrip, formatManuscriptPages, formatDate, countBodyCharacters } from '../utils';
 import { FootnoteRenderer } from './FootnoteRenderer';
+import { IndentModeControl } from './IndentModeControl';
 
 interface PostFormProps {
   onPost: (novel: Novel) => void;
+  initialIndentMode?: ReaderIndentMode;
 }
 
 // 入力長制限
@@ -17,8 +19,9 @@ const MAX_BODY = 100000;
 const SPAM_COOLDOWN_MS = 60 * 1000;
 const LAST_POST_KEY = 'bunsho_last_post_at';
 
-export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
+export const PostForm: React.FC<PostFormProps> = ({ onPost, initialIndentMode = 'none' }) => {
   const [mode, setMode] = useState<'input' | 'preview'>('input');
+  const [previewIndentMode, setPreviewIndentMode] = useState<ReaderIndentMode>(initialIndentMode);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [name, setName] = useState('');
@@ -87,6 +90,13 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
           <a href="#" onClick={(e) => { e.preventDefault(); handleBack(); }}>&nbsp;修正する</a>
         </div>
 
+        <IndentModeControl
+          mode={previewIndentMode}
+          onChange={setPreviewIndentMode}
+          name="post-preview-indent-mode"
+          note="プレビューだけの設定です。投稿本文は原文のまま保存されます。"
+        />
+
         {/* 作品ページと同一レイアウト */}
         <table className="article-table">
           <tbody>
@@ -106,7 +116,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
             </tr>
             <tr>
               <td className="article-body">
-                <FootnoteRenderer content={body} />
+                <FootnoteRenderer content={body} indentMode={previewIndentMode} />
               </td>
             </tr>
           </tbody>
@@ -205,7 +215,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost }) => {
       </form>
 
       <div style={{ marginTop: 6, fontSize: 12 }}>
-        ※ HTMLタグは使えません。改行はそのまま保持されます。
+        ※ HTMLタグは使えません。改行はそのまま保持されます。字下げは読者ごとの表示設定で変わり、本文には全角スペースを自動追加しません。
       </div>
     </div>
   );

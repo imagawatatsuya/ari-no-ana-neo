@@ -22,6 +22,8 @@ export interface Novel {
 
 export type ViewMode = 'list' | 'post' | 'read' | 'admin';
 
+export type ReaderIndentMode = 'none' | 'jisage';
+
 export enum VoteValue {
   BEST = 2,
   GOOD = 1,

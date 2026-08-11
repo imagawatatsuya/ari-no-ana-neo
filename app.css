@@ -303,6 +303,37 @@ a:hover {
   padding: 8px;
 }
 
+.indent-mode-control {
+  width: 90%;
+  margin: 0 auto 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--table-border);
+  background: var(--table-bg);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.indent-mode-control legend {
+  padding: 0 4px;
+  font-weight: bold;
+}
+
+.indent-mode-control label {
+  margin-right: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.indent-mode-control input[type='radio'] {
+  margin-right: 4px;
+}
+
+.indent-mode-note {
+  display: block;
+  color: var(--point-gray);
+  font-size: 12px;
+}
+
 .article-page-count {
   text-align: center;
   padding: 4px 8px;
@@ -891,6 +922,7 @@ select:focus-visible {
   .site-title { font-size: 180%; }
   .article-title { font-size: 160%; }
   .article-table { width: 100%; border-spacing: 2px; }
+  .indent-mode-control { width: 100%; }
   .point-box { width: 100%; }
 
   /* --- ナビゲーション: タップターゲット拡大 --- */

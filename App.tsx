@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Novel, ViewMode, Comment } from './types';
+import { Novel, ViewMode, Comment, ReaderIndentMode } from './types';
 import { SEED_NOVELS, SEED_COMMENTS } from './seedData';
 import { NovelList } from './components/NovelList';
 import { NovelReader } from './components/NovelReader';
@@ -7,6 +7,7 @@ import { PostForm } from './components/PostForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { supabase } from './services/supabaseClient';
 import { deleteNovelAndComments, editNovelInList, toggleHiddenNovelId } from './adminOps';
+import { loadReaderIndentMode, saveReaderIndentMode } from './services/readerPreferences';
 
 const getJSTISOString = () => {
   const jstDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
@@ -26,6 +27,7 @@ const localAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD?.trim() || '';
 const NOVELS_PER_PAGE = 20;
 
 const App: React.FC = () => {
+  const isSupabaseMode = !!supabase;
   const [novels, setNovels] = useState<Novel[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [hiddenNovelIds, setHiddenNovelIds] = useState<string[]>([]);
@@ -46,12 +48,13 @@ const App: React.FC = () => {
   const [readComments, setReadComments] = useState<Comment[]>([]);
   const [adminNovels, setAdminNovels] = useState<Novel[]>([]);
   const [adminComments, setAdminComments] = useState<Comment[]>([]);
-
-  const isSupabaseMode = !!supabase;
+  const [readerIndentMode, setReaderIndentMode] = useState<ReaderIndentMode>(() => loadReaderIndentMode());
+  const [isLocalDataLoaded, setIsLocalDataLoaded] = useState(isSupabaseMode);
 
   useEffect(() => {
     if (!isSupabaseMode) {
       loadFromLocalStorage();
+      setIsLocalDataLoaded(true);
     }
 
     const savedHiddenNovelIds = localStorage.getItem(HIDDEN_IDS_STORAGE_KEY);
@@ -149,8 +152,13 @@ const App: React.FC = () => {
   }, [activeNovelId, view]);
 
   useEffect(() => {
+    if (!isSupabaseMode && !isLocalDataLoaded) return;
     localStorage.setItem(HIDDEN_IDS_STORAGE_KEY, JSON.stringify(hiddenNovelIds));
-  }, [hiddenNovelIds]);
+  }, [hiddenNovelIds, isLocalDataLoaded, isSupabaseMode]);
+
+  useEffect(() => {
+    saveReaderIndentMode(readerIndentMode);
+  }, [readerIndentMode]);
 
   const loadFromLocalStorage = () => {
     const savedNovels = localStorage.getItem('bunsho_novels_v2');
@@ -329,12 +337,16 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isSupabaseMode) localStorage.setItem('bunsho_novels_v2', JSON.stringify(novels));
-  }, [novels, isSupabaseMode]);
+    if (!isSupabaseMode && isLocalDataLoaded) {
+      localStorage.setItem('bunsho_novels_v2', JSON.stringify(novels));
+    }
+  }, [novels, isLocalDataLoaded, isSupabaseMode]);
 
   useEffect(() => {
-    if (!isSupabaseMode) localStorage.setItem('bunsho_comments_v2', JSON.stringify(comments));
-  }, [comments, isSupabaseMode]);
+    if (!isSupabaseMode && isLocalDataLoaded) {
+      localStorage.setItem('bunsho_comments_v2', JSON.stringify(comments));
+    }
+  }, [comments, isLocalDataLoaded, isSupabaseMode]);
 
   const incrementViewCount = async (id: string) => {
     if (isSupabaseMode) {
@@ -679,7 +691,7 @@ const App: React.FC = () => {
             )}
           </nav>
         )}
-        {view === 'post' && <PostForm onPost={handlePost} />}
+        {view === 'post' && <PostForm onPost={handlePost} initialIndentMode={readerIndentMode} />}
         {view === 'admin' && !isAdminAuthenticated && (
           <div>
             <div className="section-title">管理者ログイン</div>
@@ -731,7 +743,15 @@ const App: React.FC = () => {
             onResetSeedData={handleResetSeedData}
           />
         )}
-        {view === 'read' && activeNovel && <NovelReader novel={activeNovel} comments={activeComments} onComment={handleComment} />}
+        {view === 'read' && activeNovel && (
+          <NovelReader
+            novel={activeNovel}
+            comments={activeComments}
+            onComment={handleComment}
+            indentMode={readerIndentMode}
+            onIndentModeChange={setReaderIndentMode}
+          />
+        )}
         {view === 'read' && !activeNovel && !isLoading && <div style={{ padding: 8 }}>投稿が見つからないか、非表示に設定されています。<a href="#">一覧へ戻る</a></div>}
         {view === 'read' && !activeNovel && isLoading && <div style={{ padding: 8 }}>読み込み中...</div>}
         </main>
