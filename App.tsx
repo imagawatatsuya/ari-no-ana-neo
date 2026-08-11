@@ -1026,7 +1026,7 @@ const App: React.FC = () => {
                     mode={readerIndentMode}
                     onChange={setReaderIndentMode}
                     name="settings-reader-indent-mode"
-                    note="全角空白1字は整理し、二字以上の手動空白は保持します。脚注には適用しません。"
+                    note="既定値は投稿者設定です。全角空白1字は整理し、二字以上の手動空白は保持します。脚注には適用しません。"
                   />
                 </section>
                 <p><b>■ 閲覧</b></p>

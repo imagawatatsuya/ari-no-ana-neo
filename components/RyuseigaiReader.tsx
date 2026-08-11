@@ -101,7 +101,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
         mode={indentMode}
         onChange={onIndentModeChange}
         name="ryuseigai-reader-indent-mode"
-        note="全角空白1字は整理し、二字以上の手動空白は保持します。脚注には適用しません。"
+        note="既定値は投稿者設定です。全角空白1字は整理し、二字以上の手動空白は保持します。脚注には適用しません。"
       />
 
       {/* 作品本文: 共通組版システム */}

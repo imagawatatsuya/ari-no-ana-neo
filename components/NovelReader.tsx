@@ -126,7 +126,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
         mode={indentMode}
         onChange={onIndentModeChange}
         name="reader-indent-mode"
-        note="全角空白1字は整理し、二字以上の手動空白は保持します。脚注には適用しません。"
+        note="既定値は投稿者設定です。全角空白1字は整理し、二字以上の手動空白は保持します。脚注には適用しません。"
       />
 
       {/* 記事テーブル: 元サイト <table width="90%" cellspacing="4" cellpadding="8" align="center"> */}

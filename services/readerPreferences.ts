@@ -2,7 +2,7 @@ import type { ReaderIndentMode } from '../types';
 
 export const READER_PREFERENCES_STORAGE_KEY = 'bunsho_reader_preferences_v1';
 
-const DEFAULT_READER_INDENT_MODE: ReaderIndentMode = 'none';
+const DEFAULT_READER_INDENT_MODE: ReaderIndentMode = 'author';
 
 export interface ReaderPreferences {
   indentMode: ReaderIndentMode;
@@ -13,7 +13,7 @@ export const parseReaderIndentMode = (raw: string | null): ReaderIndentMode => {
 
   try {
     const parsed = JSON.parse(raw) as Partial<ReaderPreferences>;
-    if (parsed.indentMode === 'jisage' || parsed.indentMode === 'author') {
+    if (parsed.indentMode === 'none' || parsed.indentMode === 'jisage' || parsed.indentMode === 'author') {
       return parsed.indentMode;
     }
     return DEFAULT_READER_INDENT_MODE;
