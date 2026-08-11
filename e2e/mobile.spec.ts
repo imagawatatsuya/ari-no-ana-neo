@@ -58,6 +58,7 @@ test.describe('モバイル - 作品閲覧・コメント', () => {
 
     await links.nth(0).click();
     await expect(page.locator('.article-title')).toHaveText(title1);
+    await expect(page.getByRole('button', { name: '>>字下げ設定' })).toBeVisible();
 
     await page.locator('.back-link').first().click();
     await links.nth(1).click();

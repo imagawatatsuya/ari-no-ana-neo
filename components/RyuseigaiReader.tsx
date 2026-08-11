@@ -14,6 +14,7 @@ interface RyuseigaiReaderProps {
   footnoteMode?: FootnoteMode;
   indentMode: ReaderIndentMode;
   onIndentModeChange: (mode: ReaderIndentMode) => void;
+  onOpenReaderSettings: () => void;
 }
 
 const MAX_COMMENT_LENGTH = 500;
@@ -28,6 +29,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
   footnoteMode,
   indentMode,
   onIndentModeChange,
+  onOpenReaderSettings,
 }) => {
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
@@ -85,6 +87,14 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
       {/* 戻る */}
       <div className="ryuseigai-nav-top">
         <a href={BASE_PATH + '/ryuseigai'} onClick={(e) => { e.preventDefault(); navigate('/ryuseigai'); }} className="ryuseigai-back-link">← 流星垓へ戻る</a>
+        <button
+          type="button"
+          className="reader-settings-link"
+          onClick={onOpenReaderSettings}
+          aria-haspopup="dialog"
+        >
+          &gt;&gt;字下げ設定
+        </button>
       </div>
 
       <IndentModeControl

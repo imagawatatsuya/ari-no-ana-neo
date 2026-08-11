@@ -148,6 +148,12 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
     const articleBody = page.locator('.article-body');
     const noIndentText = await articleBody.innerText();
 
+    await expect(page.getByRole('button', { name: '>>字下げ設定' })).toBeVisible();
+    await page.getByRole('button', { name: '>>字下げ設定' }).click();
+    const settingsDialog = page.getByRole('dialog', { name: '設定 / ヘルプ' });
+    await expect(settingsDialog).toBeVisible();
+    await settingsDialog.getByRole('button', { name: '閉', exact: true }).click();
+
     await expect(page.getByRole('radio', { name: '自動字下げなし' })).toBeChecked();
     await page.getByRole('radio', { name: '自動字下げあり' }).check();
     await expect(articleBody).toContainText('　これは');

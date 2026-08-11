@@ -391,6 +391,35 @@ a:hover {
   font-size: 12px;
 }
 
+.reader-top-nav,
+.ryuseigai-nav-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.reader-settings-link {
+  border: 0;
+  background: transparent;
+  color: var(--link);
+  font: inherit;
+  line-height: 1.6;
+  padding: 2px 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.reader-settings-link:hover {
+  text-decoration: underline;
+}
+
+.reader-settings-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 .article-page-count {
   text-align: center;
   padding: 4px 8px;
@@ -1346,6 +1375,16 @@ select:focus-visible {
     border: 1px solid var(--table-border);
   }
 
+  .reader-top-nav,
+  .ryuseigai-nav-top {
+    align-items: stretch;
+  }
+
+  .reader-settings-link {
+    min-height: 44px;
+    padding: 10px 0;
+  }
+
   /* --- POINT内訳: 読みやすさ向上 --- */
   .point-breakdown {
     line-height: 2;
@@ -1644,6 +1683,9 @@ select:focus-visible {
 .ryuseigai-back-link:focus {
   outline: 2px solid #c99a9a;
   outline-offset: 2px;
+}
+.ryuseigai-shell .reader-settings-link {
+  color: #c99a9a;
 }
 
 /* 流星垓: ポイントボックス */

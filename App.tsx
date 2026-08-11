@@ -970,6 +970,7 @@ const App: React.FC = () => {
               footnoteMode={footnoteMode}
               indentMode={readerIndentMode}
               onIndentModeChange={setReaderIndentMode}
+              onOpenReaderSettings={() => setShowHelp(true)}
             />
           </Suspense>
         )}
@@ -989,6 +990,7 @@ const App: React.FC = () => {
               footnoteMode={footnoteMode}
               indentMode={readerIndentMode}
               onIndentModeChange={setReaderIndentMode}
+              onOpenReaderSettings={() => setShowHelp(true)}
             />
           </Suspense>
         )}

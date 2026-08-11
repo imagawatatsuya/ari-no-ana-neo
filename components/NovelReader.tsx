@@ -14,6 +14,7 @@ interface NovelReaderProps {
   footnoteMode?: FootnoteMode;
   indentMode: ReaderIndentMode;
   onIndentModeChange: (mode: ReaderIndentMode) => void;
+  onOpenReaderSettings: () => void;
 }
 
 const MAX_COMMENT_LENGTH = 500;
@@ -42,6 +43,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
   footnoteMode,
   indentMode,
   onIndentModeChange,
+  onOpenReaderSettings,
 }) => {
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
@@ -108,8 +110,16 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
   return (
     <div>
       {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
-      <div style={{ marginBottom: 6 }}>
+      <div className="reader-top-nav">
         <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">&nbsp;戻る</a>
+        <button
+          type="button"
+          className="reader-settings-link"
+          onClick={onOpenReaderSettings}
+          aria-haspopup="dialog"
+        >
+          &gt;&gt;字下げ設定
+        </button>
       </div>
 
       <IndentModeControl
