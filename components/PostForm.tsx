@@ -200,4 +200,182 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
           <table className="form-table">
             <tbody>
               <tr>
-            
+                <td className="form-label">タイトル</td>
+                <td>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      if (fieldErrors.title) setFieldErrors((prev) => ({ ...prev, title: undefined }));
+                    }}
+                    maxLength={MAX_TITLE}
+                    style={{ width: '100%' }}
+                    aria-invalid={!!fieldErrors.title}
+                    aria-describedby={fieldErrors.title ? 'post-error-title' : undefined}
+                  />
+                  {fieldErrors.title && (
+                    <div id="post-error-title" className="form-field-error">{fieldErrors.title}</div>
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">副題</td>
+                <td>
+                  <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    maxLength={MAX_DESCRIPTION}
+                    placeholder="作品ページ上部に表示される副題（任意）"
+                    style={{ width: '100%' }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">名前</td>
+                <td>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    maxLength={MAX_NAME}
+                    placeholder="名無し（トリップ: 名前#pass）"
+                    style={{ width: '100%' }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">作者からのメッセージ</td>
+                <td>
+                  <textarea
+                    value={authorMessage}
+                    onChange={(e) => setAuthorMessage(e.target.value)}
+                    maxLength={MAX_AUTHOR_MESSAGE}
+                    placeholder="作品ページ下部に表示される作者からのメッセージ（任意）"
+                    style={{ minHeight: 90 }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">本文</td>
+                <td>
+                  <textarea
+                    value={body}
+                    onChange={(e) => {
+                      setBody(e.target.value);
+                      if (fieldErrors.body) setFieldErrors((prev) => ({ ...prev, body: undefined }));
+                    }}
+                    maxLength={MAX_BODY}
+                    style={{ minHeight: 280 }}
+                    aria-invalid={!!fieldErrors.body}
+                    aria-describedby={fieldErrors.body ? 'post-error-body' : undefined}
+                  />
+                  {fieldErrors.body && (
+                    <div id="post-error-body" className="form-field-error">{fieldErrors.body}</div>
+                  )}
+                  <div className="post-form-stats">
+                    <span>文字数: {countBodyCharacters(body).toLocaleString()}文字</span>
+                    {livePageCount && <span>原稿用紙: {livePageCount}</span>}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+
+        <div className="post-form-note">
+          ※ HTMLタグは使えません。改行はそのまま保持されます。本文の字下げ設定は投稿者の意図として保存されます。
+        </div>
+        <AuthorIndentModeControl
+          mode={authorIndentMode}
+          onChange={setAuthorIndentMode}
+          name="post-author-indent-mode-input"
+          note="読者の表示設定とは別に保存されます。二字以上を含む手動空白は常に保持されます。"
+        />
+      </div>
+
+      <div
+        id="post-panel-preview"
+        role="tabpanel"
+        aria-labelledby="post-tab-preview"
+        className={`post-form-panel${mode !== 'preview' ? ' post-form-panel--hidden' : ''}`}
+        hidden={mode !== 'preview'}
+       >
+         <AuthorIndentModeControl
+           mode={authorIndentMode}
+           onChange={setAuthorIndentMode}
+           name="post-author-indent-mode-preview"
+           note="投稿者の意図を確認するプレビューです。投稿本文は原文のまま保存されます。"
+        />
+        <table className="article-table">
+          <tbody>
+            <tr>
+              <td className={title.trim() ? 'article-title' : 'article-title article-subtitle-empty'}>
+                {title.trim() || '（タイトル未入力）'}
+              </td>
+            </tr>
+            {previewPageCount && (
+              <tr>
+                <td className="article-page-count">{previewPageCount}</td>
+              </tr>
+            )}
+            {description.trim() && (
+              <tr>
+                <td className="article-subtitle">{description.trim()}</td>
+              </tr>
+            )}
+            <tr>
+              <td className="article-body">
+                <FootnoteRenderer
+                  content={body}
+                  indentMode="author"
+                  authorIndentMode={authorIndentMode}
+                  footnoteMode={footnoteMode}
+                  formatBody={formatReaderBody}
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="article-date" style={{ textAlign: 'right' }}>{previewDate} 公開（予定）</div>
+
+        <div className="post-form-author">
+          <div>
+            <b>■作者</b>{trip && <span>＜{trip.replace('◆', '')}＞</span>}
+            <div style={{ marginLeft: '3%' }}>{authorName}</div>
+          </div>
+          {authorMessage.trim() && (
+            <div style={{ marginTop: 8 }}>
+              <b>からのメッセージ</b>
+              <div style={{ marginLeft: '3%', whiteSpace: 'pre-wrap' }}>{authorMessage.trim()}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="post-form-actions">
+        {mode === 'input' ? (
+          <button type="button" className="classic-button post-form-action-primary" onClick={switchToPreview}>
+            プレビュー
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="classic-button post-form-action-primary"
+              onClick={handleSubmitClick}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? '送信中...' : '投稿する'}
+            </button>
+            <button type="button" className="classic-button" onClick={() => setMode('input')}>
+              入力に戻る
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
