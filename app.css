@@ -111,6 +111,17 @@ a:hover {
   padding: 8px var(--page-gutter) 24px;
 }
 
+.site-shell-ryuseigai {
+  max-width: none;
+  min-height: 100vh;
+  padding: 0;
+  background: #090909;
+}
+
+.site-shell-ryuseigai .site-panel {
+  min-height: 100vh;
+}
+
 .site-panel {
   width: 100%;
   padding: 0;
@@ -1456,25 +1467,73 @@ select:focus-visible {
 
 .ryuseigai-shell {
   min-height: 100vh;
-  background: #0a0a0a;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(91, 39, 47, 0.28), transparent 34rem),
+    linear-gradient(180deg, #0b0b0c 0%, #090909 42%, #0d0a0b 100%);
   color: #b8b2a6;
-  padding: 8px var(--page-gutter);
+  padding: clamp(14px, 2.5vw, 28px) var(--page-gutter) 48px;
   font-size: 1rem;
   line-height: var(--line-height-ui);
+  position: relative;
+  isolation: isolate;
+}
+
+.ryuseigai-shell::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: '';
+  opacity: 0.22;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 7px,
+    rgba(170, 110, 115, 0.06) 8px,
+    transparent 9px
+  );
+}
+
+.ryuseigai-reader-shell > * {
+  width: min(100%, 56rem);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* 流星垓内の共通組版クラス: 暗色上書き */
 .ryuseigai-shell .article-title {
-  color: #c99a9a;
+  color: #d19aa0;
+  font-size: clamp(1.85rem, 1.45rem + 1.2vw, 2.7rem);
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-shadow: 0 0 18px rgba(174, 71, 85, 0.28);
 }
 .ryuseigai-shell .article-body {
   color: #c8c2b6;
+  background: rgba(12, 12, 13, 0.72);
+  border-left: 1px solid #272126;
+  border-right: 1px solid #272126;
+  padding: 16px clamp(14px, 3vw, 28px);
+  line-height: 1.95;
 }
 .ryuseigai-shell .article-page-count {
   color: #9a9488;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
 }
 .ryuseigai-shell .article-date {
   color: #9a9488;
+  margin-top: 12px;
+}
+
+.ryuseigai-article-subtitle {
+  background: #191114;
+  border-left: 3px solid #704049;
+  color: #d0a9a7;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  padding: 10px 14px !important;
+  text-align: left;
 }
 .ryuseigai-shell .comment-block {
   border-bottom: 1px solid #2a2a2a;
@@ -1555,11 +1614,12 @@ select:focus-visible {
 }
 
 .ryuseigai-panel {
-  max-width: min(45rem, 100%);
+  max-width: min(56rem, 100%);
   margin: 0 auto;
-  background: #111111;
-  border: 1px solid #3a3a3a;
-  padding: 24px 16px;
+  background: rgba(17, 17, 18, 0.9);
+  border: 1px solid #3a3034;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.38);
+  padding: clamp(22px, 4vw, 36px) clamp(16px, 3vw, 28px);
   color: #b8b2a6;
   font-family: "MS PGothic", "Osaka", monospace;
 }
@@ -1686,6 +1746,31 @@ select:focus-visible {
 }
 .ryuseigai-shell .reader-settings-link {
   color: #c99a9a;
+}
+
+.ryuseigai-shell .indent-mode-control {
+  width: min(100%, 56rem);
+  margin-bottom: 16px;
+  border-color: #3a3034;
+  background: rgba(23, 16, 18, 0.94);
+  color: #b8b2a6;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+}
+
+.ryuseigai-shell .indent-mode-control legend {
+  color: #d0a1a5;
+}
+
+.ryuseigai-shell .indent-mode-control label {
+  color: #c2b7ae;
+}
+
+.ryuseigai-shell .indent-mode-control input[type='radio'] {
+  accent-color: #a65a66;
+}
+
+.ryuseigai-shell .indent-mode-note {
+  color: #9a8d88;
 }
 
 /* 流星垓: ポイントボックス */
@@ -1821,12 +1906,42 @@ select:focus-visible {
 }
 
 .ryuseigai-author-block {
-  padding: 4px 8px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid #3a3034;
+  border-left: 3px solid #704049;
+  background: linear-gradient(135deg, rgba(31, 19, 22, 0.92), rgba(18, 14, 16, 0.9));
   font-size: 1rem;
 }
 
-.ryuseigai-author-block .ryuseigai-author-name {
-  margin-left: 3%;
+.ryuseigai-author-label {
+  color: #c49a98;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+}
+
+.ryuseigai-author-name {
+  margin: 4px 0 0 3%;
+  color: #d2c0b7;
+}
+
+.ryuseigai-author-message {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #49353a;
+}
+
+.ryuseigai-author-message-label {
+  color: #b77e87;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+}
+
+.ryuseigai-author-message-text {
+  margin: 4px 0 0 3%;
+  color: #c9b9ae;
+  line-height: 1.8;
+  white-space: pre-wrap;
 }
 
 .ryuseigai-form-row {

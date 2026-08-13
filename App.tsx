@@ -816,7 +816,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="site-shell">
+    <div className={`site-shell${view === 'ryuseigai' || view === 'ryuseigai-read' ? ' site-shell-ryuseigai' : ''}`}>
       <a href="#main-content" className="skip-link">本文へスキップ</a>
       <div className="site-panel">
         {/* 作品ページ（read/post）と流星垓には通常ヘッダを表示しない */}

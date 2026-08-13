@@ -37,6 +37,8 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
+  const subtitle = novel.description?.trim() ?? '';
+  const authorMessage = novel.authorMessage?.trim() ?? '';
 
   const voteSum = comments.reduce((acc, c) => acc + c.vote, 0);
   const totalScore = RYUSEIGAI_BASE_SCORE + voteSum;
@@ -83,7 +85,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
   };
 
   return (
-    <div className="ryuseigai-shell">
+    <div className="ryuseigai-shell ryuseigai-reader-shell">
       {/* 戻る */}
       <div className="ryuseigai-nav-top">
         <a href={BASE_PATH + '/ryuseigai'} onClick={(e) => { e.preventDefault(); navigate('/ryuseigai'); }} className="ryuseigai-back-link">← 流星垓へ戻る</a>
@@ -115,6 +117,11 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
               <td className="article-page-count">{formatManuscriptPages(novel.body)}</td>
             </tr>
           )}
+          {subtitle && (
+            <tr>
+              <td className="ryuseigai-article-subtitle">{subtitle}</td>
+            </tr>
+          )}
           <tr>
             <td className="article-body">
               <FootnoteRenderer
@@ -132,8 +139,14 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
       <div className="article-date" style={{ textAlign: 'right' }}>{formatDate(novel.date)} に捨てられた</div>
 
       <div className="ryuseigai-author-block">
-        <b>■ 捨てた者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}
+        <div className="ryuseigai-author-label"><b>■ 捨てた者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}</div>
         <div className="ryuseigai-author-name">{novel.author || '名無し'}</div>
+        {authorMessage && (
+          <div className="ryuseigai-author-message">
+            <div className="ryuseigai-author-message-label">からのメッセージ</div>
+            <div className="ryuseigai-author-message-text">{authorMessage}</div>
+          </div>
+        )}
       </div>
 
       {/* 存在価値（流星垓独自） */}
