@@ -154,7 +154,7 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
     await expect(settingsDialog).toBeVisible();
     await settingsDialog.getByRole('button', { name: '閉', exact: true }).click();
 
-    await expect(page.getByRole('radio', { name: '自動字下げなし' })).toBeChecked();
+    await expect(page.getByRole('radio', { name: '投稿者設定に従う' })).toBeChecked();
     await page.getByRole('radio', { name: '自動字下げあり' }).check();
     await expect(articleBody).toContainText('　これは');
     expect(noIndentText).not.toContain('　これは');
