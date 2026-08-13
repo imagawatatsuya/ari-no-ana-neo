@@ -61,4 +61,3 @@ export enum VoteValue {
   BAD = -1,
   WORST = -2
 }
-

@@ -117,4 +117,3 @@ test('post draft: legacy draft without author message remains readable', () => {
   assert.equal(draft?.authorMessage, '');
   clearPostDraft();
 });
-

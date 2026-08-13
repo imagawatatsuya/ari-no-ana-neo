@@ -47,4 +47,3 @@ export function clearPostDraft(): void {
     // ignore
   }
 }
-

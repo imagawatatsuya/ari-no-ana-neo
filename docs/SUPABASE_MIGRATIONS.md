@@ -63,4 +63,3 @@ where table_schema = 'public'
 
 新規投稿・管理画面編集をオンラインモードで使う前に、本番Supabaseプロジェクトへ適用する。
 - ローカル開発（オフラインモード）では Supabase 不要
-

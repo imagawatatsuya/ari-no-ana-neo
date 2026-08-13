@@ -46,4 +46,3 @@ test('admin hide operation toggles hidden id set idempotently', () => {
   const shown = toggleHiddenNovelId(hiddenTwice, id, false);
   assert.equal(shown.includes(id), false);
 });
-

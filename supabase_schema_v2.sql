@@ -174,4 +174,3 @@ for select using (auth.uid() = user_id);
 -- 流星垓コメントは vote -500 / -1000 を使うため、CHECK制約を拡張:
 -- ALTER TABLE public.comments DROP CONSTRAINT IF EXISTS comments_vote_range;
 -- ALTER TABLE public.comments ADD CONSTRAINT comments_vote_range CHECK (vote BETWEEN -1000 AND 2);
-

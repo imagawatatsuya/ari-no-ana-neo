@@ -8,4 +8,3 @@ alter table public.novels
 alter table public.novels
   add constraint novels_author_message_length
   check (author_message is null or length(author_message) <= 500);
-
