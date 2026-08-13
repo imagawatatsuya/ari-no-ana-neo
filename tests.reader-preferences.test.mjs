@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 
 import { parseReaderIndentMode } from './services/readerPreferences.ts';
 
-test('reader preference defaults to following the author', () => {
-  assert.equal(parseReaderIndentMode(null), 'author');
-  assert.equal(parseReaderIndentMode('not-json'), 'author');
-  assert.equal(parseReaderIndentMode('{"indentMode":"unknown"}'), 'author');
+test('reader preference defaults to no automatic indentation', () => {
+  assert.equal(parseReaderIndentMode(null), 'none');
+  assert.equal(parseReaderIndentMode('not-json'), 'none');
+  assert.equal(parseReaderIndentMode('{"indentMode":"unknown"}'), 'none');
 });
 
 test('reader preference accepts all three display modes', () => {

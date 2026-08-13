@@ -54,4 +54,13 @@ where table_schema = 'public'
 
 - マイグレーションは **本番 Supabase プロジェクト** に対して実行する
 - `novels.date` が text 型でも動作するよう `::timestamptz` キャストを使っている
+
+## 作者からのメッセージ列
+
+ファイル: `supabase/migrations/20260813_author_message.sql`
+
+作品ページ下部の「作者からのメッセージ」を、副題（既存の `description` 列）や作者名とは別に保存するための `novels.author_message` 列を追加する。既存作品の `description` は副題として保持し、作者名を作者メッセージへ移行しない。
+
+新規投稿・管理画面編集をオンラインモードで使う前に、本番Supabaseプロジェクトへ適用する。
 - ローカル開発（オフラインモード）では Supabase 不要
+

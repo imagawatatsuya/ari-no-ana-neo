@@ -5,6 +5,7 @@ const DRAFT_KEY = 'ari_post_draft_v1';
 export type PostDraft = {
   title: string;
   description: string;
+  authorMessage: string;
   name: string;
   body: string;
   authorIndentMode: AuthorIndentMode;
@@ -19,6 +20,7 @@ export function readPostDraft(): PostDraft | null {
     return {
       title: parsed.title,
       description: typeof parsed.description === 'string' ? parsed.description : '',
+      authorMessage: typeof parsed.authorMessage === 'string' ? parsed.authorMessage : '',
       name: typeof parsed.name === 'string' ? parsed.name : '',
       body: parsed.body,
       // A draft is a new author's choice, so its missing value follows the
@@ -45,3 +47,4 @@ export function clearPostDraft(): void {
     // ignore
   }
 }
+

@@ -74,7 +74,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 1. [Supabase](https://supabase.com/) で新しいプロジェクトを作成
 2. `supabase_schema_v2.sql` の内容をコピー
 3. Supabaseの SQL Editor で実行してテーブル / RLS / policy / RPC を作成
-   - 既存DBには `supabase/migrations/20260812_author_indent_mode.sql` も適用してください
+   - 既存DBには `supabase/migrations/20260812_author_indent_mode.sql` と `supabase/migrations/20260813_author_message.sql` も適用してください
 4. Supabase Auth で管理者ユーザーを作成（Email+Password）
 5. 作成したユーザーID（auth.users.id）を `admin_users` に登録
 
@@ -127,3 +127,4 @@ GitHub上でデプロイするには、以下の手順で環境変数を登録�
 ---
 
 **最終更新:** 2026年7月
+

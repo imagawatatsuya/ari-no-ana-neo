@@ -4,12 +4,14 @@ import { formatDate } from '../utils';
 import { FootnoteMode } from './FootnoteRenderer';
 
 type FilterTab = 'all' | 'published' | 'hidden';
+const MAX_DESCRIPTION = 500;
+const MAX_AUTHOR_MESSAGE = 500;
 
 interface AdminDashboardProps {
   novels: Novel[];
   comments: Comment[];
   hiddenNovelIds: string[];
-  onEditNovel: (id: string, patch: Pick<Novel, 'title' | 'author' | 'trip' | 'body'>) => Promise<void>;
+  onEditNovel: (id: string, patch: Pick<Novel, 'title' | 'description' | 'authorMessage' | 'author' | 'trip' | 'body'>) => Promise<void>;
   onDeleteNovel: (id: string) => Promise<void>;
   onToggleHideNovel: (id: string, nextHidden: boolean) => Promise<void>;
   onBulkToggleHide: (ids: string[], nextHidden: boolean) => Promise<void>;
@@ -34,6 +36,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [authorMessage, setAuthorMessage] = useState('');
   const [author, setAuthor] = useState('');
   const [trip, setTrip] = useState('');
   const [body, setBody] = useState('');
@@ -88,6 +92,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const startEdit = (novel: Novel) => {
     setEditingId(novel.id);
     setTitle(novel.title);
+    setDescription(novel.description || '');
+    setAuthorMessage(novel.authorMessage || '');
     setAuthor(novel.author);
     setTrip(novel.trip || '');
     setBody(novel.body);
@@ -96,6 +102,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const cancelEdit = () => {
     setEditingId(null);
     setTitle('');
+    setDescription('');
+    setAuthorMessage('');
     setAuthor('');
     setTrip('');
     setBody('');
@@ -112,6 +120,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     try {
       await onEditNovel(editingId, {
         title: title.trim(),
+        description: description.trim() || undefined,
+        authorMessage: authorMessage.trim() || undefined,
         author: author.trim() || '名無し',
         trip: trip.trim() || undefined,
         body,
@@ -234,6 +244,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <td><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%' }} /></td>
               </tr>
               <tr>
+                <td className="form-label">副題</td>
+                <td><input type="text" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={MAX_DESCRIPTION} style={{ width: '100%' }} /></td>
+              </tr>
+              <tr>
+                <td className="form-label">作者からのメッセージ</td>
+                <td><textarea value={authorMessage} onChange={(e) => setAuthorMessage(e.target.value)} maxLength={MAX_AUTHOR_MESSAGE} style={{ minHeight: 90 }} /></td>
+              </tr>
+              <tr>
                 <td className="form-label">名前</td>
                 <td><input type="text" value={author} onChange={(e) => setAuthor(e.target.value)} style={{ width: 300, maxWidth: '100%' }} /></td>
               </tr>
@@ -259,3 +277,4 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     </div>
   );
 };
+

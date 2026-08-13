@@ -8,6 +8,8 @@ test('admin edit operation updates target novel only', () => {
   const targetId = '1';
   const updated = editNovelInList(SEED_NOVELS, targetId, {
     title: '編集後タイトル',
+    description: '編集後の副題',
+    authorMessage: '編集後の作者メッセージ',
     author: '管理人',
     trip: '◆ADMIN',
     body: '編集後本文',
@@ -16,6 +18,8 @@ test('admin edit operation updates target novel only', () => {
   const target = updated.find((n) => n.id === targetId);
   assert.ok(target);
   assert.equal(target.title, '編集後タイトル');
+  assert.equal(target.description, '編集後の副題');
+  assert.equal(target.authorMessage, '編集後の作者メッセージ');
   assert.equal(target.author, '管理人');
   assert.equal(target.trip, '◆ADMIN');
   assert.equal(target.body, '編集後本文');
@@ -42,3 +46,4 @@ test('admin hide operation toggles hidden id set idempotently', () => {
   const shown = toggleHiddenNovelId(hiddenTwice, id, false);
   assert.equal(shown.includes(id), false);
 });
+

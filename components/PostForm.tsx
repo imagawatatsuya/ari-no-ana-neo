@@ -16,6 +16,7 @@ interface PostFormProps {
 // 入力長制限
 const MAX_TITLE = 200;
 const MAX_DESCRIPTION = 500;
+const MAX_AUTHOR_MESSAGE = 500;
 const MAX_NAME = 100;
 const MAX_BODY = 100000;
 
@@ -28,6 +29,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
   const [authorIndentMode, setAuthorIndentMode] = useState<AuthorIndentMode>(initialAuthorIndentMode);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [authorMessage, setAuthorMessage] = useState('');
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,6 +42,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
     if (draft) {
       setTitle(draft.title);
       setDescription(draft.description);
+      setAuthorMessage(draft.authorMessage);
       setName(draft.name);
       setBody(draft.body);
       setAuthorIndentMode(draft.authorIndentMode);
@@ -49,8 +52,8 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
 
   useEffect(() => {
     if (!isDraftLoaded) return;
-    writePostDraft({ title, description, name, body, authorIndentMode });
-  }, [title, description, name, body, authorIndentMode, isDraftLoaded]);
+    writePostDraft({ title, description, authorMessage, name, body, authorIndentMode });
+  }, [title, description, authorMessage, name, body, authorIndentMode, isDraftLoaded]);
 
   const { name: authorName, trip } = generateTrip(name);
   const livePageCount = formatManuscriptPages(body);
@@ -94,6 +97,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         id: Date.now().toString(),
         title: title.trim(),
         description: description.trim() || undefined,
+        authorMessage: authorMessage.trim() || undefined,
         author: authorName,
         trip,
         body,
@@ -118,6 +122,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
       clearPostDraft();
       setTitle('');
       setDescription('');
+      setAuthorMessage('');
       setName('');
       setBody('');
       setAuthorIndentMode('none');
@@ -215,14 +220,14 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                 </td>
               </tr>
               <tr>
-                <td className="form-label">メッセージ</td>
+                <td className="form-label">副題</td>
                 <td>
                   <input
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={MAX_DESCRIPTION}
-                    placeholder="作品ページ上部に表示される自由記述欄（任意）"
+                    placeholder="作品ページ上部に表示される副題（任意）"
                     style={{ width: '100%' }}
                   />
                 </td>
@@ -237,6 +242,18 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                     maxLength={MAX_NAME}
                     placeholder="名無し（トリップ: 名前#pass）"
                     style={{ width: '100%' }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">作者からのメッセージ</td>
+                <td>
+                  <textarea
+                    value={authorMessage}
+                    onChange={(e) => setAuthorMessage(e.target.value)}
+                    maxLength={MAX_AUTHOR_MESSAGE}
+                    placeholder="作品ページ下部に表示される作者からのメッセージ（任意）"
+                    style={{ minHeight: 90 }}
                   />
                 </td>
               </tr>
@@ -303,12 +320,11 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                 <td className="article-page-count">{previewPageCount}</td>
               </tr>
             )}
-            <tr>
-              <td className={description.trim() ? 'article-subtitle' : 'article-subtitle article-subtitle-empty'}
-                  aria-hidden={!description.trim() || undefined}>
-                {description.trim() || 'なし'}
-              </td>
-            </tr>
+            {description.trim() && (
+              <tr>
+                <td className="article-subtitle">{description.trim()}</td>
+              </tr>
+            )}
             <tr>
               <td className="article-body">
                 <FootnoteRenderer
@@ -326,8 +342,16 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         <div className="article-date" style={{ textAlign: 'right' }}>{previewDate} 公開（予定）</div>
 
         <div className="post-form-author">
-          <b>■作者</b>{trip && <span>＜{trip.replace('◆', '')}＞</span>} <b>からのメッセージ</b>
-          <div style={{ marginLeft: '3%' }}>{authorName}</div>
+          <div>
+            <b>■作者</b>{trip && <span>＜{trip.replace('◆', '')}＞</span>}
+            <div style={{ marginLeft: '3%' }}>{authorName}</div>
+          </div>
+          {authorMessage.trim() && (
+            <div style={{ marginTop: 8 }}>
+              <b>からのメッセージ</b>
+              <div style={{ marginLeft: '3%', whiteSpace: 'pre-wrap' }}>{authorMessage.trim()}</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -355,3 +379,4 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
     </div>
   );
 };
+

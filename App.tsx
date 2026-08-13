@@ -276,6 +276,7 @@ const App: React.FC = () => {
         voteSum: 0,
         isHidden: !!novelData.is_hidden,
         description: novelData.description ?? undefined,
+        authorMessage: novelData.author_message ?? undefined,
         authorIndentMode: normalizeAuthorIndentMode(novelData.author_indent_mode, 'raw'),
       };
       setReadNovel(mapped);
@@ -336,6 +337,7 @@ const App: React.FC = () => {
         isHidden: !!n.is_hidden,
         isRyuseigai: !!n.is_ryuseigai,
         description: n.description ?? undefined,
+        authorMessage: n.author_message ?? undefined,
         authorIndentMode: normalizeAuthorIndentMode(n.author_indent_mode, 'raw'),
       }));
 
@@ -397,6 +399,7 @@ const App: React.FC = () => {
         id: novelToSave.id,
         title: novelToSave.title,
         description: novelToSave.description || null,
+        author_message: novelToSave.authorMessage || null,
         author: novelToSave.author,
         trip: novelToSave.trip || null,
         body: novelToSave.body,
@@ -446,7 +449,7 @@ const App: React.FC = () => {
   };
 
 
-  const handleEditNovel = async (id: string, patch: Pick<Novel, 'title' | 'author' | 'trip' | 'body'>) => {
+  const handleEditNovel = async (id: string, patch: Pick<Novel, 'title' | 'description' | 'authorMessage' | 'author' | 'trip' | 'body'>) => {
     if (!isAdminAuthenticated) {
       alert('管理者認証が必要です。');
       return;
@@ -455,7 +458,14 @@ const App: React.FC = () => {
     if (isSupabaseMode && supabase) {
       const { error } = await supabase
         .from('novels')
-        .update({ title: patch.title, author: patch.author, trip: patch.trip ?? null, body: patch.body })
+        .update({
+          title: patch.title,
+          description: patch.description || null,
+          author_message: patch.authorMessage || null,
+          author: patch.author,
+          trip: patch.trip ?? null,
+          body: patch.body,
+        })
         .eq('id', id);
       if (error) {
         alert(`投稿の更新に失敗しました: ${error.message}`);
@@ -535,110 +545,7 @@ const App: React.FC = () => {
     }
 
     setHiddenNovelIds((prev) => {
-      let next = [...prev];
-      for (const id of ids) {
-        next = toggleHiddenNovelId(next, id, nextHidden);
-      }
-      return next;
-    });
-    if (isSupabaseMode) {
-      setAdminNovels((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, isHidden: nextHidden } : n)));
-    } else {
-      setNovels((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, isHidden: nextHidden } : n)));
-    }
-
-    if (isSupabaseMode && supabase) {
-      const { error } = await supabase.from('novels').update({ is_hidden: nextHidden }).in('id', ids);
-      if (error) {
-        console.error('Failed to bulk sync is_hidden:', error);
-        setErrorMsg('一括非表示の同期に失敗しました。');
-      }
-    }
-  };
-
-  const handleResetSeedData = () => {
-    if (!isAdminAuthenticated) {
-      alert('管理者認証が必要です。');
-      return;
-    }
-
-    if (!window.confirm('テスト用ダミーデータ（5件）に戻します。現在のローカルデータは上書きされます。よろしいですか？')) return;
-
-    setNovels(SEED_NOVELS);
-    setComments(SEED_COMMENTS);
-    setHiddenNovelIds([]);
-    alert('ダミーデータを再投入しました。');
-  };
-
-  // --- 流星垓送りトグル ---
-  const handleToggleRyuseigai = async (id: string, nextRyuseigai: boolean) => {
-    if (!isAdminAuthenticated) {
-      alert('管理者認証が必要です。');
-      return;
-    }
-
-    if (isSupabaseMode) {
-      setAdminNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
-      setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
-    } else {
-      setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
-    }
-
-    if (isSupabaseMode && supabase) {
-      const { error } = await supabase.from('novels').update({ is_ryuseigai: nextRyuseigai }).eq('id', id);
-      if (error) {
-        console.error('Failed to sync is_ryuseigai:', error);
-        setErrorMsg('流星垓状態の同期に失敗しました。');
-      }
-    }
-  };
-
-  // --- 検索ハンドラ ---
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearchQuery(searchInput);
-    setCurrentPage(1);
-  };
-
-  const handleSearchClear = () => {
-    setSearchInput('');
-    setSearchQuery('');
-    setCurrentPage(1);
-  };
-
-  // --- ページング計算（モード分岐） ---
-  const visibleNovels = useMemo(() => {
-    let list = novels.filter((novel) => !hiddenNovelIds.includes(novel.id) && !novel.isRyuseigai);
-    // オフラインモード: クライアント側で検索フィルタ
-    if (!isSupabaseMode && searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      list = list.filter((n) => n.title.toLowerCase().includes(q) || n.author.toLowerCase().includes(q));
-    }
-    // 新着順（投稿日時降順）で統一
-    return [...list].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [novels, hiddenNovelIds, isSupabaseMode, searchQuery]);
-
-  // --- 流星垓作品（オフラインモード用） ---
-  const offlineRyuseigaiNovels = useMemo(() => {
-    if (isSupabaseMode) return [];
-    return novels.filter((n) => n.isRyuseigai && !hiddenNovelIds.includes(n.id));
-  }, [novels, hiddenNovelIds, isSupabaseMode]);
-
-  const offlineRyuseigaiComments = useMemo(() => {
-    if (isSupabaseMode) return [];
-    const ids = new Set(offlineRyuseigaiNovels.map((n) => n.id));
-    return comments.filter((c) => ids.has(c.novelId));
-  }, [comments, offlineRyuseigaiNovels, isSupabaseMode]);
-
-  const totalNovelCount = isSupabaseMode ? supabaseTotalCount : visibleNovels.length;
-
-  // Supabaseモード: サーバーが総件数を返す / オフライン: クライアント計算
-  const totalPages = Math.max(1, Math.ceil(totalNovelCount / NOVELS_PER_PAGE));
-  const clampedPage = Math.min(currentPage, totalPages);
-
-  // オフラインモード: クライアントでスライス
-  const pagedNovels = useMemo(
-    () => visibleNovels.slice((clampedPage - 1) * NOVELS_PER_PAGE, clampedPage * NOVELS_PER_PAGE),
+      let next = …1043 tokens truncated…S_PER_PAGE, clampedPage * NOVELS_PER_PAGE),
     [visibleNovels, clampedPage],
   );
 
@@ -1050,3 +957,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

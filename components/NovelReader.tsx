@@ -51,6 +51,7 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
+  const authorMessage = novel.authorMessage?.trim() ?? '';
 
   const { total, count } = calculateScore(comments);
 
@@ -142,13 +143,12 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
               <td className="article-page-count">{formatManuscriptPages(novel.body)}</td>
             </tr>
           )}
-          {/* メッセージバー: 元サイト <td bgcolor="#D3CEC0" align="center"><span class="font_discription"> — 自由記述 */}
-          <tr>
-            <td className={novel.description ? 'article-subtitle' : 'article-subtitle article-subtitle-empty'}
-                aria-hidden={!novel.description || undefined}>
-              {novel.description || 'なし'}
-            </td>
-          </tr>
+          {/* 副題: 元サイトの自由記述メッセージバー */}
+          {novel.description?.trim() && (
+            <tr>
+              <td className="article-subtitle">{novel.description.trim()}</td>
+            </tr>
+          )}
           {/* 本文: .font_body { font-size:100%; line-height:150% } */}
           <tr>
             <td className="article-body">
@@ -167,10 +167,16 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
       {/* 日付: 元サイトはテーブル外・右寄せ */}
       <div className="article-date" style={{ textAlign: 'right' }}>{formatDate(novel.date)} 公開</div>
 
-      {/* 作者識別: 元サイト「作者＜trip＞ からのメッセージ」 */}
+      {/* 作者情報と作者からのメッセージ */}
       <div style={{ padding: '4px 8px', fontSize: 16 }}>
-        <b>■作者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>} <b>からのメッセージ</b>
+        <b>■作者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}
         <div style={{ marginLeft: '3%' }}>{novel.author || '名無し'}</div>
+        {authorMessage && (
+          <div style={{ marginTop: 8 }}>
+            <b>からのメッセージ</b>
+            <div style={{ marginLeft: '3%', whiteSpace: 'pre-wrap' }}>{authorMessage}</div>
+          </div>
+        )}
       </div>
 
       {/* POINT ボックス */}
@@ -272,3 +278,4 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
     </div>
   );
 };
+

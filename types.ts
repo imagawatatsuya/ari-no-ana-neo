@@ -34,6 +34,7 @@ export interface Comment {
 
 export interface Novel extends NovelSummary {
   description?: string; // 自由記述メッセージバー（作品ページ上部のグレー帯）
+  authorMessage?: string; // 作者からのメッセージ本文
   body: string; // Raw text
   /** 投稿者の意図。旧投稿で未保存の場合は raw として扱う。 */
   authorIndentMode?: AuthorIndentMode;
@@ -60,3 +61,4 @@ export enum VoteValue {
   BAD = -1,
   WORST = -2
 }
+

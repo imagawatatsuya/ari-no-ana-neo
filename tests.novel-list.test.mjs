@@ -95,9 +95,26 @@ test('novelListParamsKey: isolates page and search', () => {
 
 test('post draft: save, read, clear', () => {
   storage.clear();
-  writePostDraft({ title: 't', description: 'd', name: 'n', body: 'b', authorIndentMode: 'jisage' });
+  writePostDraft({ title: 't', description: 'd', authorMessage: 'm', name: 'n', body: 'b', authorIndentMode: 'jisage' });
   const draft = readPostDraft();
-  assert.deepEqual(draft, { title: 't', description: 'd', name: 'n', body: 'b', authorIndentMode: 'jisage' });
+  assert.deepEqual(draft, { title: 't', description: 'd', authorMessage: 'm', name: 'n', body: 'b', authorIndentMode: 'jisage' });
   clearPostDraft();
   assert.equal(readPostDraft(), null);
 });
+
+test('post draft: legacy draft without author message remains readable', () => {
+  storage.clear();
+  localStorage.setItem('ari_post_draft_v1', JSON.stringify({
+    title: 'legacy',
+    description: '旧副題',
+    name: 'n',
+    body: 'b',
+    authorIndentMode: 'none',
+  }));
+
+  const draft = readPostDraft();
+  assert.equal(draft?.description, '旧副題');
+  assert.equal(draft?.authorMessage, '');
+  clearPostDraft();
+});
+

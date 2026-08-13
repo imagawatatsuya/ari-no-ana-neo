@@ -7,6 +7,7 @@ create table if not exists public.novels (
   id text primary key,
   title text not null,
   description text,
+  author_message text,
   author text not null,
   trip text,
   body text not null,
@@ -17,7 +18,9 @@ create table if not exists public.novels (
   date timestamptz not null default now(),
   view_count integer not null default 0 check (view_count >= 0),
   is_hidden boolean not null default false,
-  is_ryuseigai boolean not null default false
+  is_ryuseigai boolean not null default false,
+  constraint novels_author_message_length
+    check (author_message is null or length(author_message) <= 500)
 );
 
 create table if not exists public.comments (
@@ -159,6 +162,7 @@ for select using (auth.uid() = user_id);
 -- Migration for existing databases (run once):
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT false;
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS description text;
+-- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS author_message text;
 -- ALTER TABLE public.novels ADD COLUMN IF NOT EXISTS author_indent_mode text NOT NULL DEFAULT 'raw';
 -- ALTER TABLE public.novels DROP CONSTRAINT IF EXISTS novels_author_indent_mode,
 --   DROP CONSTRAINT IF EXISTS novels_author_indent_mode_check;
@@ -170,3 +174,4 @@ for select using (auth.uid() = user_id);
 -- 流星垓コメントは vote -500 / -1000 を使うため、CHECK制約を拡張:
 -- ALTER TABLE public.comments DROP CONSTRAINT IF EXISTS comments_vote_range;
 -- ALTER TABLE public.comments ADD CONSTRAINT comments_vote_range CHECK (vote BETWEEN -1000 AND 2);
+
