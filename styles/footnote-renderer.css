@@ -38,6 +38,11 @@
   margin-top: 6.8px;
 }
 
+/* Display-only unit for novel em-dash runs. The source text remains U+2014. */
+.novel-dash-run {
+  white-space: nowrap;
+}
+
 .footnote-container {
   line-height: var(--line-height-read);
 }

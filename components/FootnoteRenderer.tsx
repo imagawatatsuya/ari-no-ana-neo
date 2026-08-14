@@ -39,6 +39,25 @@ const BLOCKED_PATTERNS: RegExp[] = [
   /^https:\/\/10\./,
 ];
 
+// Keep consecutive U+2014/U+2015 novel-dash runs together in the rendered
+// text without changing the underlying text used for copy, search, or screen readers.
+const NOVEL_DASH_RUN_PATTERN = /(—{2,}|―{2,})/g;
+const NOVEL_DASH_RUN_EXACT_PATTERN = /^(?:—{2,}|―{2,})$/;
+
+const renderTextWithNovelDashes = (text: string, keyPrefix: string) => {
+  return text.split(NOVEL_DASH_RUN_PATTERN).map((part, index) => {
+    if (NOVEL_DASH_RUN_EXACT_PATTERN.test(part)) {
+      return (
+        <span key={`${keyPrefix}-dash-${index}`} className="novel-dash-run">
+          {part}
+        </span>
+      );
+    }
+
+    return <Fragment key={`${keyPrefix}-text-${index}`}>{part}</Fragment>;
+  });
+};
+
 // テキスト内のhttpsリンクを検出して<a>タグに変換する関数
 const renderTextWithLinks = (text: string) => {
   const parts = text.split(/(https:\/\/[^\s"<>]+)/g);
@@ -81,7 +100,11 @@ const renderTextWithLinks = (text: string) => {
             </Fragment>
           );
         }
-        return <Fragment key={index}>{part}</Fragment>;
+        return (
+          <Fragment key={index}>
+            {renderTextWithNovelDashes(part, `plain-${index}`)}
+          </Fragment>
+        );
       })}
     </>
   );
