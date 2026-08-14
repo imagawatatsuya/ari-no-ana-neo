@@ -143,7 +143,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
         <div className="ryuseigai-author-name">{novel.author || '名無し'}</div>
         {authorMessage && (
           <div className="ryuseigai-author-message">
-            <div className="ryuseigai-author-message-label">からのメッセージ</div>
+            <div className="ryuseigai-author-message-label">■メッセージ</div>
             <div className="ryuseigai-author-message-text">{authorMessage}</div>
           </div>
         )}

@@ -348,7 +348,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
           </div>
           {authorMessage.trim() && (
             <div style={{ marginTop: 8 }}>
-              <b>からのメッセージ</b>
+              <b>■メッセージ</b>
               <div style={{ marginLeft: '3%', whiteSpace: 'pre-wrap' }}>{authorMessage.trim()}</div>
             </div>
           )}

@@ -167,13 +167,13 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
       {/* 日付: 元サイトはテーブル外・右寄せ */}
       <div className="article-date" style={{ textAlign: 'right' }}>{formatDate(novel.date)} 公開</div>
 
-      {/* 作者情報と作者からのメッセージ */}
+      {/* 作者情報とメッセージ */}
       <div style={{ padding: '4px 8px', fontSize: 16 }}>
         <b>■作者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}
         <div style={{ marginLeft: '3%' }}>{novel.author || '名無し'}</div>
         {authorMessage && (
           <div style={{ marginTop: 8 }}>
-            <b>からのメッセージ</b>
+            <b>■メッセージ</b>
             <div style={{ marginLeft: '3%', whiteSpace: 'pre-wrap' }}>{authorMessage}</div>
           </div>
         )}
