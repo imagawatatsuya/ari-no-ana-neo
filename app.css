@@ -373,6 +373,8 @@ a:hover {
 
 .indent-mode-control {
   width: 90%;
+  max-width: 100%;
+  min-width: 0;
   margin: 0 auto 8px;
   padding: 6px 8px;
   border: 1px solid var(--table-border);
