@@ -1,9 +1,24 @@
 import { NovelListState } from '../../types';
-import { readNovelListCache, writeNovelListCache, novelListParamsKey } from '../../lib/cache/novelListCache';
+import {
+  readNovelListCache,
+  writeNovelListCache,
+  novelListParamsKey,
+  type NovelListCacheEntry,
+} from '../../lib/cache/novelListCache';
 import { fetchNovelListPage, NovelListQueryParams } from '../../services/supabase/novelQueries';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export { novelListParamsKey } from '../../lib/cache/novelListCache';
+
+const stateFromCache = (cached: NovelListCacheEntry): NovelListState =>
+  cached.totalCount === 0
+    ? { status: 'empty' }
+    : {
+        status: 'success',
+        items: cached.items,
+        totalCount: cached.totalCount,
+        stale: true,
+      };
 
 export function useNovelList(
   enabled: boolean,
@@ -20,12 +35,7 @@ export function useNovelList(
 
     const cached = readNovelListCache(params);
     if (cached) {
-      setListState({
-        status: 'success',
-        items: cached.items,
-        totalCount: cached.totalCount,
-        stale: true,
-      });
+      setListState(stateFromCache(cached));
       setTotalCount(cached.totalCount);
     } else {
       setListState({ status: 'loading' });
@@ -59,12 +69,7 @@ export function useNovelList(
 
       const cached = readNovelListCache(params);
       if (cached) {
-        setListState({
-          status: 'success',
-          items: cached.items,
-          totalCount: cached.totalCount,
-          stale: true,
-        });
+        setListState(stateFromCache(cached));
         setTotalCount(cached.totalCount);
         return;
       }
@@ -105,12 +110,7 @@ export function useNovelList(
 
       const cached = readNovelListCache(params);
       if (cached) {
-        setListState({
-          status: 'success',
-          items: cached.items,
-          totalCount: cached.totalCount,
-          stale: true,
-        });
+        setListState(stateFromCache(cached));
         setTotalCount(cached.totalCount);
         return;
       }

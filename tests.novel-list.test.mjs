@@ -55,7 +55,7 @@ test('novelsToSummaries: aggregates comment votes per novel', () => {
   assert.equal(summaries[0].voteSum, 1);
 });
 
-test('novel list cache: round-trip and param isolation', () => {
+test('novel list cache: keeps multiple parameter sets', () => {
   storage.clear();
   const paramsA = { page: 1, search: '', isRyuseigai: false };
   const paramsB = { page: 2, search: 'test', isRyuseigai: false };
@@ -70,12 +70,58 @@ test('novel list cache: round-trip and param isolation', () => {
   };
 
   writeNovelListCache(paramsA, [item], 1);
+  writeNovelListCache(paramsB, [{ ...item, id: '2', title: 'S' }], 2);
   const cachedA = readNovelListCache(paramsA);
   const cachedB = readNovelListCache(paramsB);
 
   assert.ok(cachedA);
   assert.equal(cachedA?.items[0].title, 'T');
-  assert.equal(cachedB, null);
+  assert.equal(cachedB?.items[0].title, 'S');
+  assert.equal(cachedB?.totalCount, 2);
+});
+
+test('novel list cache: migrates the previous single-entry format', () => {
+  storage.clear();
+  localStorage.setItem('ari_novel_list_cache_v1', JSON.stringify({
+    schemaVersion: 1,
+    fetchedAt: Date.now(),
+    page: 1,
+    search: '',
+    isRyuseigai: false,
+    items: [{
+      id: 'legacy',
+      title: '旧キャッシュ',
+      author: '作者',
+      date: '2025-01-01T00:00:00+09:00',
+      viewCount: 0,
+      commentCount: 0,
+      voteSum: 0,
+    }],
+    totalCount: 1,
+  }));
+
+  const cached = readNovelListCache({ page: 1, search: '', isRyuseigai: false, pageSize: 20 });
+  assert.equal(cached?.items[0].title, '旧キャッシュ');
+});
+
+test('novel list cache: bounds the number of stored parameter sets', () => {
+  storage.clear();
+  const item = {
+    id: '1',
+    title: 'T',
+    author: 'A',
+    date: '2025-01-01T00:00:00+09:00',
+    viewCount: 0,
+    commentCount: 0,
+    voteSum: 0,
+  };
+
+  for (let page = 1; page <= 25; page += 1) {
+    writeNovelListCache({ page, search: '', isRyuseigai: false }, [item], 25);
+  }
+
+  const stored = JSON.parse(localStorage.getItem('ari_novel_list_cache_v1'));
+  assert.equal(Object.keys(stored.entries).length, 20);
 });
 
 test('novel list cache: invalid JSON is ignored', () => {
@@ -85,12 +131,16 @@ test('novel list cache: invalid JSON is ignored', () => {
   assert.equal(cached, null);
 });
 
-test('novelListParamsKey: isolates page and search', () => {
+test('novelListParamsKey: isolates page, search, list type, and page size', () => {
   const page1 = novelListParamsKey({ page: 1, search: '', isRyuseigai: false });
   const page2 = novelListParamsKey({ page: 2, search: '', isRyuseigai: false });
   const search = novelListParamsKey({ page: 1, search: 'test', isRyuseigai: false });
+  const ryuseigai = novelListParamsKey({ page: 1, search: '', isRyuseigai: true });
+  const largerPage = novelListParamsKey({ page: 1, search: '', isRyuseigai: false, pageSize: 100 });
   assert.notEqual(page1, page2);
   assert.notEqual(page1, search);
+  assert.notEqual(page1, ryuseigai);
+  assert.notEqual(page1, largerPage);
 });
 
 test('post draft: save, read, clear', () => {
