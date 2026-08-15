@@ -86,6 +86,30 @@ test.describe('アリの穴NEO - 投稿画面', () => {
     expect(footnoteText).not.toContain('　注釈本文です。');
   });
 
+  test('投稿プレビューで連続ダーシを原文のまま一本につなぐ', async ({ page }) => {
+    await page.goto('/post');
+    await page.locator('.form-table input[type="text"]').first().fill('ダーシ表示確認');
+    await page.locator('.form-table textarea[maxlength="100000"]').fill('含んだ——その香り');
+    await page.getByRole('tab', { name: 'プレビュー' }).click();
+
+    const dashRun = page.locator('.article-body .novel-dash-run');
+    await expect(dashRun).toHaveCount(1);
+    await expect(dashRun).toHaveText('——');
+    await expect(page.locator('.article-body')).toContainText('含んだ——その香り');
+
+    const decoration = await dashRun.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        line: style.textDecorationLine,
+        style: style.textDecorationStyle,
+        skipInk: style.textDecorationSkipInk,
+      };
+    });
+    expect(decoration.line).toContain('line-through');
+    expect(decoration.style).toBe('solid');
+    expect(decoration.skipInk).toBe('none');
+  });
+
   test('投稿者の字下げ意図が本文と分離して保存される', async ({ page }) => {
     await page.goto('/post');
     await page.locator('.form-table input[type="text"]').first().fill('投稿者設定保存テスト');
