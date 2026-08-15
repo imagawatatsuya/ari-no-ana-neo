@@ -14,6 +14,21 @@
   --line-height-read: 1.75;
 }
 
+/*
+ * Noto Serif JP's full-width dash glyphs follow Japanese book typography
+ * without relying on a platform font's side bearings. This 992-byte face is
+ * the Google Fonts U+2014/U+2015 subset; its SIL OFL 1.1 license is shipped in
+ * public/licenses/OFL-Noto-Serif-JP.txt.
+ */
+@font-face {
+  font-family: 'Ari Novel Dash';
+  src: url('../assets/fonts/noto-serif-jp-dashes.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  unicode-range: U+2014-2015;
+}
+
 /* ezdogノウハウ: 本文両端揃え + 日本語組版 */
 .article-body {
   padding: 8px;
@@ -41,17 +56,7 @@
 /* Display-only unit for novel dash runs. The source text remains unchanged. */
 .novel-dash-run {
   white-space: nowrap;
-  font-family: '游明朝', YuMincho, 'Hiragino Mincho ProN', Meiryo, Georgia, serif;
-  /* Match the existing Georgia advance while using a Japanese dash glyph. */
-  font-size: 0.86em;
-  line-height: 0;
-  vertical-align: 0.04em;
-  /* Bridge subpixel seams between adjacent glyphs without changing layout. */
-  text-decoration-line: line-through;
-  text-decoration-style: solid;
-  text-decoration-color: currentColor;
-  text-decoration-thickness: 0.055em;
-  text-decoration-skip-ink: none;
+  font-family: 'Ari Novel Dash', 'Noto Serif JP', serif;
 }
 
 .footnote-container {

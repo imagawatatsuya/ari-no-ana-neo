@@ -86,7 +86,7 @@ test.describe('アリの穴NEO - 投稿画面', () => {
     expect(footnoteText).not.toContain('　注釈本文です。');
   });
 
-  test('投稿プレビューで連続ダーシを原文のまま一本につなぐ', async ({ page }) => {
+  test('投稿プレビューで連続ダーシを原文のまま細い二倍ダーシとして組む', async ({ page }) => {
     await page.goto('/post');
     await page.locator('.form-table input[type="text"]').first().fill('ダーシ表示確認');
     await page.locator('.form-table textarea[maxlength="100000"]').fill('含んだ——その香り');
@@ -97,17 +97,25 @@ test.describe('アリの穴NEO - 投稿画面', () => {
     await expect(dashRun).toHaveText('——');
     await expect(page.locator('.article-body')).toContainText('含んだ——その香り');
 
-    const decoration = await dashRun.evaluate((element) => {
+    const typography = await dashRun.evaluate(async (element) => {
+      await document.fonts.ready;
       const style = getComputedStyle(element);
+      const parentStyle = getComputedStyle(element.parentElement!);
       return {
-        line: style.textDecorationLine,
-        style: style.textDecorationStyle,
-        skipInk: style.textDecorationSkipInk,
+        fontFamily: style.fontFamily,
+        fontSize: Number.parseFloat(style.fontSize),
+        parentFontSize: Number.parseFloat(parentStyle.fontSize),
+        decoration: style.textDecorationLine,
+        width: element.getBoundingClientRect().width,
+        fontLoaded: document.fonts.check(`${style.fontSize} "Ari Novel Dash"`, '——'),
       };
     });
-    expect(decoration.line).toContain('line-through');
-    expect(decoration.style).toBe('solid');
-    expect(decoration.skipInk).toBe('none');
+    expect(typography.fontFamily).toContain('Ari Novel Dash');
+    expect(typography.fontLoaded).toBe(true);
+    expect(typography.decoration).toBe('none');
+    expect(typography.fontSize).toBe(typography.parentFontSize);
+    expect(typography.width).toBeGreaterThanOrEqual(typography.fontSize * 1.99);
+    expect(typography.width).toBeLessThanOrEqual(typography.fontSize * 2.01);
   });
 
   test('投稿者の字下げ意図が本文と分離して保存される', async ({ page }) => {
