@@ -14,6 +14,7 @@ const handleEntryKeyDown = (id: string, e: React.KeyboardEvent) => {
 
 interface RyuseigaiListProps {
   state: NovelListState;
+  onPrefetch?: (id: string) => void;
 }
 
 /** 流星垓の初期ポイント */
@@ -29,7 +30,7 @@ const shuffle = <T,>(arr: T[]): T[] => {
   return a;
 };
 
-export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ state }) => {
+export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ state, onPrefetch }) => {
   const novels = state.status === 'success' ? state.items : [];
   const shuffled = useMemo(() => shuffle(novels), [novels]);
   const stale = state.status === 'success' && state.stale;
@@ -87,6 +88,8 @@ export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ state }) => {
                   tabIndex={0}
                   aria-label={`${novel.title}を読む`}
                   onClick={() => openNovel(novel.id)}
+                  onPointerEnter={() => onPrefetch?.(novel.id)}
+                  onFocus={() => onPrefetch?.(novel.id)}
                   onKeyDown={(e) => handleEntryKeyDown(novel.id, e)}
                 >
                   <span className="ryuseigai-entry-link">{novel.title}</span>

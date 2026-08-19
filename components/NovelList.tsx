@@ -15,9 +15,10 @@ const handleEntryKeyDown = (id: string, e: React.KeyboardEvent) => {
 interface NovelListProps {
   state: NovelListState;
   onRetry?: () => void;
+  onPrefetch?: (id: string) => void;
 }
 
-export const NovelList: React.FC<NovelListProps> = ({ state, onRetry }) => {
+export const NovelList: React.FC<NovelListProps> = ({ state, onRetry, onPrefetch }) => {
   if (state.status === 'loading') {
     return (
       <div
@@ -92,6 +93,8 @@ export const NovelList: React.FC<NovelListProps> = ({ state, onRetry }) => {
               key={novel.id}
               className="entry-group"
               onClick={() => openNovel(novel.id)}
+              onPointerEnter={() => onPrefetch?.(novel.id)}
+              onFocus={() => onPrefetch?.(novel.id)}
               onKeyDown={(e) => handleEntryKeyDown(novel.id, e)}
               tabIndex={0}
               role="link"

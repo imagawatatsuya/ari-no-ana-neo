@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Novel, Comment, ReaderIndentMode } from '../types';
 import { formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
@@ -22,7 +22,7 @@ const MAX_COMMENT_LENGTH = 500;
 /** 流星垓の初期ポイント */
 const RYUSEIGAI_BASE_SCORE = -300;
 
-export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
+export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
   novel,
   comments,
   onComment,
@@ -39,12 +39,20 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
   const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
   const subtitle = novel.description?.trim() ?? '';
   const authorMessage = novel.authorMessage?.trim() ?? '';
+  const pageCountLabel = useMemo(() => formatManuscriptPages(novel.body), [novel.body]);
 
-  const voteSum = comments.reduce((acc, c) => acc + c.vote, 0);
+  const { voteSum, countWhy, countNotExist } = useMemo(() => {
+    let sum = 0;
+    let why = 0;
+    let notExist = 0;
+    for (const comment of comments) {
+      sum += comment.vote;
+      if (comment.vote === -500) why += 1;
+      else if (comment.vote === -1000) notExist += 1;
+    }
+    return { voteSum: sum, countWhy: why, countNotExist: notExist };
+  }, [comments]);
   const totalScore = RYUSEIGAI_BASE_SCORE + voteSum;
-
-  const countWhy = comments.filter((c) => c.vote === -500).length;
-  const countNotExist = comments.filter((c) => c.vote === -1000).length;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,9 +120,9 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
           <tr>
             <td className="article-title">{novel.title}</td>
           </tr>
-          {formatManuscriptPages(novel.body) && (
+          {pageCountLabel && (
             <tr>
-              <td className="article-page-count">{formatManuscriptPages(novel.body)}</td>
+              <td className="article-page-count">{pageCountLabel}</td>
             </tr>
           )}
           {subtitle && (
@@ -241,4 +249,4 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = ({
       </div>
     </div>
   );
-};
+});

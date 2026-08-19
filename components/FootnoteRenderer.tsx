@@ -43,8 +43,11 @@ const BLOCKED_PATTERNS: RegExp[] = [
 // text without changing the underlying text used for copy, search, or screen readers.
 const NOVEL_DASH_RUN_PATTERN = /(—{2,}|―{2,})/g;
 const NOVEL_DASH_RUN_EXACT_PATTERN = /^(?:—{2,}|―{2,})$/;
+const HAS_DASH_RUN = /—{2,}|―{2,}/;
 
-const renderTextWithNovelDashes = (text: string, keyPrefix: string) => {
+const renderTextWithNovelDashes = (text: string, keyPrefix: string): React.ReactNode => {
+  if (!HAS_DASH_RUN.test(text)) return text;
+
   return text.split(NOVEL_DASH_RUN_PATTERN).map((part, index) => {
     if (NOVEL_DASH_RUN_EXACT_PATTERN.test(part)) {
       return (
@@ -58,8 +61,11 @@ const renderTextWithNovelDashes = (text: string, keyPrefix: string) => {
   });
 };
 
-// テキスト内のhttpsリンクを検出して<a>タグに変換する関数
-const renderTextWithLinks = (text: string) => {
+const renderTextWithLinks = (text: string): React.ReactNode => {
+  if (!text.includes('https://')) {
+    return renderTextWithNovelDashes(text, 'plain');
+  }
+
   const parts = text.split(/(https:\/\/[^\s"<>]+)/g);
 
   return (
@@ -110,7 +116,7 @@ const renderTextWithLinks = (text: string) => {
   );
 };
 
-export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({
+export const FootnoteRenderer: React.FC<FootnoteRendererProps> = React.memo(({
   content,
   indentMode = 'none',
   authorIndentMode = 'raw',
@@ -188,53 +194,67 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({
     };
   }, [content, indentMode, authorIndentMode, formatBody]);
 
-  const renderInline = (text: string) => {
-    const parts = text.split(/(\[\^.+?\])/g);
-    return parts.map((part, index) => {
-      const match = part.match(/\[\^(.+?)\]/);
-      if (match) {
-        const id = match[1].trim();
-        const footnote = footnotes.find(f => f.id === id);
-        if (footnote) {
-          return (
-            <sup key={index} id={`footnote-ref-${footnote.index}`}>
-              <a 
-                href={`#footnote-${footnote.index}`}
-                className="footnote-ref-link"
-                onClick={(e) => handleFootnoteClick(e, footnote.index, footnote.text)}
-              >
-                [{footnote.index}]
-              </a>
-            </sup>
-          );
-        }
-      }
-      return (
-        <Fragment key={index}>
-          {part.split('\n').map((line, i) => (
-            <Fragment key={i}>
-              {i > 0 && <br />}
-              {renderTextWithLinks(line)}
-            </Fragment>
-          ))}
-        </Fragment>
-      );
-    });
-  };
+  const bodyNodes = useMemo(() => {
+    const footnoteById = new Map(footnotes.map((note) => [note.id, note]));
 
-  const renderContent = () => {
-    const paragraphs = mainContent.split(/\n\n+/).filter(p => p.trim() !== '');
+    const renderInline = (text: string) => {
+      if (!text.includes('[^')) {
+        if (!text.includes('\n')) return renderTextWithLinks(text);
+        return text.split('\n').map((line, i) => (
+          <Fragment key={i}>
+            {i > 0 && <br />}
+            {renderTextWithLinks(line)}
+          </Fragment>
+        ));
+      }
+
+      const parts = text.split(/(\[\^.+?\])/g);
+      return parts.map((part, index) => {
+        const match = part.match(/\[\^(.+?)\]/);
+        if (match) {
+          const footnote = footnoteById.get(match[1].trim());
+          if (footnote) {
+            return (
+              <sup key={index} id={`footnote-ref-${footnote.index}`}>
+                <a
+                  href={`#footnote-${footnote.index}`}
+                  className="footnote-ref-link"
+                  onClick={(e) => handleFootnoteClick(e, footnote.index, footnote.text)}
+                >
+                  [{footnote.index}]
+                </a>
+              </sup>
+            );
+          }
+        }
+        if (!part.includes('\n')) {
+          return <Fragment key={index}>{renderTextWithLinks(part)}</Fragment>;
+        }
+        return (
+          <Fragment key={index}>
+            {part.split('\n').map((line, i) => (
+              <Fragment key={i}>
+                {i > 0 && <br />}
+                {renderTextWithLinks(line)}
+              </Fragment>
+            ))}
+          </Fragment>
+        );
+      });
+    };
+
+    const paragraphs = mainContent.split(/\n\n+/).filter((p) => p.trim() !== '');
     return paragraphs.map((para, idx) => (
       <p key={idx} className={idx > 0 ? 'gyoukan' : undefined}>
         {renderInline(para)}
       </p>
     ));
-  };
+  }, [mainContent, footnotes, handleFootnoteClick]);
 
   return (
     <div className="footnote-container">
       <div className="article-paragraphs">
-        {renderContent()}
+        {bodyNodes}
       </div>
 
       {/* ツールチップ表示 */}
@@ -278,4 +298,4 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = ({
       )}
     </div>
   );
-};
+});

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Novel, Comment, ReaderIndentMode } from '../types';
 import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
@@ -36,7 +36,7 @@ const badgeClass = (v: number): string => {
   return 'comment-badge comment-badge-neutral';
 };
 
-export const NovelReader: React.FC<NovelReaderProps> = ({
+export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
   novel,
   comments,
   onComment,
@@ -53,15 +53,20 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
   const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
   const authorMessage = novel.authorMessage?.trim() ?? '';
 
-  const { total, count } = calculateScore(comments);
+  const { total, count } = useMemo(() => calculateScore(comments), [comments]);
+  const pageCountLabel = useMemo(() => formatManuscriptPages(novel.body), [novel.body]);
 
-  const voteBreakdown = {
-    best: comments.filter((c) => c.vote === 2).length,
-    good: comments.filter((c) => c.vote === 1).length,
-    normal: comments.filter((c) => c.vote === 0).length,
-    bad: comments.filter((c) => c.vote === -1).length,
-    worst: comments.filter((c) => c.vote === -2).length,
-  };
+  const voteBreakdown = useMemo(() => {
+    const breakdown = { best: 0, good: 0, normal: 0, bad: 0, worst: 0 };
+    for (const comment of comments) {
+      if (comment.vote === 2) breakdown.best += 1;
+      else if (comment.vote === 1) breakdown.good += 1;
+      else if (comment.vote === 0) breakdown.normal += 1;
+      else if (comment.vote === -1) breakdown.bad += 1;
+      else if (comment.vote === -2) breakdown.worst += 1;
+    }
+    return breakdown;
+  }, [comments]);
 
   // Star display
   const avg = count > 0 ? total / count : 0;
@@ -138,9 +143,9 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
             <td className="article-title">{novel.title}</td>
           </tr>
           {/* 原稿用紙換算枚数: 元サイト【N 枚】表示 / 1枚未満表示 */}
-          {formatManuscriptPages(novel.body) && (
+          {pageCountLabel && (
             <tr>
-              <td className="article-page-count">{formatManuscriptPages(novel.body)}</td>
+              <td className="article-page-count">{pageCountLabel}</td>
             </tr>
           )}
           {/* 副題: 元サイトの自由記述メッセージバー */}
@@ -277,4 +282,4 @@ export const NovelReader: React.FC<NovelReaderProps> = ({
       </div>
     </div>
   );
-};
+});
