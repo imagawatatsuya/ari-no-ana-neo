@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { formatDate, generateTrip, calculateScore, countManuscriptPages, formatManuscriptPages } from './utils.ts';
+import { formatDate, generateTrip, calculateScore, countManuscriptPages, formatManuscriptPages, isNewNovel, NEW_BADGE_MAX_AGE_MS } from './utils.ts';
 
 test('generateTrip: empty input falls back to 名無し', () => {
   const result = generateTrip('');
@@ -83,4 +83,17 @@ test('formatManuscriptPages: exactly 400 cells shows 【1 枚】', () => {
 test('formatManuscriptPages: normal text shows 【N 枚】', () => {
   const text = 'あ'.repeat(800);
   assert.equal(formatManuscriptPages(text), '【2 枚】');
+});
+
+test('isNewNovel: true within 48 hours', () => {
+  const now = Date.parse('2026-08-20T00:00:00+09:00');
+  assert.equal(isNewNovel('2026-08-19T00:00:00+09:00', now), true);
+  assert.equal(isNewNovel(new Date(now - NEW_BADGE_MAX_AGE_MS).toISOString(), now), true);
+});
+
+test('isNewNovel: false after 48 hours or with invalid date', () => {
+  const now = Date.parse('2026-08-20T00:00:00+09:00');
+  assert.equal(isNewNovel('2026-08-17T23:59:59+09:00', now), false);
+  assert.equal(isNewNovel(new Date(now - NEW_BADGE_MAX_AGE_MS - 1).toISOString(), now), false);
+  assert.equal(isNewNovel('not-a-date', now), false);
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NovelListState } from '../types';
-import { formatStarRatingFromAggregate, formatDate } from '../utils';
+import { formatStarRatingFromAggregate, formatDate, isNewNovel } from '../utils';
 import { navigate } from '../router';
 
 const openNovel = (id: string) => navigate(`/read/${id}`);
@@ -83,7 +83,7 @@ export const NovelList: React.FC<NovelListProps> = ({ state, onRetry, onPrefetch
             </tr>
           </tbody>
         )}
-        {novels.map((novel, index) => {
+        {novels.map((novel) => {
           const { stars, score } = formatStarRatingFromAggregate(novel.voteSum, novel.commentCount);
           const starsOn = stars.replace(/☆/g, '');
           const starsOff = '★'.repeat(5 - starsOn.length);
@@ -116,7 +116,7 @@ export const NovelList: React.FC<NovelListProps> = ({ state, onRetry, onPrefetch
               <tr className="entry-meta-row">
                 <td colSpan={4}>
                   ［ {novel.commentCount} 件 ］ {novel.author}
-                  {index < 2 && <span className="entry-new-badge">NEW!</span>}
+                  {isNewNovel(novel.date) && <span className="entry-new-badge">NEW!</span>}
                 </td>
               </tr>
             </tbody>

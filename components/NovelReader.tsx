@@ -259,7 +259,6 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
               <option value={-1}>良くない</option>
               <option value={-2}>最悪</option>
             </select>
-            <span className="vote-note">(採点はひとり１回まで。２回目以降の採点や作者の採点は集計されません)</span>
           </div>
           <div className="comment-form-actions">
             <button type="submit" className="classic-button comment-form-action-primary" disabled={isSubmitting}>

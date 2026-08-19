@@ -158,3 +158,13 @@ export const formatStarRatingFromAggregate = (
   const score = `(${voteSum}/${commentCount})`;
   return { stars, score };
 };
+
+/** 一覧 NEW! を付ける投稿からの経過時間 */
+export const NEW_BADGE_MAX_AGE_MS = 48 * 60 * 60 * 1000;
+
+export const isNewNovel = (isoDate: string, now = Date.now()): boolean => {
+  const postedAt = new Date(isoDate).getTime();
+  if (!Number.isFinite(postedAt)) return false;
+  const ageMs = now - postedAt;
+  return ageMs >= 0 && ageMs <= NEW_BADGE_MAX_AGE_MS;
+};
