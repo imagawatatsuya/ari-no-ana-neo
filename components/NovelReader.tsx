@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Novel, Comment, ReaderIndentMode } from '../types';
 import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
@@ -7,6 +7,7 @@ import { formatReaderBody } from '../services/jisageAdapter';
 import { BASE_PATH, navigate } from '../router';
 import { useCommentPostFeedback } from '../features/comments/useCommentPostFeedback';
 import { fragmentText } from '../lib/textFragmenter';
+import { loadReaderBookmark, saveReaderBookmark } from '../services/readerBookmarks';
 
 interface NovelReaderProps {
   novel: Novel;
@@ -17,6 +18,11 @@ interface NovelReaderProps {
   onIndentModeChange: (mode: ReaderIndentMode) => void;
   onOpenReaderSettings: () => void;
 }
+
+type ReaderBookmarkState = {
+  novelId: string;
+  fragmentIndex: number | null;
+};
 
 const MAX_COMMENT_LENGTH = 500;
 
@@ -52,8 +58,27 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bodyPresentation, setBodyPresentation] = useState<'continuous' | 'fragments'>('continuous');
+  const [bookmarkState, setBookmarkState] = useState<ReaderBookmarkState>(() => ({
+    novelId: novel.id,
+    fragmentIndex: loadReaderBookmark(novel.id)?.fragmentIndex ?? null,
+  }));
   const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
   const authorMessage = novel.authorMessage?.trim() ?? '';
+
+  useEffect(() => {
+    setBookmarkState({
+      novelId: novel.id,
+      fragmentIndex: loadReaderBookmark(novel.id)?.fragmentIndex ?? null,
+    });
+  }, [novel.id]);
+
+  const bookmarkIndex = bookmarkState.novelId === novel.id ? bookmarkState.fragmentIndex : null;
+
+  const handleBookmarkToggle = useCallback((fragmentIndex: number) => {
+    const nextBookmarkIndex = bookmarkIndex === fragmentIndex ? null : fragmentIndex;
+    setBookmarkState({ novelId: novel.id, fragmentIndex: nextBookmarkIndex });
+    saveReaderBookmark(novel.id, nextBookmarkIndex);
+  }, [bookmarkIndex, novel.id]);
 
   const { total, count } = useMemo(() => calculateScore(comments), [comments]);
   const pageCountLabel = useMemo(() => formatManuscriptPages(novel.body), [novel.body]);
@@ -186,6 +211,8 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
                 footnoteMode={footnoteMode}
                 formatBody={formatReaderBody}
                 segmentBody={bodyPresentation === 'fragments' ? fragmentText : undefined}
+                bookmarkedFragmentIndex={bodyPresentation === 'fragments' ? bookmarkIndex : null}
+                onBookmarkToggle={bodyPresentation === 'fragments' ? handleBookmarkToggle : undefined}
               />
             </td>
           </tr>

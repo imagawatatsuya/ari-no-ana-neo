@@ -36,6 +36,9 @@ type FootnoteRendererProps = {
   formatBody?: BodyFormatter;
   /** Optional presentation adapter. Omit it to preserve continuous reading. */
   segmentBody?: BodySegmenter;
+  /** Optional reader bookmark control for fragmented reading. */
+  bookmarkedFragmentIndex?: number | null;
+  onBookmarkToggle?: (fragmentIndex: number) => void;
 };
 
 // =====================================================================
@@ -134,6 +137,8 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = React.memo(({
   footnoteMode = 'scroll',
   formatBody = passThroughBody,
   segmentBody,
+  bookmarkedFragmentIndex = null,
+  onBookmarkToggle,
 }) => {
   const [activeTooltip, setActiveTooltip] = useState<{ index: number; text: string; x: number; y: number } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -271,18 +276,40 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = React.memo(({
       }
 
       fragmentIndex += 1;
+      const currentFragmentIndex = fragmentIndex;
+      const isBookmarked = bookmarkedFragmentIndex === currentFragmentIndex;
       return (
         <section
           key={`fragment-${index}`}
           className="reader-fragment"
-          aria-label={`本文断片 ${fragmentIndex}`}
+          aria-label={`本文断片 ${currentFragmentIndex}`}
         >
           <p>{renderInline(stripFragmentBoundaryLineFeeds(segment.text))}</p>
-          <span className="reader-fragment-index" aria-hidden="true">{fragmentIndex}</span>
+          {onBookmarkToggle ? (
+            <button
+              type="button"
+              className={`reader-fragment-index reader-fragment-bookmark${isBookmarked ? ' is-bookmarked' : ''}`}
+              data-fragment-index={currentFragmentIndex}
+              aria-label={isBookmarked ? `断片 ${currentFragmentIndex} のしおりを外す` : `断片 ${currentFragmentIndex} をしおりにする`}
+              aria-pressed={isBookmarked}
+              onClick={() => onBookmarkToggle(currentFragmentIndex)}
+            >
+              {currentFragmentIndex}
+            </button>
+          ) : (
+            <span className="reader-fragment-index" aria-hidden="true">{currentFragmentIndex}</span>
+          )}
         </section>
       );
     });
-  }, [mainContent, footnotes, handleFootnoteClick, segmentBody]);
+  }, [
+    mainContent,
+    footnotes,
+    handleFootnoteClick,
+    segmentBody,
+    bookmarkedFragmentIndex,
+    onBookmarkToggle,
+  ]);
 
   return (
     <div className="footnote-container">

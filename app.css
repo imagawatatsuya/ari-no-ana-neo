@@ -475,10 +475,10 @@ a:hover {
 
 .reader-fragment {
   position: relative;
-  margin: 0 0 8px;
-  padding: 12px 36px 18px 12px;
-  border: 1px solid var(--table-border);
-  background: var(--table-bg);
+  margin: 0 0 2px;
+  padding: 4px 36px 12px 8px;
+  border: 0;
+  background: transparent;
 }
 
 .reader-fragment p {
@@ -494,8 +494,47 @@ a:hover {
   line-height: 1;
 }
 
+.reader-fragment-bookmark {
+  min-width: 1.5rem;
+  margin: 0;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--point-gray);
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+
+.reader-fragment-bookmark:hover,
+.reader-fragment-bookmark:focus-visible {
+  border-color: var(--table-border);
+  background: var(--table-bg);
+  color: var(--link);
+  outline: none;
+}
+
+.reader-fragment-bookmark.is-bookmarked {
+  border-color: var(--footnote-ref);
+  background: var(--table-bg);
+  color: var(--footnote-ref);
+  font-weight: 700;
+}
+
+.reader-fragment-bookmark.is-bookmarked:hover,
+.reader-fragment-bookmark.is-bookmarked:focus-visible {
+  border-color: var(--footnote-ref);
+  background: var(--table-bg);
+  color: var(--footnote-ref);
+  outline: 2px solid var(--footnote-ref);
+  outline-offset: 1px;
+}
+
 .reader-fragment-break {
-  height: 14px;
+  height: 8px;
 }
 
 .article-page-count {
