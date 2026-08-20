@@ -6,6 +6,7 @@ import { IndentModeControl } from './IndentModeControl';
 import { formatReaderBody } from '../services/jisageAdapter';
 import { BASE_PATH, navigate } from '../router';
 import { useCommentPostFeedback } from '../features/comments/useCommentPostFeedback';
+import { fragmentText } from '../lib/textFragmenter';
 
 interface NovelReaderProps {
   novel: Novel;
@@ -50,6 +51,7 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
   const [vote, setVote] = useState(0);
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bodyPresentation, setBodyPresentation] = useState<'continuous' | 'fragments'>('continuous');
   const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
   const authorMessage = novel.authorMessage?.trim() ?? '';
 
@@ -118,14 +120,34 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
       {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div className="reader-top-nav">
         <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">&nbsp;戻る</a>
-        <button
-          type="button"
-          className="reader-settings-link"
-          onClick={onOpenReaderSettings}
-          aria-haspopup="dialog"
-        >
-          &gt;&gt;字下げ設定
-        </button>
+        <div className="reader-top-actions">
+          <div className="reader-presentation-switch" role="group" aria-label="本文の読み方">
+            <button
+              type="button"
+              className={bodyPresentation === 'continuous' ? 'is-active' : ''}
+              aria-pressed={bodyPresentation === 'continuous'}
+              onClick={() => setBodyPresentation('continuous')}
+            >
+              全文
+            </button>
+            <button
+              type="button"
+              className={bodyPresentation === 'fragments' ? 'is-active' : ''}
+              aria-pressed={bodyPresentation === 'fragments'}
+              onClick={() => setBodyPresentation('fragments')}
+            >
+              断片読み
+            </button>
+          </div>
+          <button
+            type="button"
+            className="reader-settings-link"
+            onClick={onOpenReaderSettings}
+            aria-haspopup="dialog"
+          >
+            &gt;&gt;字下げ設定
+          </button>
+        </div>
       </div>
 
       <IndentModeControl
@@ -163,6 +185,7 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
                 authorIndentMode={novel.authorIndentMode}
                 footnoteMode={footnoteMode}
                 formatBody={formatReaderBody}
+                segmentBody={bodyPresentation === 'fragments' ? fragmentText : undefined}
               />
             </td>
           </tr>

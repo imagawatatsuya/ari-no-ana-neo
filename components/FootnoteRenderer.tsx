@@ -12,6 +12,10 @@ export type BodyFormatter = (
   mode: ReaderIndentMode,
   authorIndentMode?: AuthorIndentMode,
 ) => string;
+export type BodySegment =
+  | { type: 'fragment'; text: string; charCount?: number }
+  | { type: 'break'; breakCount?: number };
+export type BodySegmenter = (body: string) => BodySegment[];
 
 const passThroughBody = (body: string): string => body;
 
@@ -25,6 +29,8 @@ type FootnoteRendererProps = {
    * ari-preview-editor sync target.
    */
   formatBody?: BodyFormatter;
+  /** Optional presentation adapter. Omit it to preserve continuous reading. */
+  segmentBody?: BodySegmenter;
 };
 
 // =====================================================================
@@ -122,6 +128,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = React.memo(({
   authorIndentMode = 'raw',
   footnoteMode = 'scroll',
   formatBody = passThroughBody,
+  segmentBody,
 }) => {
   const [activeTooltip, setActiveTooltip] = useState<{ index: number; text: string; x: number; y: number } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -243,13 +250,34 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = React.memo(({
       });
     };
 
-    const paragraphs = mainContent.split(/\n\n+/).filter((p) => p.trim() !== '');
-    return paragraphs.map((para, idx) => (
-      <p key={idx} className={idx > 0 ? 'gyoukan' : undefined}>
-        {renderInline(para)}
-      </p>
-    ));
-  }, [mainContent, footnotes, handleFootnoteClick]);
+    if (!segmentBody) {
+      const paragraphs = mainContent.split(/\n\n+/).filter((p) => p.trim() !== '');
+      return paragraphs.map((para, idx) => (
+        <p key={idx} className={idx > 0 ? 'gyoukan' : undefined}>
+          {renderInline(para)}
+        </p>
+      ));
+    }
+
+    let fragmentIndex = 0;
+    return segmentBody(mainContent).map((segment, index) => {
+      if (segment.type === 'break') {
+        return <div key={`break-${index}`} className="reader-fragment-break" aria-hidden="true" />;
+      }
+
+      fragmentIndex += 1;
+      return (
+        <section
+          key={`fragment-${index}`}
+          className="reader-fragment"
+          aria-label={`本文断片 ${fragmentIndex}`}
+        >
+          <p>{renderInline(segment.text)}</p>
+          <span className="reader-fragment-index" aria-hidden="true">{fragmentIndex}</span>
+        </section>
+      );
+    });
+  }, [mainContent, footnotes, handleFootnoteClick, segmentBody]);
 
   return (
     <div className="footnote-container">

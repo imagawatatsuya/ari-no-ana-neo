@@ -433,6 +433,71 @@ a:hover {
   outline-offset: 2px;
 }
 
+.reader-top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.reader-presentation-switch {
+  display: inline-flex;
+  border: 1px solid var(--table-border);
+  background: var(--table-bg);
+}
+
+.reader-presentation-switch button {
+  border: 0;
+  border-right: 1px solid var(--table-border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.reader-presentation-switch button:last-child {
+  border-right: 0;
+}
+
+.reader-presentation-switch button.is-active {
+  background: var(--subtitle-bg);
+  font-weight: bold;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.reader-presentation-switch button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+.reader-fragment {
+  position: relative;
+  margin: 0 0 8px;
+  padding: 12px 36px 18px 12px;
+  border: 1px solid var(--table-border);
+  background: var(--table-bg);
+}
+
+.reader-fragment p {
+  margin: 0;
+}
+
+.reader-fragment-index {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  color: var(--point-gray);
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.reader-fragment-break {
+  height: 14px;
+}
+
 .article-page-count {
   text-align: center;
   padding: 4px 8px;
