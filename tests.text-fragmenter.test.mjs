@@ -40,6 +40,15 @@ test('text fragmenter preserves reader-facing indentation and spaces', () => {
   assert.equal(fragments.map((fragment) => fragment.text).join(''), source);
 });
 
+test('text fragmenter keeps a tied line break with the previous fragment', () => {
+  const source = `${'あ'.repeat(159)}。\n${'い'.repeat(80)}`;
+  const fragments = textFragments(source);
+
+  assert.ok(fragments[0].text.endsWith('。\n'));
+  assert.ok(!fragments[1].text.startsWith('\n'));
+  assert.equal(fragments.map((fragment) => fragment.text).join(''), source);
+});
+
 test('text fragmenter moves leading punctuation to the previous fragment', () => {
   const fragments = textFragments(`${'あ'.repeat(160)}。続き`, {
     targetMin: 60,

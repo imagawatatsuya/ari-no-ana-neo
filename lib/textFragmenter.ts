@@ -100,6 +100,9 @@ const bestCandidate = (
     if (currentDistance !== bestDistance) {
       return currentDistance < bestDistance ? current : best;
     }
+    if (current.score !== best.score) {
+      return current.score > best.score ? current : best;
+    }
     return current.length > best.length ? current : best;
   });
 };

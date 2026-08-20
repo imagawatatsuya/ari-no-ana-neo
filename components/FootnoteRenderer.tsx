@@ -19,6 +19,11 @@ export type BodySegmenter = (body: string) => BodySegment[];
 
 const passThroughBody = (body: string): string => body;
 
+// A fragment boundary already supplies visual separation. Keep intentional
+// full-width indentation intact while suppressing only boundary line feeds.
+const stripFragmentBoundaryLineFeeds = (text: string): string =>
+  text.replace(/^\n|\n$/gu, '');
+
 type FootnoteRendererProps = {
   content: string;
   indentMode?: ReaderIndentMode;
@@ -272,7 +277,7 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = React.memo(({
           className="reader-fragment"
           aria-label={`本文断片 ${fragmentIndex}`}
         >
-          <p>{renderInline(segment.text)}</p>
+          <p>{renderInline(stripFragmentBoundaryLineFeeds(segment.text))}</p>
           <span className="reader-fragment-index" aria-hidden="true">{fragmentIndex}</span>
         </section>
       );
