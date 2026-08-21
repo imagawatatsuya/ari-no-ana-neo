@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AuthorIndentMode, Novel, SubmitResult } from '../types';
-import { generateTrip, formatManuscriptPages, formatDate, countBodyCharacters } from '../utils';
+import { formatManuscriptPages, formatDate, countBodyCharacters, resolveAuthorName } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { AuthorIndentModeControl } from './AuthorIndentModeControl';
 import { formatReaderBody } from '../services/jisageAdapter';
@@ -52,10 +52,16 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
 
   useEffect(() => {
     if (!isDraftLoaded) return;
+    const isEmpty =
+      !title && !description && !authorMessage && !name && !body && authorIndentMode === 'none';
+    if (isEmpty) {
+      clearPostDraft();
+      return;
+    }
     writePostDraft({ title, description, authorMessage, name, body, authorIndentMode });
   }, [title, description, authorMessage, name, body, authorIndentMode, isDraftLoaded]);
 
-  const { name: authorName, trip } = generateTrip(name);
+  const authorName = resolveAuthorName(name);
   const livePageCount = formatManuscriptPages(body);
   const previewDate = formatDate(new Date().toISOString());
   const previewPageCount = formatManuscriptPages(body);
@@ -99,12 +105,12 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         description: description.trim() || undefined,
         authorMessage: authorMessage.trim() || undefined,
         author: authorName,
-        trip,
         body,
         authorIndentMode,
         date: new Date().toISOString(),
         viewCount: 0,
         commentCount: 0,
+        voteCount: 0,
         voteSum: 0,
       });
 
@@ -119,20 +125,29 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
       }
 
       sessionStorage.setItem(LAST_POST_KEY, String(Date.now()));
-      clearPostDraft();
-      setTitle('');
-      setDescription('');
-      setAuthorMessage('');
-      setName('');
-      setBody('');
-      setAuthorIndentMode('none');
-      setFieldErrors({});
+      clearForm();
       setFormMessage({ type: 'info', text: '投稿が完了しました。' });
-      setMode('input');
     } catch {
       setFormMessage({ type: 'error', text: '投稿中にエラーが発生しました。入力内容は保持されています。' });
       setIsSubmitting(false);
     }
+  };
+
+  const clearForm = () => {
+    clearPostDraft();
+    setTitle('');
+    setDescription('');
+    setAuthorMessage('');
+    setName('');
+    setBody('');
+    setAuthorIndentMode('none');
+    setFieldErrors({});
+    setMode('input');
+  };
+
+  const handleClear = () => {
+    clearForm();
+    setFormMessage(null);
   };
 
   const handleSubmitClick = () => {
@@ -240,7 +255,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     maxLength={MAX_NAME}
-                    placeholder="名無し（トリップ: 名前#pass）"
+                    placeholder="名無し"
                     style={{ width: '100%' }}
                   />
                 </td>
@@ -286,6 +301,8 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
 
         <div className="post-form-note">
           ※ HTMLタグは使えません。改行はそのまま保持されます。本文の字下げ設定は投稿者の意図として保存されます。
+          <br />
+          ※ 入力内容はこのブラウザに下書きとして自動保存されます。「クリア」または投稿完了で消去されます。
         </div>
         <AuthorIndentModeControl
           mode={authorIndentMode}
@@ -343,7 +360,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
 
         <div className="post-form-author">
           <div>
-            <b>■作者</b>{trip && <span>＜{trip.replace('◆', '')}＞</span>}
+            <b>■作者</b>
             <div style={{ marginLeft: '3%' }}>{authorName}</div>
           </div>
           {authorMessage.trim() && (
@@ -375,6 +392,9 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
             </button>
           </>
         )}
+        <button type="button" className="classic-button" disabled={isSubmitting} onClick={handleClear}>
+          クリア
+        </button>
       </div>
     </div>
   );

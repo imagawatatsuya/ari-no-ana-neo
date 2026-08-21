@@ -2,7 +2,7 @@ import type { NovelSummary } from '../../types';
 import type { NovelListQueryParams } from '../../services/supabase/novelQueries';
 
 const CACHE_KEY = 'ari_novel_list_cache_v1';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 const LEGACY_SCHEMA_VERSION = 1;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 20;

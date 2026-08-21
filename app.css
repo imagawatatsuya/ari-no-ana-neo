@@ -437,7 +437,35 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
+}
+
+.reader-resume-bookmark {
+  max-width: 100%;
+  margin: 0;
+  padding: 3px 8px;
+  border: 1px solid var(--footnote-ref);
+  background: var(--table-bg);
+  color: var(--footnote-ref);
+  font: inherit;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.reader-resume-bookmark:hover,
+.reader-resume-bookmark:focus-visible {
+  background: var(--subtitle-bg);
+  color: var(--link);
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.reader-bookmark-status {
+  margin: 0 0 8px;
+  padding: 4px 8px;
+  border-left: 3px solid var(--footnote-ref);
+  background: var(--subtitle-bg);
 }
 
 .reader-presentation-switch {
@@ -479,6 +507,12 @@ a:hover {
   padding: 4px 36px 12px 8px;
   border: 0;
   background: transparent;
+  scroll-margin-top: 16px;
+}
+
+.reader-fragment:focus {
+  outline: 2px solid var(--footnote-ref);
+  outline-offset: 3px;
 }
 
 .reader-fragment p {

@@ -5,7 +5,6 @@ export const SEED_NOVELS: Novel[] = [
     id: '1',
     title: 'Perl僧侶の憂鬱',
     author: 'Kyuu',
-    trip: '◆LEGEND05',
     body: `これは 'use strict' の使用を断固として拒んだ男の物語である。
 
 サーバー室は暗く、外は嵐が吹き荒れていた。エラーログは驚くべき速度で埋め尽くされていく。「Premature end of script headers...」彼は呟き、厳格な禁煙ポリシーを無視してタバコに火をつけた。
@@ -14,6 +13,7 @@ export const SEED_NOVELS: Novel[] = [
     date: '2005-05-23T14:30:00+09:00',
     viewCount: 1543,
     commentCount: 0,
+    voteCount: 0,
     voteSum: 0,
   },
   {
@@ -28,6 +28,7 @@ export const SEED_NOVELS: Novel[] = [
 私の人生は今や、純粋なパターンマッチングに過ぎない。`,
     viewCount: 890,
     commentCount: 0,
+    voteCount: 0,
     voteSum: 0,
   },
   {
@@ -40,19 +41,20 @@ export const SEED_NOVELS: Novel[] = [
     date: '2005-05-24T22:40:00+09:00',
     viewCount: 742,
     commentCount: 0,
+    voteCount: 0,
     voteSum: 0,
   },
   {
     id: '4',
     title: '深夜2時のSQL反省会',
     author: 'DBA見習い',
-    trip: '◆DBA2AM',
     body: `DELETE 文に WHERE を書き忘れたあの夜、私は大人になった。
 
 バックアップは神話ではない。検証済みの復旧手順だけが、明日を保証する。`,
     date: '2005-05-25T02:05:00+09:00',
     viewCount: 1210,
     commentCount: 0,
+    voteCount: 0,
     voteSum: 0,
   },
   {
@@ -65,6 +67,7 @@ export const SEED_NOVELS: Novel[] = [
     date: '2005-05-25T11:30:00+09:00',
     viewCount: 665,
     commentCount: 0,
+    voteCount: 0,
     voteSum: 0,
   },
 ];

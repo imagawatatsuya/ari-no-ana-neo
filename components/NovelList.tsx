@@ -84,7 +84,7 @@ export const NovelList: React.FC<NovelListProps> = ({ state, onRetry, onPrefetch
           </tbody>
         )}
         {novels.map((novel) => {
-          const { stars, score } = formatStarRatingFromAggregate(novel.voteSum, novel.commentCount);
+          const { stars, score } = formatStarRatingFromAggregate(novel.voteSum, novel.voteCount);
           const starsOn = stars.replace(/☆/g, '');
           const starsOff = '★'.repeat(5 - starsOn.length);
 

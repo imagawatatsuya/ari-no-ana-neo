@@ -15,33 +15,23 @@ export const formatDate = (isoDate: string): string => {
   return `${year}/${month}/${day}(${weekDay}) ${hours}:${minutes}`;
 };
 
-// Mock tripcode generation
-// In Perl this was usually crypt(pass, salt)
-export const generateTrip = (nameInput: string): { name: string; trip?: string } => {
-  const parts = nameInput.split('#');
-  const name = parts[0] || '名無し';
-  let trip: string | undefined = undefined;
+export const DEFAULT_AUTHOR_NAME = '名無し';
 
-  if (parts.length > 1 && parts[1]) {
-    const pass = parts[1];
-    // Simple mock hash for visual consistency
-    let hash = 0;
-    for (let i = 0; i < pass.length; i++) {
-      hash = (hash << 5) - hash + pass.charCodeAt(i);
-      hash |= 0;
-    }
-    const tripSuffix = Math.abs(hash).toString(16).substring(0, 8).toUpperCase();
-    trip = `◆${tripSuffix}`;
+export const resolveAuthorName = (nameInput: string): string => nameInput.trim() || DEFAULT_AUTHOR_NAME;
+
+/** 実際に採点された票だけを集計対象にする。未採点（null）は平均・合計に入れない。 */
+export const isCountedVote = (vote: number | null | undefined): vote is number =>
+  typeof vote === 'number' && Number.isFinite(vote);
+
+export const calculateScore = (comments: Array<{ vote?: number | null }>) => {
+  let total = 0;
+  let count = 0;
+  for (const comment of comments) {
+    if (!isCountedVote(comment.vote)) continue;
+    total += comment.vote;
+    count += 1;
   }
-
-  return { name, trip };
-};
-
-export const calculateScore = (comments: any[]) => {
-  if (comments.length === 0) return { total: 0, count: 0, avg: 0 };
-  const total = comments.reduce((acc, c) => acc + c.vote, 0);
-  const avg = total / comments.length;
-  return { total, count: comments.length, avg };
+  return { total, count, avg: count === 0 ? 0 : total / count };
 };
 
 /**
@@ -145,17 +135,17 @@ export const formatStarRating = (comments: any[]): { stars: string; score: strin
   return formatStarRatingFromAggregate(total, count);
 };
 
-/** 集計済み voteSum / commentCount から星レーティングを生成 */
+/** 集計済み voteSum / voteCount（採点した票のみ）から星レーティングを生成 */
 export const formatStarRatingFromAggregate = (
   voteSum: number,
-  commentCount: number,
+  voteCount: number,
 ): { stars: string; score: string } => {
-  if (commentCount === 0) return { stars: '☆☆☆☆☆', score: '(0/0)' };
-  const avg = voteSum / commentCount;
+  if (voteCount === 0) return { stars: '☆☆☆☆☆', score: '(0/0)' };
+  const avg = voteSum / voteCount;
   const normalized = Math.round(((avg + 2) / 4) * 5);
   const filled = Math.max(0, Math.min(5, normalized));
   const stars = '★'.repeat(filled) + '☆'.repeat(5 - filled);
-  const score = `(${voteSum}/${commentCount})`;
+  const score = `(${voteSum}/${voteCount})`;
   return { stars, score };
 };
 

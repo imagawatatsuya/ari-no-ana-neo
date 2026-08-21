@@ -1,4 +1,5 @@
 import { Comment, Novel, NovelSummary } from '../../types';
+import { calculateScore } from '../../utils';
 
 export const LIST_NOVEL_COLUMNS = 'id, title, author, trip, date, view_count, is_ryuseigai';
 export const LIST_COMMENT_COLUMNS = 'novel_id, vote';
@@ -9,7 +10,7 @@ export const READ_COMMENT_COLUMNS = 'id, novel_id, name, text, date, vote';
 export function novelsToSummaries(novels: Novel[], comments: Comment[]): NovelSummary[] {
   return novels.map((novel) => {
     const novelComments = comments.filter((c) => c.novelId === novel.id);
-    const voteSum = novelComments.reduce((acc, c) => acc + c.vote, 0);
+    const { total, count } = calculateScore(novelComments);
     return {
       id: novel.id,
       title: novel.title,
@@ -18,7 +19,8 @@ export function novelsToSummaries(novels: Novel[], comments: Comment[]): NovelSu
       date: novel.date,
       viewCount: novel.viewCount,
       commentCount: novelComments.length,
-      voteSum,
+      voteCount: count,
+      voteSum: total,
       isRyuseigai: novel.isRyuseigai,
       isHidden: novel.isHidden,
     };

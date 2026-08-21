@@ -63,3 +63,11 @@ where table_schema = 'public'
 
 新規投稿・管理画面編集をオンラインモードで使う前に、本番Supabaseプロジェクトへ適用する。
 - ローカル開発（オフラインモード）では Supabase 不要
+
+## 未採点とポイント集計（必須）
+
+ファイル: `supabase/migrations/20260821_comment_vote_nullable.sql`
+
+感想の「採点しない」を `vote = null` として保存し、ポイントの合計・平均・投票数から除外する。旧UIでは「採点しない」が `0` だったため、既存の `vote = 0` は null へ移行する。あわせて `list_public_novels` が `vote_count`（採点した票数）を返すように更新する。
+
+新規の未採点感想をオンラインで受け付ける前に適用する。未適用の場合、未採点の insert は RLS / NOT NULL で失敗する。

@@ -3,7 +3,7 @@ import type { Comment, Novel } from './types';
 export const editNovelInList = (
   novels: Novel[],
   id: string,
-  patch: Pick<Novel, 'title' | 'description' | 'authorMessage' | 'author' | 'trip' | 'body'>,
+  patch: Pick<Novel, 'title' | 'description' | 'authorMessage' | 'author' | 'body'>,
 ): Novel[] => novels.map((novel) => (novel.id === id ? { ...novel, ...patch } : novel));
 
 export const deleteNovelAndComments = (

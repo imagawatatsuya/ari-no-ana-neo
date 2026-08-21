@@ -1,20 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { formatDate, generateTrip, calculateScore, countManuscriptPages, formatManuscriptPages, isNewNovel, NEW_BADGE_MAX_AGE_MS } from './utils.ts';
+import { formatDate, resolveAuthorName, calculateScore, countManuscriptPages, formatManuscriptPages, formatStarRatingFromAggregate, isNewNovel, NEW_BADGE_MAX_AGE_MS } from './utils.ts';
 
-test('generateTrip: empty input falls back to 名無し', () => {
-  const result = generateTrip('');
-  assert.equal(result.name, '名無し');
-  assert.equal(result.trip, undefined);
+test('resolveAuthorName: empty input falls back to 名無し', () => {
+  assert.equal(resolveAuthorName(''), '名無し');
+  assert.equal(resolveAuthorName('   '), '名無し');
 });
 
-test('generateTrip: creates deterministic trip with #password', () => {
-  const a = generateTrip('太郎#secret');
-  const b = generateTrip('太郎#secret');
-  assert.equal(a.name, '太郎');
-  assert.ok(a.trip?.startsWith('◆'));
-  assert.equal(a.trip, b.trip);
+test('resolveAuthorName: keeps a plain name and does not split on #', () => {
+  assert.equal(resolveAuthorName('太郎#secret'), '太郎#secret');
+  assert.equal(resolveAuthorName('  太郎  '), '太郎');
 });
 
 test('calculateScore: sums and averages votes', () => {
@@ -24,6 +20,15 @@ test('calculateScore: sums and averages votes', () => {
 
 test('calculateScore: empty comments return zeros', () => {
   assert.deepEqual(calculateScore([]), { total: 0, count: 0, avg: 0 });
+});
+
+test('calculateScore: ignores unrated comments and keeps 普通 as zero', () => {
+  const result = calculateScore([{ vote: 2 }, { vote: null }, { vote: 0 }, { vote: -2 }]);
+  assert.deepEqual(result, { total: 0, count: 3, avg: 0 });
+});
+
+test('formatStarRatingFromAggregate: no votes is empty stars not a fake average', () => {
+  assert.deepEqual(formatStarRatingFromAggregate(0, 0), { stars: '☆☆☆☆☆', score: '(0/0)' });
 });
 
 test('formatDate: renders Japanese-style date format', () => {

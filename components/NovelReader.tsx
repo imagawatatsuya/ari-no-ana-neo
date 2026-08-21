@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Novel, Comment, ReaderIndentMode } from '../types';
-import { calculateScore, formatDate, generateTrip, formatManuscriptPages } from '../utils';
+import { calculateScore, formatDate, formatManuscriptPages, isCountedVote, resolveAuthorName } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { IndentModeControl } from './IndentModeControl';
 import { formatReaderBody } from '../services/jisageAdapter';
@@ -24,6 +24,11 @@ type ReaderBookmarkState = {
   fragmentIndex: number | null;
 };
 
+type PendingBookmarkResume = {
+  novelId: string;
+  fragmentIndex: number;
+};
+
 const MAX_COMMENT_LENGTH = 500;
 
 const voteLabel = (v: number): string => {
@@ -33,7 +38,7 @@ const voteLabel = (v: number): string => {
     case 0: return '普通';
     case -1: return '良くない';
     case -2: return '最悪';
-    default: return '普通';
+    default: return '';
   }
 };
 
@@ -54,7 +59,7 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
 }) => {
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
-  const [vote, setVote] = useState(0);
+  const [vote, setVote] = useState<number | null>(null);
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bodyPresentation, setBodyPresentation] = useState<'continuous' | 'fragments'>('continuous');
@@ -62,6 +67,8 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
     novelId: novel.id,
     fragmentIndex: loadReaderBookmark(novel.id)?.fragmentIndex ?? null,
   }));
+  const [pendingBookmarkResume, setPendingBookmarkResume] = useState<PendingBookmarkResume | null>(null);
+  const [bookmarkResumeMessage, setBookmarkResumeMessage] = useState('');
   const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
   const authorMessage = novel.authorMessage?.trim() ?? '';
 
@@ -70,6 +77,8 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
       novelId: novel.id,
       fragmentIndex: loadReaderBookmark(novel.id)?.fragmentIndex ?? null,
     });
+    setPendingBookmarkResume(null);
+    setBookmarkResumeMessage('');
   }, [novel.id]);
 
   const bookmarkIndex = bookmarkState.novelId === novel.id ? bookmarkState.fragmentIndex : null;
@@ -79,6 +88,42 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
     setBookmarkState({ novelId: novel.id, fragmentIndex: nextBookmarkIndex });
     saveReaderBookmark(novel.id, nextBookmarkIndex);
   }, [bookmarkIndex, novel.id]);
+
+  const handleBookmarkResume = useCallback(() => {
+    if (bookmarkIndex === null) return;
+
+    setBookmarkResumeMessage('');
+    setPendingBookmarkResume({
+      novelId: novel.id,
+      fragmentIndex: bookmarkIndex,
+    });
+    setBodyPresentation('fragments');
+  }, [bookmarkIndex, novel.id]);
+
+  useEffect(() => {
+    if (
+      bodyPresentation !== 'fragments'
+      || pendingBookmarkResume === null
+      || pendingBookmarkResume.novelId !== novel.id
+    ) {
+      return;
+    }
+
+    const { fragmentIndex } = pendingBookmarkResume;
+    const target = document.getElementById(`reader-fragment-${fragmentIndex}`);
+    setPendingBookmarkResume(null);
+
+    if (!target) {
+      setBookmarkResumeMessage(
+        `しおりの位置（断片 ${fragmentIndex}）が見つかりません。本文が更新された可能性があります。`,
+      );
+      return;
+    }
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    target.focus({ preventScroll: true });
+    setBookmarkResumeMessage(`断片 ${fragmentIndex} から再開しました。`);
+  }, [bodyPresentation, novel.id, pendingBookmarkResume]);
 
   const { total, count } = useMemo(() => calculateScore(comments), [comments]);
   const pageCountLabel = useMemo(() => formatManuscriptPages(novel.body), [novel.body]);
@@ -95,10 +140,9 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
     return breakdown;
   }, [comments]);
 
-  // Star display
   const avg = count > 0 ? total / count : 0;
-  const normalized = Math.round(((avg + 2) / 4) * 5);
-  const filled = Math.max(0, Math.min(5, normalized));
+  // 未採点のみのときは空。0点平均を3星にしない。
+  const filled = count > 0 ? Math.max(0, Math.min(5, Math.round(((avg + 2) / 4) * 5))) : 0;
   const starsOn = '★'.repeat(filled);
   const starsOff = '★'.repeat(5 - filled);
 
@@ -116,13 +160,11 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
 
     setFormError('');
     const commentId = Date.now().toString();
-    const { trip } = generateTrip(commentName);
     setIsSubmitting(true);
     const ok = await onComment({
       id: commentId,
       novelId: novel.id,
-      name: '',
-      trip,
+      name: resolveAuthorName(commentName),
       text: commentText,
       date: new Date().toISOString(),
       vote,
@@ -136,7 +178,7 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
 
     setCommentText('');
     setCommentName('');
-    setVote(0);
+    setVote(null);
     onPostSuccess(commentId, '感想を投稿しました。');
   };
 
@@ -146,6 +188,16 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
       <div className="reader-top-nav">
         <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">&nbsp;戻る</a>
         <div className="reader-top-actions">
+          {bookmarkIndex !== null && (
+            <button
+              type="button"
+              className="reader-resume-bookmark"
+              onClick={handleBookmarkResume}
+              aria-label={`断片 ${bookmarkIndex} のしおりから再開`}
+            >
+              しおりから再開（断片 {bookmarkIndex}）
+            </button>
+          )}
           <div className="reader-presentation-switch" role="group" aria-label="本文の読み方">
             <button
               type="button"
@@ -174,6 +226,11 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
           </button>
         </div>
       </div>
+      {bookmarkResumeMessage && (
+        <div className="reader-bookmark-status" role="status" aria-live="polite">
+          {bookmarkResumeMessage}
+        </div>
+      )}
 
       <IndentModeControl
         mode={indentMode}
@@ -224,7 +281,7 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
 
       {/* 作者情報とメッセージ */}
       <div style={{ padding: '4px 8px', fontSize: 16 }}>
-        <b>■作者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}
+        <b>■作者</b>
         <div style={{ marginLeft: '3%' }}>{novel.author || '名無し'}</div>
         {authorMessage && (
           <div style={{ marginTop: 8 }}>
@@ -266,8 +323,10 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
               <div className="comment-text">{c.text}</div>
               <div className="comment-footer">
                 <span className="comment-number">{comments.length - idx}:</span>{' '}
-                <span className={badgeClass(c.vote)}>{voteLabel(c.vote)}</span>{' '}
-                {c.trip && <span className="comment-host">＜{c.trip.replace('◆', '')}＞</span>}{' '}
+                <span className="comment-name">{c.name.trim() || '名無し'}</span>{' '}
+                {isCountedVote(c.vote) && voteLabel(c.vote) && (
+                  <span className={badgeClass(c.vote)}>{voteLabel(c.vote)}</span>
+                )}{' '}
                 <span className="comment-date">{formatDate(c.date)}</span>
               </div>
             </div>
@@ -298,23 +357,28 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
           )}
           <div style={{ marginTop: 6, fontSize: 16 }}>
             <b>■名前</b>{' '}
-            <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し（トリップ: 名前#pass）" style={{ width: 260, maxWidth: '100%' }} />
+            <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し" maxLength={100} style={{ width: 260, maxWidth: '100%' }} />
           </div>
           <div style={{ marginTop: 6, fontSize: 16 }}>
             <b>■採点</b>{' '}
-            <select value={vote} onChange={(e) => setVote(Number(e.target.value))}>
-              <option value={0}>採点しない</option>
-              <option value={2}>とても良い</option>
-              <option value={1}>良い</option>
-              <option value={-1}>良くない</option>
-              <option value={-2}>最悪</option>
+            <select
+              value={vote === null ? 'none' : String(vote)}
+              onChange={(e) => setVote(e.target.value === 'none' ? null : Number(e.target.value))}
+            >
+              <option value="none">採点しない</option>
+              <option value="2">とても良い</option>
+              <option value="1">良い</option>
+              <option value="0">普通</option>
+              <option value="-1">良くない</option>
+              <option value="-2">最悪</option>
             </select>
+            <div className="vote-note">採点しない場合、ポイント集計には含まれません。</div>
           </div>
           <div className="comment-form-actions">
             <button type="submit" className="classic-button comment-form-action-primary" disabled={isSubmitting}>
               {isSubmitting ? '送信中...' : '投稿'}
             </button>
-            <button type="button" className="classic-button" disabled={isSubmitting} onClick={() => { setCommentText(''); setVote(0); setFormError(''); }}>クリア</button>
+            <button type="button" className="classic-button" disabled={isSubmitting} onClick={() => { setCommentText(''); setVote(null); setFormError(''); }}>クリア</button>
           </div>
         </form>
       </div>

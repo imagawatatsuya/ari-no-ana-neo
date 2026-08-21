@@ -282,6 +282,8 @@ export const FootnoteRenderer: React.FC<FootnoteRendererProps> = React.memo(({
         <section
           key={`fragment-${index}`}
           className="reader-fragment"
+          id={`reader-fragment-${currentFragmentIndex}`}
+          tabIndex={-1}
           aria-label={`本文断片 ${currentFragmentIndex}`}
         >
           <p>{renderInline(stripFragmentBoundaryLineFeeds(segment.text))}</p>

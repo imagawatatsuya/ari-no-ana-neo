@@ -7,6 +7,7 @@ export interface NovelSummary {
   date: string;
   viewCount: number;
   commentCount: number;
+  voteCount: number;
   voteSum: number;
   isRyuseigai?: boolean;
   isHidden?: boolean;
@@ -25,11 +26,10 @@ export type SubmitResult =
 export interface Comment {
   id: string;
   novelId: string; // Foreign Key linking to Novel
-  name: string; // 非使用（互換性のため残置）
-  trip?: string; // トリップ（識別用）
+  name: string;
   text: string;
   date: string;
-  vote: number; // -2 to +2
+  vote: number | null; // 5段階は -2..2。未採点は null。流星垓は -500 / -1000
 }
 
 export interface Novel extends NovelSummary {

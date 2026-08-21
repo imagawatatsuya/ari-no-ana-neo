@@ -1,6 +1,36 @@
--- Performance: single-query public novel list with comment aggregates
--- Run in Supabase SQL Editor after supabase_schema_v2.sql
--- Note: novels.date may be text or timestamptz in existing DBs; RPC returns text.
+-- 未採点は null。既存の vote=0 は旧UIの「採点しない」なので null へ移す。
+-- ポイント集計は非 null の票だけを対象にする。
+
+alter table public.comments
+  alter column vote drop not null;
+
+alter table public.comments
+  alter column vote drop default;
+
+update public.comments
+set vote = null
+where vote = 0;
+
+alter table public.comments
+  drop constraint if exists comments_vote_range;
+
+alter table public.comments
+  add constraint comments_vote_range
+  check (vote is null or vote between -1000 and 2);
+
+drop policy if exists comments_insert_public on public.comments;
+create policy comments_insert_public on public.comments
+for insert
+with check (
+  length(text) between 1 and 500
+  and length(name) <= 100
+  and (vote is null or vote between -1000 and 2)
+  and (
+    not exists (select 1 from public.comments)
+    or ("date")::timestamptz >= (select max((c.date)::timestamptz) from public.comments c)
+  )
+  and ("date")::timestamptz <= now() + interval '5 minutes'
+);
 
 drop function if exists public.list_public_novels(integer, integer, text, boolean);
 
@@ -57,15 +87,3 @@ $$;
 
 revoke all on function public.list_public_novels(integer, integer, text, boolean) from public;
 grant execute on function public.list_public_novels(integer, integer, text, boolean) to anon, authenticated;
-
--- Indexes for list queries (partial indexes match filter conditions)
-create index if not exists novels_public_latest_idx
-  on public.novels (date desc)
-  where is_hidden = false and is_ryuseigai = false;
-
-create index if not exists novels_ryuseigai_latest_idx
-  on public.novels (date desc)
-  where is_hidden = false and is_ryuseigai = true;
-
-create index if not exists comments_novel_id_idx
-  on public.comments (novel_id);

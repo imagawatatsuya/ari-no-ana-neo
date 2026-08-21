@@ -59,6 +59,25 @@ test.describe('アリの穴NEO - 投稿画面', () => {
     await page.goto('/post');
     await expect(page.locator('.form-table')).toBeVisible();
     await expect(page.locator('.post-form-tabs')).toBeVisible();
+    await expect(page.getByPlaceholder('名無し')).toBeVisible();
+  });
+
+  test('入力内容は下書きとして復元でき、クリアで消える', async ({ page }) => {
+    await page.goto('/post');
+    await expect(page.locator('.post-form-note')).toContainText('下書きとして自動保存');
+    await page.locator('.form-table input[type="text"]').first().fill('下書きタイトル');
+    await page.locator('.form-table textarea[maxlength="100000"]').fill('下書き本文');
+    await page.locator('.post-form-back').click();
+    await page.getByRole('link', { name: /新規投稿/ }).click();
+    await expect(page.locator('.form-table input[type="text"]').first()).toHaveValue('下書きタイトル');
+    await expect(page.locator('.form-table textarea[maxlength="100000"]')).toHaveValue('下書き本文');
+    await page.getByRole('button', { name: 'クリア' }).click();
+    await expect(page.locator('.form-table input[type="text"]').first()).toHaveValue('');
+    await expect(page.locator('.form-table textarea[maxlength="100000"]')).toHaveValue('');
+    await page.locator('.post-form-back').click();
+    await page.getByRole('link', { name: /新規投稿/ }).click();
+    await expect(page.locator('.form-table input[type="text"]').first()).toHaveValue('');
+    await expect(page.locator('.form-table textarea[maxlength="100000"]')).toHaveValue('');
   });
 
   test('プレビュー→送信の2段階フロー', async ({ page }) => {
@@ -165,6 +184,18 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
     }
   });
 
+  test('感想の採点は任意で、普通を選べる', async ({ page }) => {
+    await page.goto('/');
+    const firstLink = page.locator('.entry-title-link').first();
+    await expect(firstLink).toBeVisible();
+    await firstLink.click();
+    const voteSelect = page.locator('.comment-form select');
+    await expect(voteSelect).toHaveValue('none');
+    await expect(voteSelect.locator('option[value="0"]')).toHaveText('普通');
+    await expect(page.locator('.vote-note')).toContainText('ポイント集計には含まれません');
+    await expect(page.locator('.comment-form input[type="text"]')).toHaveAttribute('placeholder', '名無し');
+  });
+
   test('閲覧ページはスクロール位置が最上部', async ({ page }) => {
     await page.goto('/');
     const firstLink = page.locator('.entry-title-link').first();
@@ -173,6 +204,67 @@ test.describe('アリの穴NEO - 作品閲覧', () => {
       const scrollY = await page.evaluate(() => window.scrollY);
       expect(scrollY).toBe(0);
     }
+  });
+
+  test('しおりから断片読みを再開できる', async ({ page }) => {
+    await page.goto('/');
+    const firstLink = page.locator('.entry-title-link').first();
+    await expect(firstLink).toBeVisible();
+    await firstLink.click();
+    await expect(page.locator('.article-body')).toBeVisible();
+    await page.getByRole('button', { name: '断片読み', exact: true }).click();
+
+    const fragmentBookmarks = page.locator('.reader-fragment-bookmark');
+    await expect(fragmentBookmarks.nth(1)).toBeVisible();
+    const fragmentIndex = await fragmentBookmarks.nth(1).getAttribute('data-fragment-index');
+    if (!fragmentIndex) throw new Error('断片番号を取得できませんでした');
+
+    await fragmentBookmarks.nth(1).click();
+    const resumeName = new RegExp(`断片 ${fragmentIndex} のしおりから再開`);
+    await expect(page.getByRole('button', { name: resumeName })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByRole('button', { name: resumeName })).toBeVisible();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+
+    await page.getByRole('button', { name: resumeName }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator(`#reader-fragment-${fragmentIndex}`)).toBeFocused();
+
+    await page
+      .getByRole('button', { name: new RegExp(`断片 ${fragmentIndex} のしおりを外す`) })
+      .click();
+    await expect(page.getByRole('button', { name: resumeName })).not.toBeVisible();
+  });
+
+  test('本文更新で無効になったしおりは誤移動しない', async ({ page }) => {
+    await page.goto('/');
+    const firstLink = page.locator('.entry-title-link').first();
+    await expect(firstLink).toBeVisible();
+    await firstLink.click();
+    await expect(page.locator('.article-body')).toBeVisible();
+
+    const novelId = new URL(page.url()).pathname.split('/').filter(Boolean).pop();
+    if (!novelId) throw new Error('作品IDを取得できませんでした');
+
+    await page.evaluate((id) => {
+      localStorage.setItem('bunsho_reader_bookmarks_v1', JSON.stringify({
+        [id]: {
+          novelId: id,
+          fragmentIndex: 999,
+          savedAt: '2026-08-21T00:00:00.000Z',
+        },
+      }));
+    }, novelId);
+    await page.reload();
+
+    const resumeButton = page.getByRole('button', { name: '断片 999 のしおりから再開' });
+    await expect(resumeButton).toBeVisible();
+    await resumeButton.click();
+
+    await expect(page.locator('.reader-bookmark-status')).toContainText('本文が更新された可能性があります');
+    await expect(page.locator('#reader-fragment-999')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '断片読み', exact: true })).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('読者は自動字下げを切り替えられ、設定が保持される', async ({ page }) => {

@@ -11,7 +11,7 @@ interface AdminDashboardProps {
   novels: Novel[];
   comments: Comment[];
   hiddenNovelIds: string[];
-  onEditNovel: (id: string, patch: Pick<Novel, 'title' | 'description' | 'authorMessage' | 'author' | 'trip' | 'body'>) => Promise<void>;
+  onEditNovel: (id: string, patch: Pick<Novel, 'title' | 'description' | 'authorMessage' | 'author' | 'body'>) => Promise<void>;
   onDeleteNovel: (id: string) => Promise<void>;
   onToggleHideNovel: (id: string, nextHidden: boolean) => Promise<void>;
   onBulkToggleHide: (ids: string[], nextHidden: boolean) => Promise<void>;
@@ -39,7 +39,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [description, setDescription] = useState('');
   const [authorMessage, setAuthorMessage] = useState('');
   const [author, setAuthor] = useState('');
-  const [trip, setTrip] = useState('');
   const [body, setBody] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [filterTab, setFilterTab] = useState<FilterTab>('all');
@@ -95,7 +94,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setDescription(novel.description || '');
     setAuthorMessage(novel.authorMessage || '');
     setAuthor(novel.author);
-    setTrip(novel.trip || '');
     setBody(novel.body);
   };
 
@@ -105,7 +103,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setDescription('');
     setAuthorMessage('');
     setAuthor('');
-    setTrip('');
     setBody('');
   };
 
@@ -123,7 +120,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         description: description.trim() || undefined,
         authorMessage: authorMessage.trim() || undefined,
         author: author.trim() || '名無し',
-        trip: trip.trim() || undefined,
         body,
       });
       cancelEdit();
@@ -254,10 +250,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <tr>
                 <td className="form-label">名前</td>
                 <td><input type="text" value={author} onChange={(e) => setAuthor(e.target.value)} style={{ width: 300, maxWidth: '100%' }} /></td>
-              </tr>
-              <tr>
-                <td className="form-label">トリップ</td>
-                <td><input type="text" value={trip} onChange={(e) => setTrip(e.target.value)} style={{ width: 300, maxWidth: '100%' }} /></td>
               </tr>
               <tr>
                 <td className="form-label">本文</td>

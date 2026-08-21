@@ -25,22 +25,28 @@ type RpcRow = {
   date: string;
   view_count: number;
   comment_count: number | string;
+  vote_count?: number | string;
   vote_sum: number | string;
   total_count: number | string;
 };
 
-const mapRpcRow = (row: RpcRow, isRyuseigai: boolean): NovelSummary => ({
-  id: row.id,
-  title: row.title,
-  author: row.author,
-  trip: row.trip ?? undefined,
-  date: row.date,
-  viewCount: row.view_count ? Number(row.view_count) : 0,
-  commentCount: Number(row.comment_count) || 0,
-  voteSum: Number(row.vote_sum) || 0,
-  isRyuseigai,
-  isHidden: false,
-});
+const mapRpcRow = (row: RpcRow, isRyuseigai: boolean): NovelSummary => {
+  const commentCount = Number(row.comment_count) || 0;
+  const voteCount = row.vote_count == null ? commentCount : Number(row.vote_count) || 0;
+  return {
+    id: row.id,
+    title: row.title,
+    author: row.author,
+    trip: row.trip ?? undefined,
+    date: row.date,
+    viewCount: row.view_count ? Number(row.view_count) : 0,
+    commentCount,
+    voteCount,
+    voteSum: Number(row.vote_sum) || 0,
+    isRyuseigai,
+    isHidden: false,
+  };
+};
 
 /** RPC で一覧を1回取得。未デプロイ時は最適化フォールバックへ */
 export async function fetchNovelListPage(params: NovelListQueryParams): Promise<NovelListFetchResult> {
@@ -127,8 +133,8 @@ async function fetchNovelListPageFallback(params: NovelListQueryParams): Promise
   const novelsData = novelsResult.data ?? [];
   const novelIds = novelsData.map((n) => n.id);
 
-  const voteByNovel = new Map<string, { count: number; sum: number }>();
-  if (novelIds.length > 0) {
+    const voteByNovel = new Map<string, { commentCount: number; voteCount: number; sum: number }>();
+    if (novelIds.length > 0) {
     const { data: commentsData, error: commentsError } = await supabase
       .from('comments')
       .select(LIST_COMMENT_COLUMNS)
@@ -139,15 +145,18 @@ async function fetchNovelListPageFallback(params: NovelListQueryParams): Promise
     }
 
     for (const c of commentsData ?? []) {
-      const entry = voteByNovel.get(c.novel_id) ?? { count: 0, sum: 0 };
-      entry.count += 1;
-      entry.sum += c.vote;
+      const entry = voteByNovel.get(c.novel_id) ?? { commentCount: 0, voteCount: 0, sum: 0 };
+      entry.commentCount += 1;
+      if (typeof c.vote === 'number' && Number.isFinite(c.vote)) {
+        entry.voteCount += 1;
+        entry.sum += c.vote;
+      }
       voteByNovel.set(c.novel_id, entry);
     }
   }
 
   const items: NovelSummary[] = novelsData.map((n) => {
-    const agg = voteByNovel.get(n.id) ?? { count: 0, sum: 0 };
+    const agg = voteByNovel.get(n.id) ?? { commentCount: 0, voteCount: 0, sum: 0 };
     return {
       id: n.id,
       title: n.title,
@@ -155,7 +164,8 @@ async function fetchNovelListPageFallback(params: NovelListQueryParams): Promise
       trip: n.trip ?? undefined,
       date: n.date,
       viewCount: n.view_count ? Number(n.view_count) : 0,
-      commentCount: agg.count,
+      commentCount: agg.commentCount,
+      voteCount: agg.voteCount,
       voteSum: agg.sum,
       isRyuseigai: !!n.is_ryuseigai,
       isHidden: false,
@@ -194,7 +204,7 @@ type CommentReadRow = {
   name: string | null;
   text: string;
   date: string;
-  vote: number;
+  vote: number | null;
 };
 
 type InFlightRead = {
@@ -214,6 +224,7 @@ const mapReadNovel = (row: NovelReadRow): Novel => ({
   date: row.date,
   viewCount: row.view_count ? Number(row.view_count) : 0,
   commentCount: 0,
+  voteCount: 0,
   voteSum: 0,
   isHidden: !!row.is_hidden,
   isRyuseigai: !!row.is_ryuseigai,
@@ -226,7 +237,7 @@ const mapReadComments = (rows: CommentReadRow[] | null): Comment[] =>
   (rows ?? []).map((row) => ({
     id: row.id,
     novelId: row.novel_id,
-    name: row.name || '',
+    name: row.name?.trim() || '名無し',
     text: row.text,
     date: row.date,
     vote: row.vote,

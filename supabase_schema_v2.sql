@@ -29,7 +29,7 @@ create table if not exists public.comments (
   name text not null,
   text text not null,
   date timestamptz not null default now(),
-  vote integer not null default 0 check (vote between -1000 and 2)
+  vote integer check (vote is null or vote between -1000 and 2)
 );
 
 -- Supabase Auth users that can edit/delete/hide posts.
@@ -93,7 +93,7 @@ for insert
 with check (
   length(text) between 1 and 500
   and length(name) <= 100
-  and vote between -1000 and 2
+  and (vote is null or vote between -1000 and 2)
   and (
     not exists (select 1 from public.comments)
     or ("date")::timestamptz >= (select max((c.date)::timestamptz) from public.comments c)

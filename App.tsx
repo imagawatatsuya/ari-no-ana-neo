@@ -329,6 +329,7 @@ const App: React.FC = () => {
         date: n.date,
         viewCount: n.view_count ? Number(n.view_count) : 0,
         commentCount: 0,
+        voteCount: 0,
         voteSum: 0,
         isHidden: !!n.is_hidden,
         isRyuseigai: !!n.is_ryuseigai,
@@ -386,6 +387,7 @@ const App: React.FC = () => {
       ...novel,
       date: getJSTISOString(),
       commentCount: 0,
+      voteCount: 0,
       voteSum: 0,
     };
     if (isSupabaseMode && supabase) {
@@ -395,7 +397,6 @@ const App: React.FC = () => {
         description: novelToSave.description || null,
         author_message: novelToSave.authorMessage || null,
         author: novelToSave.author,
-        trip: novelToSave.trip || null,
         body: novelToSave.body,
         author_indent_mode: novelToSave.authorIndentMode ?? 'none',
         date: novelToSave.date,
@@ -426,7 +427,7 @@ const App: React.FC = () => {
         {
           id: commentToSave.id,
           novel_id: commentToSave.novelId,
-          name: commentToSave.name || '',
+          name: commentToSave.name || '名無し',
           text: commentToSave.text,
           date: commentToSave.date,
           vote: commentToSave.vote,
@@ -450,7 +451,7 @@ const App: React.FC = () => {
   }, [isSupabaseMode]);
 
 
-  const handleEditNovel = async (id: string, patch: Pick<Novel, 'title' | 'description' | 'authorMessage' | 'author' | 'trip' | 'body'>) => {
+  const handleEditNovel = async (id: string, patch: Pick<Novel, 'title' | 'description' | 'authorMessage' | 'author' | 'body'>) => {
     if (!isAdminAuthenticated) {
       alert('管理者認証が必要です。');
       return;
@@ -464,7 +465,6 @@ const App: React.FC = () => {
           description: patch.description || null,
           author_message: patch.authorMessage || null,
           author: patch.author,
-          trip: patch.trip ?? null,
           body: patch.body,
         })
         .eq('id', id);
@@ -1113,9 +1113,9 @@ const App: React.FC = () => {
                 <p><b>■ 閲覧</b></p>
                 <p>一覧からタイトルをクリックすると作品を読めます。作品内の <span className="footnote-ref-link">[1]</span> 等の番号は脚注へのリンクです。</p>
                 <p><b>■ 投稿</b></p>
-                <p>「新規投稿」から作品を投稿できます。タイトル・本文を入力し、プレビュー確認後に送信してください。本文内の <code>[^1]</code> と <code>[^1]: 脚注テキスト</code> で脚注を使えます。</p>
+                <p>「新規投稿」から作品を投稿できます。入力内容はこのブラウザに下書きとして自動保存され、「クリア」または投稿完了で消去されます。タイトル・本文を入力し、プレビュー確認後に送信してください。本文内の <code>[^1]</code> と <code>[^1]: 脚注テキスト</code> で脚注を使えます。</p>
                 <p><b>■ 感想・評価</b></p>
-                <p>作品ページ下部から感想を投稿できます。評価（とても良い～最悪）を選んで投票してください。</p>
+                <p>作品ページ下部から感想を投稿できます。名前は表示されます。評価は任意で、採点した場合のみポイントに算入されます（とても良い / 良い / 普通 / 良くない / 最悪）。</p>
                 <p><b>■ その他</b></p>
                 <p>当サイトは2005年のテキスト投稿サイト「文章アリの穴」をオマージュした再現サイトです。煽り・罵倒は覚悟の上で。</p>
                 <div style={{ textAlign: 'center' }}>

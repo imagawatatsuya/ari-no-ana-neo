@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Novel, Comment, ReaderIndentMode } from '../types';
-import { formatDate, generateTrip, formatManuscriptPages } from '../utils';
+import { formatDate, formatManuscriptPages, isCountedVote, resolveAuthorName } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { IndentModeControl } from './IndentModeControl';
 import { formatReaderBody } from '../services/jisageAdapter';
@@ -46,6 +46,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
     let why = 0;
     let notExist = 0;
     for (const comment of comments) {
+      if (!isCountedVote(comment.vote)) continue;
       sum += comment.vote;
       if (comment.vote === -500) why += 1;
       else if (comment.vote === -1000) notExist += 1;
@@ -68,13 +69,11 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
 
     setFormError('');
     const commentId = Date.now().toString();
-    const { trip } = generateTrip(commentName);
     setIsSubmitting(true);
     const ok = await onComment({
       id: commentId,
       novelId: novel.id,
-      name: '',
-      trip,
+      name: resolveAuthorName(commentName),
       text: commentText,
       date: new Date().toISOString(),
       vote,
@@ -147,7 +146,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
       <div className="article-date" style={{ textAlign: 'right' }}>{formatDate(novel.date)} に捨てられた</div>
 
       <div className="ryuseigai-author-block">
-        <div className="ryuseigai-author-label"><b>■ 捨てた者</b>{novel.trip && <span>＜{novel.trip.replace('◆', '')}＞</span>}</div>
+        <div className="ryuseigai-author-label"><b>■ 捨てた者</b></div>
         <div className="ryuseigai-author-name">{novel.author || '名無し'}</div>
         {authorMessage && (
           <div className="ryuseigai-author-message">
@@ -186,10 +185,10 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
               <div className="comment-text">{c.text}</div>
               <div className="comment-footer">
                 <span className="comment-number">{comments.length - idx}:</span>{' '}
+                <span className="comment-name">{c.name.trim() || '名無し'}</span>{' '}
                 <span className="ryuseigai-comment-vote">
                   {c.vote === -1000 ? 'おまえは存在しない' : 'なぜ生まれてきた？'}
                 </span>{' '}
-                {c.trip && <span className="comment-host">＜{c.trip.replace('◆', '')}＞</span>}{' '}
                 <span className="comment-date">{formatDate(c.date)}</span>
               </div>
             </div>
@@ -224,7 +223,8 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
               type="text"
               value={commentName}
               onChange={(e) => setCommentName(e.target.value)}
-              placeholder="名無し（トリップ: 名前#pass）"
+              maxLength={100}
+              placeholder="名無し"
               className="ryuseigai-input"
             />
           </div>
