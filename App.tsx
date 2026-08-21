@@ -117,6 +117,17 @@ const App: React.FC = () => {
   const [footnoteMode, setFootnoteMode] = useState<FootnoteMode>(
     () => (localStorage.getItem(FOOTNOTE_MODE_KEY) as FootnoteMode) || 'scroll'
   );
+  const [listNotice, setListNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!listNotice) return;
+    if (view !== 'list') {
+      setListNotice(null);
+      return;
+    }
+    const timer = window.setTimeout(() => setListNotice(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [listNotice, view]);
 
   useEffect(() => {
     if (!isSupabaseMode) {
@@ -411,11 +422,13 @@ const App: React.FC = () => {
         return { ok: false, message: `文章の投稿中にエラーが発生しました: ${error.message ?? 'Supabaseへの保存に失敗しました。'}` };
       }
 
+      setListNotice('投稿が完了しました。');
       navigate('/');
       return { ok: true, novelId: novelToSave.id, notice };
     } else {
       setNovels([novelToSave, ...novels]);
     }
+    setListNotice('投稿が完了しました。');
     navigate('/');
     return { ok: true, novelId: novelToSave.id };
   };
@@ -908,6 +921,11 @@ const App: React.FC = () => {
         </>)}
 
         {errorMsg && <div className="error-box" role="alert">{errorMsg}</div>}
+        {view === 'list' && listNotice && (
+          <div className="form-message form-message--info" role="status" aria-live="polite">
+            {listNotice}
+          </div>
+        )}
 
         <main id="main-content">
 

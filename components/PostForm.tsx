@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AuthorIndentMode, Novel, SubmitResult } from '../types';
-import { formatManuscriptPages, formatDate, countBodyCharacters, resolveAuthorName } from '../utils';
+import { formatManuscriptPages, formatDate, countBodyCharacters, resolveAuthorName, getCooldownRemainSec, markCooldown, cooldownErrorText, LAST_POST_KEY } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { AuthorIndentModeControl } from './AuthorIndentModeControl';
 import { formatReaderBody } from '../services/jisageAdapter';
@@ -20,9 +20,9 @@ const MAX_AUTHOR_MESSAGE = 500;
 const MAX_NAME = 100;
 const MAX_BODY = 100000;
 
-// 連投制限（秒）
-const SPAM_COOLDOWN_MS = 60 * 1000;
-const LAST_POST_KEY = 'bunsho_last_post_at';
+const CharCount: React.FC<{ value: string; max: number }> = ({ value, max }) => (
+  <div className="comment-form-count">{value.length.toLocaleString()} / {max.toLocaleString()}</div>
+);
 
 export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initialAuthorIndentMode = 'none' }) => {
   const [mode, setMode] = useState<'input' | 'preview'>('input');
@@ -39,13 +39,14 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
 
   useEffect(() => {
     const draft = readPostDraft();
-    if (draft) {
+    if (draft && (draft.title || draft.description || draft.authorMessage || draft.name || draft.body)) {
       setTitle(draft.title);
       setDescription(draft.description);
       setAuthorMessage(draft.authorMessage);
       setName(draft.name);
       setBody(draft.body);
       setAuthorIndentMode(draft.authorIndentMode);
+      setFormMessage({ type: 'info', text: '下書きを復元しました。' });
     }
     setIsDraftLoaded(true);
   }, []);
@@ -89,10 +90,9 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
   const handleSubmit = async () => {
     if (isSubmitting) return;
 
-    const lastPostAt = Number(sessionStorage.getItem(LAST_POST_KEY) || 0);
-    if (lastPostAt && Date.now() - lastPostAt < SPAM_COOLDOWN_MS) {
-      const remainSec = Math.ceil((SPAM_COOLDOWN_MS - (Date.now() - lastPostAt)) / 1000);
-      setFormMessage({ type: 'error', text: `連続投稿は${remainSec}秒後に再度お試しください。` });
+    const remainSec = getCooldownRemainSec(LAST_POST_KEY);
+    if (remainSec > 0) {
+      setFormMessage({ type: 'error', text: cooldownErrorText(remainSec) });
       return;
     }
 
@@ -124,9 +124,8 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         window.alert(result.notice);
       }
 
-      sessionStorage.setItem(LAST_POST_KEY, String(Date.now()));
+      markCooldown(LAST_POST_KEY);
       clearForm();
-      setFormMessage({ type: 'info', text: '投稿が完了しました。' });
     } catch {
       setFormMessage({ type: 'error', text: '投稿中にエラーが発生しました。入力内容は保持されています。' });
       setIsSubmitting(false);
@@ -146,11 +145,20 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
   };
 
   const handleClear = () => {
+    const hasContent = Boolean(
+      title || description || authorMessage || name || body || authorIndentMode !== 'none',
+    );
+    if (hasContent && !window.confirm('入力中の内容を消去しますか？下書きも消えます。')) return;
     clearForm();
     setFormMessage(null);
   };
 
   const handleSubmitClick = () => {
+    const remainSec = getCooldownRemainSec(LAST_POST_KEY);
+    if (remainSec > 0) {
+      setFormMessage({ type: 'error', text: cooldownErrorText(remainSec) });
+      return;
+    }
     if (!validate()) return;
     if (!window.confirm('この内容で投稿しますか？')) return;
     void handleSubmit();
@@ -215,7 +223,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
           <table className="form-table">
             <tbody>
               <tr>
-                <td className="form-label">タイトル</td>
+                <td className="form-label">タイトル（必須）</td>
                 <td>
                   <input
                     type="text"
@@ -227,11 +235,13 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                     maxLength={MAX_TITLE}
                     style={{ width: '100%' }}
                     aria-invalid={!!fieldErrors.title}
-                    aria-describedby={fieldErrors.title ? 'post-error-title' : undefined}
+                    aria-describedby={fieldErrors.title ? 'post-error-title' : 'post-count-title'}
+                    aria-required="true"
                   />
                   {fieldErrors.title && (
                     <div id="post-error-title" className="form-field-error">{fieldErrors.title}</div>
                   )}
+                  <div id="post-count-title"><CharCount value={title} max={MAX_TITLE} /></div>
                 </td>
               </tr>
               <tr>
@@ -245,6 +255,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                     placeholder="作品ページ上部に表示される副題（任意）"
                     style={{ width: '100%' }}
                   />
+                  <CharCount value={description} max={MAX_DESCRIPTION} />
                 </td>
               </tr>
               <tr>
@@ -258,6 +269,7 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                     placeholder="名無し"
                     style={{ width: '100%' }}
                   />
+                  <CharCount value={name} max={MAX_NAME} />
                 </td>
               </tr>
               <tr>
@@ -270,10 +282,22 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                     placeholder="作品ページ下部に表示される作者からのメッセージ（任意）"
                     style={{ minHeight: 90 }}
                   />
+                  <CharCount value={authorMessage} max={MAX_AUTHOR_MESSAGE} />
                 </td>
               </tr>
               <tr>
-                <td className="form-label">本文</td>
+                <td className="form-label">字下げ</td>
+                <td>
+                  <AuthorIndentModeControl
+                    mode={authorIndentMode}
+                    onChange={setAuthorIndentMode}
+                    name="post-author-indent-mode-input"
+                    note="読者の表示設定とは別に保存されます。二字以上を含む手動空白は常に保持されます。"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="form-label">本文（必須）</td>
                 <td>
                   <textarea
                     value={body}
@@ -284,13 +308,15 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
                     maxLength={MAX_BODY}
                     style={{ minHeight: 280 }}
                     aria-invalid={!!fieldErrors.body}
-                    aria-describedby={fieldErrors.body ? 'post-error-body' : undefined}
+                    aria-describedby={fieldErrors.body ? 'post-error-body' : 'post-count-body'}
+                    aria-required="true"
                   />
                   {fieldErrors.body && (
                     <div id="post-error-body" className="form-field-error">{fieldErrors.body}</div>
                   )}
-                  <div className="post-form-stats">
-                    <span>文字数: {countBodyCharacters(body).toLocaleString()}文字</span>
+                  <div id="post-count-body" className="post-form-stats">
+                    <span>文字数: {countBodyCharacters(body).toLocaleString()}（空白・改行除く）</span>
+                    <span>入力: {body.length.toLocaleString()} / {MAX_BODY.toLocaleString()}</span>
                     {livePageCount && <span>原稿用紙: {livePageCount}</span>}
                   </div>
                 </td>
@@ -300,16 +326,12 @@ export const PostForm: React.FC<PostFormProps> = ({ onPost, footnoteMode, initia
         </form>
 
         <div className="post-form-note">
-          ※ HTMLタグは使えません。改行はそのまま保持されます。本文の字下げ設定は投稿者の意図として保存されます。
+          ※ タイトルと本文は必須です。投稿はプレビュー画面から行います。
+          <br />
+          ※ HTMLタグは使えません。改行はそのまま保持されます。本文の <code>[^1]</code> と <code>[^1]: 脚注テキスト</code> で脚注を使えます。
           <br />
           ※ 入力内容はこのブラウザに下書きとして自動保存されます。「クリア」または投稿完了で消去されます。
         </div>
-        <AuthorIndentModeControl
-          mode={authorIndentMode}
-          onChange={setAuthorIndentMode}
-          name="post-author-indent-mode-input"
-          note="読者の表示設定とは別に保存されます。二字以上を含む手動空白は常に保持されます。"
-        />
       </div>
 
       <div

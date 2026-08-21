@@ -10,7 +10,7 @@ test.describe('モバイル - 投稿画面', () => {
   test('タブ切替でプレビューできる', async ({ page }) => {
     await page.goto('/post');
     await page.locator('.form-table input[type="text"]').first().fill('モバイルテスト');
-    await page.locator('.form-table textarea').fill('スマホからの投稿テスト本文');
+    await page.locator('.form-table textarea[maxlength="100000"]').fill('スマホからの投稿テスト本文');
     await page.getByRole('tab', { name: 'プレビュー' }).click();
     await expect(page.locator('.article-title')).toContainText('モバイルテスト');
     await expect(page.locator('.post-form-actions')).toBeVisible();

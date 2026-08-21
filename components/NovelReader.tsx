@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Novel, Comment, ReaderIndentMode } from '../types';
-import { calculateScore, formatDate, formatManuscriptPages, isCountedVote, resolveAuthorName } from '../utils';
+import { calculateScore, formatDate, formatManuscriptPages, isCountedVote, resolveAuthorName, getCooldownRemainSec, markCooldown, cooldownErrorText, LAST_COMMENT_KEY } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { IndentModeControl } from './IndentModeControl';
 import { formatReaderBody } from '../services/jisageAdapter';
@@ -153,6 +153,11 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
       setFormError('感想を入力してください。');
       return;
     }
+    const remainSec = getCooldownRemainSec(LAST_COMMENT_KEY);
+    if (remainSec > 0) {
+      setFormError(cooldownErrorText(remainSec));
+      return;
+    }
     if (commentText.length > MAX_COMMENT_LENGTH) {
       setFormError(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
       return;
@@ -179,14 +184,14 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
     setCommentText('');
     setCommentName('');
     setVote(null);
+    markCooldown(LAST_COMMENT_KEY);
     onPostSuccess(commentId, '感想を投稿しました。');
   };
 
   return (
     <div>
-      {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
       <div className="reader-top-nav">
-        <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">&nbsp;戻る</a>
+        <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">戻る</a>
         <div className="reader-top-actions">
           {bookmarkIndex !== null && (
             <button
@@ -305,11 +310,6 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
 
       {/* 感想・批評 */}
       <div className="section-title" id="comments-section">感想・批評</div>
-      {successMessage && (
-        <div className="comment-post-success" role="status" aria-live="polite">
-          {successMessage}
-        </div>
-      )}
       {comments.length === 0 ? (
         <div style={{ fontSize: 14, padding: '8px 4px' }}>まだ感想はありません。</div>
       ) : (
@@ -337,6 +337,11 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
       {/* 感想投稿フォーム */}
       <div className="comment-form">
         <form onSubmit={handleSubmit}>
+          {successMessage && (
+            <div className="comment-post-success" role="status" aria-live="polite">
+              {successMessage}
+            </div>
+          )}
           <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 4 }}>■感想・批評(改行有効）</div>
           <textarea
             value={commentText}
@@ -358,6 +363,7 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
           <div style={{ marginTop: 6, fontSize: 16 }}>
             <b>■名前</b>{' '}
             <input type="text" value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="名無し" maxLength={100} style={{ width: 260, maxWidth: '100%' }} />
+            <div className="comment-form-count">{commentName.length.toLocaleString()} / 100</div>
           </div>
           <div style={{ marginTop: 6, fontSize: 16 }}>
             <b>■採点</b>{' '}
@@ -378,19 +384,18 @@ export const NovelReader: React.FC<NovelReaderProps> = React.memo(({
             <button type="submit" className="classic-button comment-form-action-primary" disabled={isSubmitting}>
               {isSubmitting ? '送信中...' : '投稿'}
             </button>
-            <button type="button" className="classic-button" disabled={isSubmitting} onClick={() => { setCommentText(''); setVote(null); setFormError(''); }}>クリア</button>
+            <button type="button" className="classic-button" disabled={isSubmitting} onClick={() => { setCommentText(''); setCommentName(''); setVote(null); setFormError(''); }}>クリア</button>
           </div>
         </form>
       </div>
 
-      {/* 戻る: 元サイト <a href="./antho.cgi">&nbsp;戻る</a> */}
+      {/* 戻る */}
       <div style={{ marginTop: 12 }}>
-        <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">&nbsp;戻る</a>
+        <a href={BASE_PATH + '/'} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="back-link">戻る</a>
       </div>
       <hr style={{ border: '0', borderTop: '1px inset #999', margin: '8px 0' }} />
       <div className="admin-inline-section" style={{ fontSize: 14 }}>
         <span>[ <a href={BASE_PATH + '/admin'} onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>感想記事削除</a> ]</span>
-        <input type="password" placeholder="PASSWORD" style={{ width: 120, maxWidth: '40%' }} readOnly onClick={() => { navigate('/admin'); }} />
         <button type="button" className="classic-button" onClick={() => { navigate('/admin'); }}>管理者用</button>
       </div>
     </div>

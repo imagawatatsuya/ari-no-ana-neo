@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Novel, Comment, ReaderIndentMode } from '../types';
-import { formatDate, formatManuscriptPages, isCountedVote, resolveAuthorName } from '../utils';
+import { formatDate, formatManuscriptPages, isCountedVote, resolveAuthorName, getCooldownRemainSec, markCooldown, cooldownErrorText, LAST_COMMENT_KEY } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { IndentModeControl } from './IndentModeControl';
 import { formatReaderBody } from '../services/jisageAdapter';
@@ -62,6 +62,11 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
       setFormError('声を入力してください。');
       return;
     }
+    const remainSec = getCooldownRemainSec(LAST_COMMENT_KEY);
+    if (remainSec > 0) {
+      setFormError(cooldownErrorText(remainSec));
+      return;
+    }
     if (commentText.length > MAX_COMMENT_LENGTH) {
       setFormError(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
       return;
@@ -88,6 +93,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
     setCommentText('');
     setCommentName('');
     setVote(-500);
+    markCooldown(LAST_COMMENT_KEY);
     onPostSuccess(commentId, '刻んだ。');
   };
 
@@ -167,11 +173,6 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
 
       {/* 声（コメント一覧） */}
       <div className="ryuseigai-section-title" id="comments-section">声</div>
-      {successMessage && (
-        <div className="comment-post-success comment-post-success--ryuseigai" role="status" aria-live="polite">
-          {successMessage}
-        </div>
-      )}
       {comments.length === 0 ? (
         <div className="ryuseigai-no-comments">まだ誰も何も言っていない。沈黙だけがここにある。</div>
       ) : (
@@ -199,6 +200,11 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
       {/* 声を刻むフォーム（流星垓独自） */}
       <div className="comment-form ryuseigai-comment-form">
         <form onSubmit={handleSubmit} className="ryuseigai-form">
+          {successMessage && (
+            <div className="comment-post-success comment-post-success--ryuseigai" role="status" aria-live="polite">
+              {successMessage}
+            </div>
+          )}
           <div className="ryuseigai-form-title">■ 声を刻む</div>
           <textarea
             value={commentText}
@@ -227,6 +233,7 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
               placeholder="名無し"
               className="ryuseigai-input"
             />
+            <div className="comment-form-count">{commentName.length.toLocaleString()} / 100</div>
           </div>
           <div className="ryuseigai-form-row">
             <b>■ 断罪</b>{' '}
@@ -238,6 +245,19 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
           <div className="comment-form-actions">
             <button type="submit" className="ryuseigai-button comment-form-action-primary" disabled={isSubmitting}>
               {isSubmitting ? '刻み中...' : '刻む'}
+            </button>
+            <button
+              type="button"
+              className="ryuseigai-button"
+              disabled={isSubmitting}
+              onClick={() => {
+                setCommentText('');
+                setCommentName('');
+                setVote(-500);
+                setFormError('');
+              }}
+            >
+              クリア
             </button>
           </div>
         </form>

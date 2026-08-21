@@ -15,6 +15,24 @@ export const formatDate = (isoDate: string): string => {
   return `${year}/${month}/${day}(${weekDay}) ${hours}:${minutes}`;
 };
 
+export const POST_COOLDOWN_MS = 60 * 1000;
+export const LAST_POST_KEY = 'bunsho_last_post_at';
+export const LAST_COMMENT_KEY = 'bunsho_last_comment_at';
+
+export const getCooldownRemainSec = (storageKey: string, cooldownMs = POST_COOLDOWN_MS): number => {
+  const last = Number(sessionStorage.getItem(storageKey) || 0);
+  if (!last) return 0;
+  const remainMs = cooldownMs - (Date.now() - last);
+  return remainMs > 0 ? Math.ceil(remainMs / 1000) : 0;
+};
+
+export const markCooldown = (storageKey: string): void => {
+  sessionStorage.setItem(storageKey, String(Date.now()));
+};
+
+export const cooldownErrorText = (remainSec: number): string =>
+  `連続投稿は${remainSec}秒後に再度お試しください。`;
+
 export const DEFAULT_AUTHOR_NAME = '名無し';
 
 export const resolveAuthorName = (nameInput: string): string => nameInput.trim() || DEFAULT_AUTHOR_NAME;

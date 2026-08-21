@@ -60,6 +60,8 @@ test.describe('アリの穴NEO - 投稿画面', () => {
     await expect(page.locator('.form-table')).toBeVisible();
     await expect(page.locator('.post-form-tabs')).toBeVisible();
     await expect(page.getByPlaceholder('名無し')).toBeVisible();
+    await expect(page.locator('.form-label', { hasText: 'タイトル（必須）' })).toBeVisible();
+    await expect(page.locator('.form-label', { hasText: '本文（必須）' })).toBeVisible();
   });
 
   test('入力内容は下書きとして復元でき、クリアで消える', async ({ page }) => {
@@ -69,8 +71,10 @@ test.describe('アリの穴NEO - 投稿画面', () => {
     await page.locator('.form-table textarea[maxlength="100000"]').fill('下書き本文');
     await page.locator('.post-form-back').click();
     await page.getByRole('link', { name: /新規投稿/ }).click();
+    await expect(page.getByText('下書きを復元しました。')).toBeVisible();
     await expect(page.locator('.form-table input[type="text"]').first()).toHaveValue('下書きタイトル');
     await expect(page.locator('.form-table textarea[maxlength="100000"]')).toHaveValue('下書き本文');
+    page.once('dialog', (dialog) => dialog.accept());
     await page.getByRole('button', { name: 'クリア' }).click();
     await expect(page.locator('.form-table input[type="text"]').first()).toHaveValue('');
     await expect(page.locator('.form-table textarea[maxlength="100000"]')).toHaveValue('');
@@ -80,11 +84,21 @@ test.describe('アリの穴NEO - 投稿画面', () => {
     await expect(page.locator('.form-table textarea[maxlength="100000"]')).toHaveValue('');
   });
 
+  test('投稿完了後に一覧へ戻り完了メッセージが出る', async ({ page }) => {
+    await page.goto('/post');
+    await page.locator('.form-table input[type="text"]').first().fill('完了メッセージ確認');
+    await page.locator('.form-table textarea[maxlength="100000"]').fill('完了確認本文');
+    await page.getByRole('tab', { name: 'プレビュー' }).click();
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.getByRole('button', { name: '投稿する' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByText('投稿が完了しました。')).toBeVisible();
+  });
+
   test('プレビュー→送信の2段階フロー', async ({ page }) => {
     await page.goto('/post');
-    const inputs = page.locator('.form-table input[type="text"], .form-table textarea');
-    await inputs.first().fill('E2Eテスト作品');
-    await page.locator('.form-table textarea').fill('これはE2Eテストの本文です。');
+    await page.locator('.form-table input[type="text"]').first().fill('E2Eテスト作品');
+    await page.locator('.form-table textarea[maxlength="100000"]').fill('これはE2Eテストの本文です。');
     await page.getByRole('tab', { name: 'プレビュー' }).click();
     await expect(page.locator('body')).toContainText('E2Eテスト作品');
     await expect(page.getByRole('button', { name: '投稿する' })).toBeVisible();
@@ -93,7 +107,7 @@ test.describe('アリの穴NEO - 投稿画面', () => {
   test('投稿プレビューで字下げを確認でき、脚注は字下げされない', async ({ page }) => {
     await page.goto('/#post');
     await page.locator('.form-table input[type="text"]').first().fill('字下げ確認作品');
-    await page.locator('.form-table textarea').fill('本文です。\n　　手動の間\n[^note]\n[^note]: 注釈本文です。');
+    await page.locator('.form-table textarea[maxlength="100000"]').fill('本文です。\n　　手動の間\n[^note]\n[^note]: 注釈本文です。');
     await page.getByRole('tab', { name: 'プレビュー' }).click();
 
     const authorIndentControl = page.locator('[data-testid="author-indent-mode-control"]:visible');
@@ -140,12 +154,12 @@ test.describe('アリの穴NEO - 投稿画面', () => {
   test('投稿者の字下げ意図が本文と分離して保存される', async ({ page }) => {
     await page.goto('/post');
     await page.locator('.form-table input[type="text"]').first().fill('投稿者設定保存テスト');
-    await page.locator('.form-table textarea').fill('本文です。');
+    await page.locator('.form-table textarea[maxlength="100000"]').fill('本文です。');
     await page.getByRole('tab', { name: 'プレビュー' }).click();
 
     const authorIndentControl = page.locator('[data-testid="author-indent-mode-control"]:visible');
     await authorIndentControl.getByRole('radio', { name: '自動字下げあり' }).check();
-    page.on('dialog', (dialog) => dialog.accept());
+    page.once('dialog', (dialog) => dialog.accept());
     await page.getByRole('button', { name: '投稿する' }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect.poll(async () => page.evaluate(() => {
