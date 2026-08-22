@@ -1,6 +1,14 @@
 // History API ルーティング ユーティリティ
 
+import type { ViewMode } from './types';
+
 const ROUTE_SEGMENTS = new Set(['read', 'post', 'admin', 'page', 'ryuseigai']);
+
+export type ParsedRoute = {
+  view: ViewMode;
+  activeNovelId: string | null;
+  page: number | null;
+};
 
 /** Vite base / script src / pathname からベースパスを正規化 */
 export function normalizeBasePath(raw: string): string {
@@ -30,6 +38,53 @@ export function detectBasePath(
     return `/${parts[0]}`;
   }
   return '';
+}
+
+/** 旧hash URLをHistory API URLへ変換するパスを返す */
+export function getLegacyHashPath(hash: string, basePath: string): string | null {
+  if (!hash || hash === '#' || hash === '#main-content') return null;
+  return basePath + '/' + hash.slice(1);
+}
+
+/** ベースパスを除いたpathnameをアプリのルート状態へ変換する */
+export function parseRoute(pathname: string, basePath: string): ParsedRoute {
+  let path = pathname;
+  if (basePath && path.startsWith(basePath)) {
+    path = path.slice(basePath.length) || '/';
+  }
+
+  if (path.startsWith('/ryuseigai/read/')) {
+    return {
+      view: 'ryuseigai-read',
+      activeNovelId: path.replace('/ryuseigai/read/', ''),
+      page: null,
+    };
+  }
+  if (path === '/ryuseigai') {
+    return { view: 'ryuseigai', activeNovelId: null, page: null };
+  }
+  if (path.startsWith('/read/')) {
+    return {
+      view: 'read',
+      activeNovelId: path.replace('/read/', ''),
+      page: null,
+    };
+  }
+  if (path === '/post') {
+    return { view: 'post', activeNovelId: null, page: null };
+  }
+  if (path === '/admin') {
+    return { view: 'admin', activeNovelId: null, page: null };
+  }
+  if (path.startsWith('/page/')) {
+    const pageNum = parseInt(path.replace('/page/', ''), 10);
+    return {
+      view: 'list',
+      activeNovelId: null,
+      page: isNaN(pageNum) ? 1 : Math.max(1, pageNum),
+    };
+  }
+  return { view: 'list', activeNovelId: null, page: 1 };
 }
 
 export const BASE_PATH =
