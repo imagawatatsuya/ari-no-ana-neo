@@ -739,7 +739,7 @@ const App: React.FC = () => {
   // SEO: document.title / meta / favicon / JSON-LD を動的切替
   useEffect(() => {
     const SITE_NAME = '文章アリの穴NEO';
-    const BASE_URL = 'https://imagawatatsuya.github.io/ari-no-ana-neo/';
+    const BASE_URL = 'https://ari.denmei.org/';
     const defaultTitle = SITE_NAME;
     const defaultDesc = '文章アリの穴NEO - 匿名投稿・添削できる修行場所。2005年のテキスト投稿サイト「文章アリの穴」をオマージュした再現サイト。';
     const defaultIcon = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐜</text></svg>";

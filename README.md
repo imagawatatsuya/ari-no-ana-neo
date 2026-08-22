@@ -2,7 +2,7 @@
 
 2000年代中盤のテキストサイト・投稿サイトの懐かしい雰囲気を再現したReactアプリケーション。
 
-🔗 **Live Demo:** https://imagawatatsuya.github.io/ari-no-ana-neo/
+🔗 **Live Demo:** https://ari.denmei.org/
 
 ## 概要
 
@@ -89,9 +89,9 @@ npm run dev
 
 このプロジェクトはGitHub Actionsを使用してGitHub Pagesへ自動デプロイされます。
 
-Viteのビルドは相対アセットパス（`base: './'`）を使うため、現在のGitHub Pages project site（`/ari-no-ana-neo/`）を維持しながら、将来のroot deploymentにも対応できます。`router.ts` はViteのbase、生成されたasset path、現在のpathnameからproject pathを検出し、History APIのURLに適用します。GitHub Pagesのdeep linkは `public/404.html` が一時保存してアプリへ引き渡します。
+Viteのビルドは独自ドメインのroot deployment向けに絶対アセットパス（`base: '/'`）を使います。`router.ts` はViteのbase、生成されたasset path、現在のpathnameからproject pathを検出し、History APIのURLに適用します。GitHub Pagesのdeep linkは `public/404.html` が一時保存してアプリへ引き渡します。
 
-現時点の正式URL、canonical、OG URL、sitemap、robotsのSitemap URLは現行のGitHub Pages URLのままです。独自ドメインやホスティングを切り替える際は、疎通確認後の別PRでこれらを更新します。
+正式URL、canonical、OG URL、sitemap、robotsのSitemap URLは `https://ari.denmei.org/` に統一しています。GitHub PagesのCustom domain設定とDNSはこのドメインを指すように構成します。
 
 ### デプロイ設定
 
