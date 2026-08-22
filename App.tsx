@@ -9,7 +9,7 @@ import { deleteNovelAndComments, editNovelInList, toggleHiddenNovelId } from './
 import { loadReaderIndentMode, saveReaderIndentMode } from './services/readerPreferences';
 import { insertNovelWithAuthorIndentFallback } from './services/supabaseCompatibility';
 import { FootnoteMode } from './components/FootnoteRenderer';
-import { BASE_PATH, navigate } from './router';
+import { BASE_PATH, getLegacyHashPath, navigate, parseRoute as parseAppRoute } from './router';
 import { useNovelList } from './features/novels/useNovelList';
 import { novelsToSummaries } from './features/novels/novelSummaries';
 import { evictNovelReadCache, peekNovelReadCache, writeNovelReadCache } from './lib/cache/novelReadCache';
@@ -242,49 +242,23 @@ const App: React.FC = () => {
       }
 
       // 旧ハッシュURL互換: #read/123 等を /read/123 にリダイレクト
-      const hash = window.location.hash;
-      if (hash && hash !== '#' && hash !== '#main-content') {
-        const route = hash.slice(1); // '#read/123' → 'read/123'
-        const newPath = BASE_PATH + '/' + route;
+      const newPath = getLegacyHashPath(window.location.hash, BASE_PATH);
+      if (newPath) {
         window.history.replaceState({}, '', newPath);
       }
 
-      let path = window.location.pathname;
-      if (BASE_PATH && path.startsWith(BASE_PATH)) {
-        path = path.slice(BASE_PATH.length) || '/';
-      }
-
-      if (path.startsWith('/ryuseigai/read/')) {
-        setActiveNovelId(path.replace('/ryuseigai/read/', ''));
-        setView('ryuseigai-read');
-      } else if (path === '/ryuseigai') {
-        setView('ryuseigai');
-        setActiveNovelId(null);
-      } else if (path.startsWith('/read/')) {
-        setActiveNovelId(path.replace('/read/', ''));
-        setView('read');
-      } else if (path === '/post') {
-        setView('post');
-        setActiveNovelId(null);
-      } else if (path === '/admin') {
+      const route = parseAppRoute(window.location.pathname, BASE_PATH);
+      if (route.view === 'admin') {
         if (!isSupabaseMode && !localAdminPassword) {
           setErrorMsg('管理画面は無効です。オフライン運用では VITE_ADMIN_PASSWORD を設定してください。');
           setView('list');
           navigate('/');
           return;
         }
-        setView('admin');
-        setActiveNovelId(null);
-      } else if (path.startsWith('/page/')) {
-        const pageNum = parseInt(path.replace('/page/', ''), 10);
-        setCurrentPage(isNaN(pageNum) ? 1 : Math.max(1, pageNum));
-        setView('list');
-        setActiveNovelId(null);
-      } else {
-        setCurrentPage(1);
-        setView('list');
-        setActiveNovelId(null);
       }
+      setView(route.view);
+      setActiveNovelId(route.activeNovelId);
+      if (route.page !== null) setCurrentPage(route.page);
     };
 
     parseRoute();

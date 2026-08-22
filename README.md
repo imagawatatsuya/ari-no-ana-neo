@@ -34,7 +34,7 @@
 - **Backend:** Supabase (PostgreSQL + Auth + RLS)
 - **Deployment:** GitHub Pages (GitHub Actions)
 - **Build Tool:** Vite 5.4
-- **Routing:** ハッシュルーティング（`#read/`, `#post`, `#admin`, `#page/N`）
+- **Routing:** History APIベースのクライアントルーティング（`/`、`/read/:id`、`/ryuseigai`、`/ryuseigai/read/:id`、`/post`、`/admin`、`/page/:n`）。旧hash形式（`#read/:id`、`#post`、`#admin`、`#page/:n` など）はHistory API URLへ互換変換します。
 
 ## インストール・セットアップ
 
@@ -88,6 +88,10 @@ npm run dev
 ## デプロイ
 
 このプロジェクトはGitHub Actionsを使用してGitHub Pagesへ自動デプロイされます。
+
+Viteのビルドは相対アセットパス（`base: './'`）を使うため、現在のGitHub Pages project site（`/ari-no-ana-neo/`）を維持しながら、将来のroot deploymentにも対応できます。`router.ts` はViteのbase、生成されたasset path、現在のpathnameからproject pathを検出し、History APIのURLに適用します。GitHub Pagesのdeep linkは `public/404.html` が一時保存してアプリへ引き渡します。
+
+現時点の正式URL、canonical、OG URL、sitemap、robotsのSitemap URLは現行のGitHub Pages URLのままです。独自ドメインやホスティングを切り替える際は、疎通確認後の別PRでこれらを更新します。
 
 ### デプロイ設定
 
