@@ -122,33 +122,40 @@ test.describe('アリの穴NEO - 投稿画面', () => {
   test('投稿プレビューで連続ダーシを原文のまま細い二倍ダーシとして組む', async ({ page }) => {
     await page.goto('/post');
     await page.locator('.form-table input[type="text"]').first().fill('ダーシ表示確認');
-    await page.locator('.form-table textarea[maxlength="100000"]').fill('含んだ——その香り');
+    await page.locator('.form-table textarea[maxlength="100000"]').fill('含んだ——その香り。———と――と―――も。');
     await page.getByRole('tab', { name: 'プレビュー' }).click();
 
     const dashRun = page.locator('.article-body .novel-dash-run');
-    await expect(dashRun).toHaveCount(1);
-    await expect(dashRun).toHaveText('——');
+    await expect(dashRun).toHaveCount(4);
+    await expect(dashRun).toHaveText(['——', '———', '――', '―――']);
     await expect(page.locator('.article-body')).toContainText('含んだ——その香り');
 
-    const typography = await dashRun.evaluate(async (element) => {
+    const typography = await dashRun.evaluateAll(async (elements) => {
       await document.fonts.ready;
-      const style = getComputedStyle(element);
-      const parentStyle = getComputedStyle(element.parentElement!);
-      return {
-        fontFamily: style.fontFamily,
-        fontSize: Number.parseFloat(style.fontSize),
-        parentFontSize: Number.parseFloat(parentStyle.fontSize),
-        decoration: style.textDecorationLine,
-        width: element.getBoundingClientRect().width,
-        fontLoaded: document.fonts.check(`${style.fontSize} "Ari Novel Dash"`, '——'),
-      };
+      return elements.map((element) => {
+        const style = getComputedStyle(element);
+        const parentStyle = getComputedStyle(element.parentElement!);
+        return {
+          fontFamily: style.fontFamily,
+          fontSize: Number.parseFloat(style.fontSize),
+          parentFontSize: Number.parseFloat(parentStyle.fontSize),
+          decoration: style.textDecorationLine,
+          width: element.getBoundingClientRect().width,
+          length: element.textContent!.length,
+          devicePixelRatio,
+          fontLoaded: document.fonts.check(`${style.fontSize} "Ari Novel Dash"`, element.textContent!),
+        };
+      });
     });
-    expect(typography.fontFamily).toContain('Ari Novel Dash');
-    expect(typography.fontLoaded).toBe(true);
-    expect(typography.decoration).toBe('none');
-    expect(typography.fontSize).toBe(typography.parentFontSize);
-    expect(typography.width).toBeGreaterThanOrEqual(typography.fontSize * 1.99);
-    expect(typography.width).toBeLessThanOrEqual(typography.fontSize * 2.01);
+    for (const run of typography) {
+      expect(run.fontFamily).toContain('Ari Novel Dash');
+      expect(run.fontLoaded).toBe(true);
+      expect(run.decoration).toBe('none');
+      expect(run.fontSize).toBe(run.parentFontSize);
+      // Font advance widths may round to device pixels on Linux. Permit one
+      // physical pixel per glyph while still rejecting the old ~15% shrinkage.
+      expect(Math.abs(run.width - run.fontSize * run.length)).toBeLessThanOrEqual(run.length / run.devicePixelRatio);
+    }
   });
 
   test('投稿者の字下げ意図が本文と分離して保存される', async ({ page }) => {

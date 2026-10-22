@@ -12,7 +12,8 @@ import { FootnoteMode } from './components/FootnoteRenderer';
 import { BASE_PATH, getLegacyHashPath, navigate, parseRoute as parseAppRoute } from './router';
 import { useNovelList } from './features/novels/useNovelList';
 import { novelsToSummaries } from './features/novels/novelSummaries';
-import { evictNovelReadCache, peekNovelReadCache, writeNovelReadCache } from './lib/cache/novelReadCache';
+import { clearNovelReadCache, evictNovelReadCache, peekNovelReadCache, writeNovelReadCache } from './lib/cache/novelReadCache';
+import { clearNovelListCache } from './lib/cache/novelListCache';
 import {
   loadNovelForRead,
   NOVELS_PER_PAGE,
@@ -79,6 +80,8 @@ const App: React.FC = () => {
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPassInput, setAdminPassInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [readRefresh, setReadRefresh] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -91,6 +94,7 @@ const App: React.FC = () => {
   const readRequestIdRef = useRef(0);
   const readNovelIdRef = useRef<string | null>(null);
   const readNovelRef = useRef<Novel | null>(null);
+  const cacheAuthUserIdRef = useRef<string | null>(null);
   const prefetchTimersRef = useRef<Map<string, number>>(new Map());
   const [readCommentsLoadFailed, setReadCommentsLoadFailed] = useState(false);
 
@@ -146,11 +150,11 @@ const App: React.FC = () => {
 
     if (isSupabaseMode && supabase) {
       supabase.auth.getSession().then(({ data }) => {
-        setIsAdminAuthenticated(!!data.session);
+        setAuthUserId(data.session?.user.id ?? null);
       });
 
       const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAdminAuthenticated(!!session);
+        setAuthUserId(session?.user.id ?? null);
       });
 
       return () => {
@@ -165,6 +169,46 @@ const App: React.FC = () => {
       sessionStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
     }
   }, [isSupabaseMode]);
+
+  useEffect(() => {
+    if (!isSupabaseMode || !supabase) return;
+    let cancelled = false;
+    if (cacheAuthUserIdRef.current !== authUserId) {
+      cacheAuthUserIdRef.current = authUserId;
+      clearNovelReadCache();
+      clearNovelListCache();
+      setReadNovel(null);
+      setReadComments([]);
+      setAdminNovels([]);
+      setAdminComments([]);
+    }
+    setIsAdminAuthenticated(false);
+    if (authUserId) {
+      void supabase.from('admin_users').select('user_id').eq('user_id', authUserId).maybeSingle()
+        .then(({ data, error }) => {
+          if (cancelled) return;
+          setIsAdminAuthenticated(!error && !!data);
+          if (error || !data) setErrorMsg('管理者権限を確認できませんでした。このアカウントの登録を管理者に確認してください。');
+          else setErrorMsg(null);
+        });
+    }
+    return () => { cancelled = true; };
+  }, [authUserId, isSupabaseMode]);
+
+  useEffect(() => {
+    if (!isSupabaseMode || (view !== 'read' && view !== 'ryuseigai-read')) return;
+    const refresh = () => {
+      if (document.visibilityState !== 'hidden') setReadRefresh((value) => value + 1);
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    const timer = window.setInterval(refresh, 30_000);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+      window.clearInterval(timer);
+    };
+  }, [isSupabaseMode, view]);
 
   // Supabaseモード: 作品閲覧時はキャッシュがあれば即描画し、同一 ID では消さない
   useLayoutEffect(() => {
@@ -198,6 +242,7 @@ const App: React.FC = () => {
     const novelId = activeNovelId;
 
     void loadNovelForRead(novelId, {
+      revalidate: true,
       onNovel: (novel) => {
         if (requestId !== readRequestIdRef.current) return;
         setReadNovel(novel);
@@ -207,7 +252,7 @@ const App: React.FC = () => {
       if (requestId !== readRequestIdRef.current) return;
       if (!result.ok) {
         console.error('Supabase Error (read):', result.message);
-        if (!peekNovelReadCache(novelId) && readNovelIdRef.current !== novelId) {
+        if (result.unavailable || !peekNovelReadCache(novelId)) {
           setReadNovel(null);
           setReadComments([]);
         }
@@ -221,9 +266,14 @@ const App: React.FC = () => {
     }).catch((err) => {
       if (requestId !== readRequestIdRef.current) return;
       console.error('Supabase Error (read):', err);
+      if (!peekNovelReadCache(novelId)) {
+        setReadNovel(null);
+        setReadComments([]);
+      }
       setIsLoading(false);
     });
-  }, [view, activeNovelId, isSupabaseMode]);
+    return () => { readRequestIdRef.current += 1; };
+  }, [view, activeNovelId, isSupabaseMode, authUserId, readRefresh]);
 
   // Supabaseモード: 管理画面 진입 시 전건 취득
   useEffect(() => {
@@ -396,6 +446,7 @@ const App: React.FC = () => {
         return { ok: false, message: `文章の投稿中にエラーが発生しました: ${error.message ?? 'Supabaseへの保存に失敗しました。'}` };
       }
 
+      clearNovelListCache();
       setListNotice('投稿が完了しました。');
       navigate('/');
       return { ok: true, novelId: novelToSave.id, notice };
@@ -423,6 +474,8 @@ const App: React.FC = () => {
       if (error) {
         return false;
       }
+      evictNovelReadCache(commentToSave.novelId);
+      clearNovelListCache();
       setReadComments((prev) => {
         const next = [...prev, commentToSave];
         const currentNovel = readNovelRef.current;
@@ -467,6 +520,7 @@ const App: React.FC = () => {
       setNovels((prev) => editNovelInList(prev, id, patch));
     }
     evictNovelReadCache(id);
+    clearNovelListCache();
     alert('投稿を更新しました。');
   };
 
@@ -501,6 +555,7 @@ const App: React.FC = () => {
     }
     setHiddenNovelIds((prev) => prev.filter((hiddenId) => hiddenId !== id));
     evictNovelReadCache(id);
+    clearNovelListCache();
     if (activeNovelId === id) {
       navigate('/');
     }
@@ -512,6 +567,13 @@ const App: React.FC = () => {
       return;
     }
 
+    if (isSupabaseMode && supabase) {
+      const { error } = await supabase.from('novels').update({ is_hidden: nextHidden }).eq('id', id);
+      if (error) {
+        setErrorMsg('非表示状態の同期に失敗しました。');
+        return;
+      }
+    }
     setHiddenNovelIds((prev) => toggleHiddenNovelId(prev, id, nextHidden));
     if (isSupabaseMode) {
       setAdminNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isHidden: nextHidden } : n)));
@@ -519,16 +581,8 @@ const App: React.FC = () => {
       setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isHidden: nextHidden } : n)));
     }
 
-    if (isSupabaseMode && supabase) {
-      const { error } = await supabase.from('novels').update({ is_hidden: nextHidden }).eq('id', id);
-      if (error) {
-        console.error('Failed to sync is_hidden:', error);
-        setErrorMsg('非表示状態の同期に失敗しました。');
-      }
-    }
-    if (nextHidden) {
-      evictNovelReadCache(id);
-    }
+    evictNovelReadCache(id);
+    clearNovelListCache();
   };
 
   const handleBulkToggleHide = async (ids: string[], nextHidden: boolean) => {
@@ -537,6 +591,13 @@ const App: React.FC = () => {
       return;
     }
 
+    if (isSupabaseMode && supabase) {
+      const { error } = await supabase.from('novels').update({ is_hidden: nextHidden }).in('id', ids);
+      if (error) {
+        setErrorMsg('一括非表示の同期に失敗しました。');
+        return;
+      }
+    }
     setHiddenNovelIds((prev) => {
       let next = [...prev];
       for (const id of ids) {
@@ -550,18 +611,8 @@ const App: React.FC = () => {
       setNovels((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, isHidden: nextHidden } : n)));
     }
 
-    if (isSupabaseMode && supabase) {
-      const { error } = await supabase.from('novels').update({ is_hidden: nextHidden }).in('id', ids);
-      if (error) {
-        console.error('Failed to bulk sync is_hidden:', error);
-        setErrorMsg('一括非表示の同期に失敗しました。');
-      }
-    }
-    if (nextHidden) {
-      for (const id of ids) {
-        evictNovelReadCache(id);
-      }
-    }
+    for (const id of ids) evictNovelReadCache(id);
+    clearNovelListCache();
   };
 
   const handleResetSeedData = () => {
@@ -585,6 +636,13 @@ const App: React.FC = () => {
       return;
     }
 
+    if (isSupabaseMode && supabase) {
+      const { error } = await supabase.from('novels').update({ is_ryuseigai: nextRyuseigai }).eq('id', id);
+      if (error) {
+        setErrorMsg('流星垓状態の同期に失敗しました。');
+        return;
+      }
+    }
     if (isSupabaseMode) {
       setAdminNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
       setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
@@ -592,13 +650,8 @@ const App: React.FC = () => {
       setNovels((prev) => prev.map((n) => (n.id === id ? { ...n, isRyuseigai: nextRyuseigai } : n)));
     }
 
-    if (isSupabaseMode && supabase) {
-      const { error } = await supabase.from('novels').update({ is_ryuseigai: nextRyuseigai }).eq('id', id);
-      if (error) {
-        console.error('Failed to sync is_ryuseigai:', error);
-        setErrorMsg('流星垓状態の同期に失敗しました。');
-      }
-    }
+    evictNovelReadCache(id);
+    clearNovelListCache();
   };
 
   // --- 検索ハンドラ ---
@@ -828,7 +881,6 @@ const App: React.FC = () => {
         return;
       }
 
-      setIsAdminAuthenticated(true);
       setAdminEmailInput('');
       setAdminPassInput('');
       return;

@@ -2,6 +2,37 @@
 
 本番 DB に SQL マイグレーションを適用する手順。
 
+## 適用順序と適用履歴
+
+新規DBは `supabase_schema_v2.sql`（最新の公開制御を含む）と `20260730_list_public_novels.sql` を実行する。既存DBでは列・RPCを確認し、次の未適用分だけを順に適用する。
+
+1. `20260730_list_public_novels.sql`
+2. `20260812_author_indent_mode.sql`
+3. `20260813_author_message.sql`
+4. `20260821_comment_vote_nullable.sql`
+5. `20261022_public_access_hardening.sql`
+
+**`20260821_comment_vote_nullable.sql` はデータ変換を伴う一度限りの移行。** 既存の0点を未採点へ変換するため、適用済みDBや新規DBでは再実行しない。適用済みか不明な場合は `comments.vote` のNOT NULL、`list_public_novels` の `vote_count` 戻り値、過去の適用記録を確認し、不明のまま実行しない。
+
+本番適用前にバックアップを取り、ステージングで `npm test` と下記の確認SQLを実行する。20261022以降の適用履歴は `private.app_migrations` に記録される。旧移行の履歴は自動補完されない。
+
+## 公開範囲・投稿制約（必須）
+
+`supabase/migrations/20261022_public_access_hardening.sql` をSQL Editorで実行する。トランザクション単位で反映され、再実行しても本文・採点の変換はしない。
+
+- 匿名・一般ユーザーは非表示作品とその感想をSELECTできず、非表示作品に投稿もできない。
+- `admin_users` 登録済みの管理者は非表示作品・感想も読める。ログインしただけの一般ユーザーには管理権限を付与しない。
+- 直接API投稿にも60秒制限・投稿先に応じた採点値チェック・サーバー時刻が適用される。
+- 閲覧数RPCは非表示作品を更新しない。
+- 作品・感想・管理者テーブルのRLSを明示的に有効化し、旧DBで欠けていた管理者の更新・削除ポリシーと閲覧数RPCも作成する。
+- 旧DBに欠けている文字数制約は `NOT VALID` で追加する。既存の本文・感想は変更せず、新規投稿と更新には制約を適用する。既存データを確認後、必要に応じて `VALIDATE CONSTRAINT` を別途実行する。
+
+適用後、`supabase/verify-hardening.sql` をSQL Editorで実行し、3テーブルのRLS有効・適用履歴・restrictiveな表示ポリシー・トリガー、匿名からの非表示件数0と非公開テーブルへの権限falseを確認する。管理者・一般ユーザーと直接APIによる確認はステージングの専用作品で行う。ローカルDBテストは新規構築・v2からの移行・本番監査で確認した旧構成からの移行でこれらを検証する。
+
+2026-10-22の本番読み取り監査では、`date` はtext型、`view_count` はNULL許容のbigint型で、作品・感想のRLSと管理者の更新・削除ポリシー、閲覧数RPCが未設定だった。この構成は `tests/fixtures/legacy-production-schema.sql` にデータを含めず再現している。マイグレーションの適用前には、これらが有効になることを確認する。
+
+プロキシの信頼境界、共有回線の制限、障害時の投稿停止・復旧は [運用手順](OPERATIONS.md) を参照。
+
 ## 一覧取得 RPC（必須）
 
 ファイル: `supabase/migrations/20260730_list_public_novels.sql`

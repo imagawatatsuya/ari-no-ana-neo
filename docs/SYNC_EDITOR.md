@@ -12,6 +12,8 @@
 |---|---|
 | `components/FootnoteRenderer.tsx` | `components/FootnoteRenderer.tsx` |
 | `styles/footnote-renderer.css` | `styles/footnote-renderer.css` |
+| `assets/fonts/*.woff2` | `assets/fonts/*.woff2` |
+| `public/licenses/OFL-Noto-Serif-JP.txt` | `public/licenses/OFL-Noto-Serif-JP.txt` |
 
 **同期されないもの**（執筆ツール側で自由に編集してよい）:
 

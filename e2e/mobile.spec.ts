@@ -71,8 +71,8 @@ test.describe('モバイル - 作品閲覧・コメント', () => {
     const firstLink = page.locator('.entry-title-link').first();
     await expect(firstLink).toBeVisible();
     await firstLink.click();
-    await expect(page.locator('.comment-form-count')).toBeVisible();
+    await expect(page.locator('#comment-form-count')).toBeVisible();
     await page.locator('.comment-form textarea').fill('テストコメント');
-    await expect(page.locator('.comment-form-count')).toContainText('7');
+    await expect(page.locator('#comment-form-count')).toContainText('7');
   });
 });

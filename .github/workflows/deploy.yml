@@ -15,7 +15,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
   deploy:
+    needs: validate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -27,7 +32,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Use HTTPS for public git dependencies
@@ -41,6 +46,12 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Check production Data API
+        run: node scripts/check-supabase.mjs
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         
       - name: Build
         run: npm run build

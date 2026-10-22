@@ -6,7 +6,7 @@
 
 ## 概要
 
-このプロジェクトは、かつてのインターネット文化の象徴であったテキストサイトや投稿サイトの風情をモダンなWeb技術で蘇らせたものです。Supabaseをバックエンドとして利用し、リアルタイムでのデータ連携を実現しています。
+このプロジェクトは、かつてのインターネット文化の象徴であったテキストサイトや投稿サイトの風情をモダンなWeb技術で蘇らせたものです。Supabaseをバックエンドとして利用し、投稿・感想の保存と取得を行います。
 
 ## 主な機能
 
@@ -15,6 +15,8 @@
 - **脚注レンダラー** — 本文内のURL自動リンク化 + 脚注構文のポップアップ表示
 - **字下げ設定** — 投稿者の意図（自動字下げなし / 自動字下げあり）と、読者の表示設定（なし / 自動 / 投稿者設定）を分離して管理。未設定の読者は投稿者設定に従い、保存済みの読者設定は維持する。表示用コピーでは一字の標準字下げマーカーを読者設定に応じて整理し、二字以上の手動空白は保持
 - **サーバーサイドページング** — Supabaseモードでは20件/页のサーバー側ページング
+- **作品検索** — タイトル・作者を検索（オンラインはDB側、オフラインは端末内）
+- **分割読み・しおり** — 作品を短い断片に分けて読み、作品ごとに続きから再開
 - **オフラインフォールバック** — Supabase未設定時は localStorage + シードデータで動作
 - **管理ダッシュボード** — Supabase Auth ログイン + RLS で編集 / 削除 / 非表示を制御
   - 作品の編集・削除
@@ -23,7 +25,8 @@
   - フィルタタブ（全て / 公開中 / 非表示）
 - **日本語組版** — ezdog由来のCSS組版（禁則処理・ぶら下げ・両端揃え）
 - **モバイルレスポンシブ** — iPhone 8相当の画面幅に対応
-- **連投制限** — 60秒クールダウン
+- **連投制限** — UIとDBで60秒クールダウン。オンラインは接続元・投稿種別ごとに判定
+- **公開制御と再取得** — 非表示作品と感想はRLSで一般閲覧を拒否。読書キャッシュは30秒で失効し、再訪・画面復帰・表示中の30秒間隔で最新データを確認
 - **閲覧数カウント** — Supabase RPC（`increment_novel_view`）で安全に加算
 
 > ✅ 推奨構成: 管理認証は Supabase Auth、更新・削除権限は RLS（`admin_users` テーブル）で制御します。
@@ -33,7 +36,7 @@
 - **Frontend:** React 18 + TypeScript 5.5
 - **Backend:** Supabase (PostgreSQL + Auth + RLS)
 - **Deployment:** GitHub Pages (GitHub Actions)
-- **Build Tool:** Vite 5.4
+- **Build Tool:** Vite 7.3 / Node.js 22.12以上（CIは22系）
 - **Routing:** History APIベースのクライアントルーティング（`/`、`/read/:id`、`/ryuseigai`、`/ryuseigai/read/:id`、`/post`、`/admin`、`/page/:n`）。旧hash形式（`#read/:id`、`#post`、`#admin`、`#page/:n` など）はHistory API URLへ互換変換します。
 
 ## インストール・セットアップ
@@ -48,7 +51,7 @@ cd ari-no-ana-neo
 ### 2. 依存パッケージのインストール
 
 ```bash
-npm install
+npm ci
 ```
 
 ### 3. 環境変数を設定
@@ -73,7 +76,8 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 1. [Supabase](https://supabase.com/) で新しいプロジェクトを作成
 2. `supabase_schema_v2.sql` の内容をコピー
 3. Supabaseの SQL Editor で実行してテーブル / RLS / policy / RPC を作成
-   - 既存DBには `supabase/migrations/20260812_author_indent_mode.sql` と `supabase/migrations/20260813_author_message.sql` も適用してください
+   - 新規DBは続けて `supabase/migrations/20260730_list_public_novels.sql` を適用します
+   - 既存DBは [マイグレーション手順](docs/SUPABASE_MIGRATIONS.md) に従い、未適用分だけ適用してください
 4. Supabase Auth で管理者ユーザーを作成（Email+Password）
 5. 作成したユーザーID（auth.users.id）を `admin_users` に登録
 
@@ -87,7 +91,19 @@ npm run dev
 
 ## デプロイ
 
-このプロジェクトはGitHub Actionsを使用してGitHub Pagesへ自動デプロイされます。
+このプロジェクトはGitHub Actionsを使用してGitHub Pagesへ自動デプロイされます。PR時とデプロイ前にLinux / Windowsの単体・DBテスト、ビルド、Chromium / WebKitのE2Eと依存監査を実行し、失敗時はデプロイしません。
+
+```bash
+npm test
+npm run build
+npx playwright install chromium webkit
+npm run test:e2e
+npm audit --audit-level=moderate
+```
+
+DBテストはPGlite内のPostgreSQLでRLS・トリガー・既存DB移行を検証します。E2Eは専用のビルド出力 `.e2e/` とポート5179 / 5180を使用し、Supabase未接続のローカル動作とモックAPIを使うオンライン動作を検証します。本番DBへの接続や投稿は行いません。E2E用管理パスワードはテスト用ビルドにだけ渡し、公開用の `dist/` には含めません。
+
+マージの必須チェック設定と障害時の復旧は [運用手順](docs/OPERATIONS.md) を参照してください。
 
 Viteのビルドは独自ドメインのroot deployment向けに絶対アセットパス（`base: '/'`）を使います。`router.ts` はViteのbase、生成されたasset path、現在のpathnameからproject pathを検出し、History APIのURLに適用します。GitHub Pagesのdeep linkは `public/404.html` が一時保存してアプリへ引き渡します。
 
@@ -124,9 +140,8 @@ GitHub上でデプロイするには、以下の手順で環境変数を登録�
 ## 今後の予定
 
 - [ ] Supabase無料枠の7日停止対策（定期アクセス or 有料プラン移行）
-- [ ] 検索機能
 - [ ] 他の機能拡張
 
 ---
 
-**最終更新:** 2026年7月
+**最終更新:** 2026年10月22日
