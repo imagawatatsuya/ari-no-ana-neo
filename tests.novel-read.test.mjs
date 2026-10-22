@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { clearNovelReadCache, evictNovelReadCache, peekNovelReadCache, writeNovelReadCache } from './lib/cache/novelReadCache.ts';
+import { clearNovelReadCache, evictNovelReadCache, peekNovelReadCache, writeNovelReadCache, NOVEL_READ_CACHE_TTL_MS, novelReadCacheRevision } from './lib/cache/novelReadCache.ts';
 import { READ_COMMENT_COLUMNS, READ_NOVEL_COLUMNS } from './features/novels/novelSummaries.ts';
 
 const novel = (id, title = 'T') => ({
@@ -13,6 +13,29 @@ const novel = (id, title = 'T') => ({
   viewCount: 0,
   commentCount: 0,
   voteSum: 0,
+});
+
+test('novel read cache expires even when repeatedly visited', (t) => {
+  clearNovelReadCache();
+  let now = 100_000;
+  t.mock.method(Date, 'now', () => now);
+  writeNovelReadCache('n1', novel('n1'), []);
+  now += NOVEL_READ_CACHE_TTL_MS - 1;
+  assert.ok(peekNovelReadCache('n1'));
+  now += 1;
+  assert.equal(peekNovelReadCache('n1'), null);
+});
+
+test('invalidation changes the generation so older requests cannot refill the cache', () => {
+  const before = novelReadCacheRevision('n1');
+  const unrelated = novelReadCacheRevision('n2');
+  evictNovelReadCache('n1');
+  assert.notEqual(novelReadCacheRevision('n1'), before);
+  assert.equal(novelReadCacheRevision('n2'), unrelated);
+  const after = novelReadCacheRevision('n1');
+  clearNovelReadCache();
+  assert.notEqual(novelReadCacheRevision('n1'), after);
+  assert.notEqual(novelReadCacheRevision('n2'), unrelated);
 });
 
 test('novel read query columns include body and indent, not select-all', () => {

@@ -25,6 +25,10 @@ dist-ssr
 
 # Test and tool caches
 coverage
+test-results/
+playwright-report/
+.playwright-cli/
+.e2e/
 .vite
 .turbo
 .cache

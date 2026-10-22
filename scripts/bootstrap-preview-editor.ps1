@@ -13,6 +13,9 @@ git clone https://github.com/imagawatatsuya/ari-preview-editor.git $temp
 New-Item -ItemType Directory -Force -Path "$temp/styles" | Out-Null
 Copy-Item "$root/components/FootnoteRenderer.tsx" "$temp/components/FootnoteRenderer.tsx" -Force
 Copy-Item "$root/styles/footnote-renderer.css" "$temp/styles/footnote-renderer.css" -Force
+New-Item -ItemType Directory -Force -Path "$temp/assets/fonts", "$temp/public/licenses" | Out-Null
+Copy-Item "$root/assets/fonts/*.woff2" "$temp/assets/fonts/" -Force
+Copy-Item "$root/public/licenses/OFL-Noto-Serif-JP.txt" "$temp/public/licenses/" -Force
 
 @'
 @import "tailwindcss";
@@ -36,7 +39,7 @@ body {
 '@ | Set-Content -Path "$temp/app/globals.css" -Encoding utf8NoBOM
 
 Push-Location $temp
-git add app/globals.css components/FootnoteRenderer.tsx styles/footnote-renderer.css
+git add app/globals.css components/FootnoteRenderer.tsx styles/footnote-renderer.css assets/fonts/ public/licenses/OFL-Noto-Serif-JP.txt
 git commit -m "chore: bootstrap editor sync from ari-no-ana-neo"
 git push
 Pop-Location

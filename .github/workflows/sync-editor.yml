@@ -9,6 +9,8 @@ on:
     paths:
       - 'components/FootnoteRenderer.tsx'
       - 'styles/footnote-renderer.css'
+      - 'assets/fonts/*.woff2'
+      - 'public/licenses/OFL-Noto-Serif-JP.txt'
       - '.github/workflows/sync-editor.yml'
   workflow_dispatch:
 
@@ -40,13 +42,16 @@ jobs:
           cp components/FootnoteRenderer.tsx preview-editor/components/FootnoteRenderer.tsx
           mkdir -p preview-editor/styles
           cp styles/footnote-renderer.css preview-editor/styles/footnote-renderer.css
+          mkdir -p preview-editor/assets/fonts preview-editor/public/licenses
+          cp assets/fonts/*.woff2 preview-editor/assets/fonts/
+          cp public/licenses/OFL-Noto-Serif-JP.txt preview-editor/public/licenses/
 
       - name: Commit and push
         working-directory: preview-editor
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add components/FootnoteRenderer.tsx styles/footnote-renderer.css
+          git add components/FootnoteRenderer.tsx styles/footnote-renderer.css assets/fonts/ public/licenses/OFL-Noto-Serif-JP.txt
           if git diff --staged --quiet; then
             echo "No changes to sync"
             exit 0

@@ -1,5 +1,5 @@
 import { LIST_COMMENT_COLUMNS, LIST_NOVEL_COLUMNS, READ_COMMENT_COLUMNS, READ_NOVEL_COLUMNS } from '../../features/novels/novelSummaries';
-import { peekNovelReadCache, writeNovelReadCache } from '../../lib/cache/novelReadCache';
+import { evictNovelReadCache, novelReadCacheRevision, peekNovelReadCache, writeNovelReadCache } from '../../lib/cache/novelReadCache';
 import { supabase } from '../supabaseClient';
 import { normalizeAuthorIndentMode, type Comment, type Novel, type NovelSummary } from '../../types';
 
@@ -181,7 +181,7 @@ async function fetchNovelListPageFallback(params: NovelListQueryParams): Promise
 
 export type NovelReadResult =
   | { ok: true; novel: Novel; comments: Comment[]; commentsFailed?: boolean }
-  | { ok: false; message: string };
+  | { ok: false; message: string; unavailable?: boolean };
 
 type NovelReadRow = {
   id: string;
@@ -208,6 +208,8 @@ type CommentReadRow = {
 };
 
 type InFlightRead = {
+  id: string;
+  revision: string;
   promise: Promise<NovelReadResult>;
   novel?: Novel;
   novelListeners: Array<(novel: Novel) => void>;
@@ -244,6 +246,7 @@ const mapReadComments = (rows: CommentReadRow[] | null): Comment[] =>
   }));
 
 const notifyNovelListeners = (slot: InFlightRead, novel: Novel) => {
+  if (slot.revision !== novelReadCacheRevision(slot.id)) return;
   slot.novel = novel;
   for (const listener of slot.novelListeners) listener(novel);
   slot.novelListeners.length = 0;
@@ -265,46 +268,57 @@ async function fetchNovelForReadFromSupabase(
   const commentsRequest = supabase
     .from('comments')
     .select(READ_COMMENT_COLUMNS)
-    .eq('novel_id', id);
+    .eq('novel_id', id)
+    .order('date', { ascending: true });
+
+  // Supabase queries are lazy thenables; start both requests now.
+  const commentsPromise = Promise.resolve(commentsRequest).catch(() => ({ data: null, error: { message: '感想の取得に失敗しました。' } }));
 
   const { data: novelData, error: novelError } = await novelRequest;
   if (novelError || !novelData) {
-    return { ok: false, message: novelError?.message ?? '作品の取得に失敗しました。' };
+    const unavailable = novelError?.code === 'PGRST116' || !novelData && !novelError;
+    if (unavailable && slot.revision === novelReadCacheRevision(id)) evictNovelReadCache(id);
+    return { ok: false, message: novelError?.message ?? '作品の取得に失敗しました。', unavailable };
   }
 
   const novel = mapReadNovel(novelData as NovelReadRow);
   notifyNovelListeners(slot, novel);
 
-  const { data: commentsData, error: commentsError } = await commentsRequest;
+  const { data: commentsData, error: commentsError } = await commentsPromise;
   if (commentsError) {
     return { ok: true, novel, comments: [], commentsFailed: true };
   }
 
   const comments = mapReadComments(commentsData as CommentReadRow[] | null);
-  writeNovelReadCache(id, novel, comments);
+  if (slot.revision === novelReadCacheRevision(id)) writeNovelReadCache(id, novel, comments);
   return { ok: true, novel, comments };
 }
 
 /** 同一 ID の進行中リクエストを共有し、本文到着時点で onNovel を呼ぶ */
 export function loadNovelForRead(
   id: string,
-  options?: { onNovel?: (novel: Novel) => void },
+  options?: { onNovel?: (novel: Novel) => void; revalidate?: boolean },
 ): Promise<NovelReadResult> {
   if (!supabase) {
     return Promise.resolve({ ok: false, message: 'Supabase が設定されていません。' });
   }
 
   const cached = peekNovelReadCache(id);
-  if (cached) {
+  if (cached && !options?.revalidate) {
     if (options?.onNovel) options.onNovel(cached.novel);
     return Promise.resolve({ ok: true, novel: cached.novel, comments: cached.comments });
   }
 
   let slot = inflightReads.get(id);
-  if (!slot) {
-    const created: InFlightRead = { promise: Promise.resolve({ ok: false, message: '' }), novelListeners: [] };
-    created.promise = fetchNovelForReadFromSupabase(id, created).finally(() => {
-      inflightReads.delete(id);
+  if (!slot || slot.revision !== novelReadCacheRevision(id)) {
+    const created: InFlightRead = { id, revision: novelReadCacheRevision(id), promise: Promise.resolve({ ok: false, message: '' }), novelListeners: [] };
+    created.promise = fetchNovelForReadFromSupabase(id, created).then((result): NovelReadResult => {
+      if (result.ok && created.revision !== novelReadCacheRevision(id)) {
+        return { ok: false, message: 'データが更新されました。再取得してください。' };
+      }
+      return result;
+    }).finally(() => {
+      if (inflightReads.get(id) === created) inflightReads.delete(id);
     });
     inflightReads.set(id, created);
     slot = created;
@@ -320,5 +334,5 @@ export function loadNovelForRead(
 
 export function prefetchNovelForRead(id: string): void {
   if (peekNovelReadCache(id)) return;
-  void loadNovelForRead(id);
+  void loadNovelForRead(id).catch(() => { /* Navigation will retry failed prefetches. */ });
 }

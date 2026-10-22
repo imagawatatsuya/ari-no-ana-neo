@@ -15,14 +15,15 @@
 }
 
 /*
- * Noto Serif JP's full-width dash glyphs follow Japanese book typography
- * without relying on a platform font's side bearings. This 992-byte face is
- * the Google Fonts U+2014/U+2015 subset; its SIL OFL 1.1 license is shipped in
+ * Noto Serif JP's full-width dash glyphs follow Japanese book typography.
+ * The derived subset maps both dash codepoints to the full-width glyph before
+ * shaping, avoiding Chromium/WebKit locl differences. Rebuild with
+ * scripts/build-dash-font.py; its SIL OFL 1.1 license is shipped in
  * public/licenses/OFL-Noto-Serif-JP.txt.
  */
 @font-face {
   font-family: 'Ari Novel Dash';
-  src: url('../assets/fonts/noto-serif-jp-dashes.woff2') format('woff2');
+  src: url('../assets/fonts/ari-novel-dashes.woff2') format('woff2');
   font-style: normal;
   font-weight: 400;
   font-display: block;
