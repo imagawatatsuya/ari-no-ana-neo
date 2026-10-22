@@ -117,6 +117,9 @@ for (const mode of ['fresh', 'upgrade', 'legacy-production']) {
     await db.exec(await sqlFile('./supabase/verify-hardening.sql'));
     const healthy = async () => (await rows('select public.security_health() as healthy'))[0].healthy;
     assert.equal(await healthy(), true);
+    await db.exec("begin; delete from private.app_migrations where version='20261022_security_attestation'");
+    assert.equal(await healthy(), false, 'Missing migration history must fail closed');
+    await db.exec('rollback');
     for (const drift of [
       'alter table public.novels disable row level security',
       'grant update on public.novels to anon',

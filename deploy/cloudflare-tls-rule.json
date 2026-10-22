@@ -2,6 +2,6 @@
   "description": "ari strict origin TLS",
   "expression": "(http.host eq \"ari.denmei.org\")",
   "action": "set_config",
-  "action_parameters": { "ssl": "strict" },
+  "action_parameters": { "ssl": "strict", "disable_rum": true },
   "enabled": true
 }

@@ -13,7 +13,7 @@ const canonical = value => JSON.stringify(Object.fromEntries(Object.keys(value).
   // Different PG builds serialize a UTC timestamp as +00:00 or +00. Retain
   // fractional seconds while normalizing only the equivalent timezone suffix.
   const item = value[key];
-  return [key, typeof item === 'string' && /[T ]\d\d:\d\d:\d\d/.test(item) ? item.replace(/(?:Z|\+00:00|\+00)$/, '+00').replace(' ', 'T') : item];
+  return [key, key === 'created_at' && typeof item === 'string' ? item.replace(/(?:Z|\+00:00|\+00)$/, '+00').replace(' ', 'T') : item];
 })));
 const digest = rows => createHash('sha256').update(rows.map(canonical).sort().join('\n')).digest('hex');
 const restoredRows = async table => (await db.query(`select to_jsonb(t) as row from public.${quote(table)} t`)).rows.map(r=>r.row);
