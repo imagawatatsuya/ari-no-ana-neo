@@ -1,6 +1,9 @@
 -- Read-only checks for SQL Editor, run as the DB owner after migration.
 select version, applied_at from private.app_migrations order by version;
 
+select c.relname, c.relrowsecurity as must_be_true
+from pg_class c where c.oid in ('public.novels'::regclass, 'public.comments'::regclass, 'public.admin_users'::regclass);
+
 select tablename, policyname, permissive, roles, cmd, qual, with_check
 from pg_policies where schemaname = 'public' and tablename in ('novels', 'comments')
 order by tablename, policyname;

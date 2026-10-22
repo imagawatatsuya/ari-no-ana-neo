@@ -4,6 +4,46 @@ begin;
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
 
+-- Older live installations had only INSERT policies and RLS switched off.
+alter table public.novels enable row level security;
+alter table public.comments enable row level security;
+alter table public.admin_users enable row level security;
+drop policy if exists admin_users_select_self on public.admin_users;
+create policy admin_users_select_self on public.admin_users for select to anon, authenticated
+using (user_id = (select auth.uid()));
+
+drop policy if exists novels_update_admin_only on public.novels;
+create policy novels_update_admin_only on public.novels for update to authenticated
+using (exists (select 1 from public.admin_users where user_id = (select auth.uid())))
+with check (exists (select 1 from public.admin_users where user_id = (select auth.uid())));
+drop policy if exists novels_delete_admin_only on public.novels;
+create policy novels_delete_admin_only on public.novels for delete to authenticated
+using (exists (select 1 from public.admin_users where user_id = (select auth.uid())));
+drop policy if exists comments_delete_admin_only on public.comments;
+create policy comments_delete_admin_only on public.comments for delete to authenticated
+using (exists (select 1 from public.admin_users where user_id = (select auth.uid())));
+
+-- Preserve all old rows; add missing constraints without rewriting or deleting
+-- historical data. NOT VALID still checks every new or updated row.
+do $$
+declare
+  rule record;
+begin
+  for rule in select * from (values
+    ('novels', 'novels_title_length', 'length(title) between 1 and 200'),
+    ('novels', 'novels_body_length', 'length(body) between 1 and 100000'),
+    ('novels', 'novels_author_length', 'length(author) <= 100'),
+    ('comments', 'comments_text_length', 'length(text) between 1 and 500'),
+    ('comments', 'comments_name_length', 'length(name) <= 100')
+  ) as rules(table_name, constraint_name, expression)
+  loop
+    if not exists (select 1 from pg_constraint where conrelid = ('public.' || rule.table_name)::regclass and conname = rule.constraint_name) then
+      execute format('alter table public.%I add constraint %I check (%s) not valid', rule.table_name, rule.constraint_name, rule.expression);
+    end if;
+  end loop;
+end;
+$$;
+
 -- Explicit grants work with both old and new Supabase default-privilege setups.
 -- TRUNCATE bypasses RLS, so do not inherit the old blanket table grants.
 revoke all on public.novels, public.comments, public.admin_users from anon, authenticated;
@@ -112,7 +152,7 @@ create trigger validate_comment_vote before insert or update on public.comments 
 -- A definer RPC must explicitly enforce visibility, since it bypasses RLS.
 create or replace function public.increment_novel_view(target_novel_id text)
 returns void language sql security definer set search_path = '' as $$
-  update public.novels set view_count = view_count + 1 where id = target_novel_id and not is_hidden;
+  update public.novels set view_count = coalesce(view_count, 0) + 1 where id = target_novel_id and not is_hidden;
 $$;
 revoke all on function public.increment_novel_view(text) from public;
 grant execute on function public.increment_novel_view(text) to anon, authenticated;
