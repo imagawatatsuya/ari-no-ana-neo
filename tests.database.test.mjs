@@ -109,6 +109,34 @@ for (const mode of ['fresh', 'upgrade', 'legacy-production']) {
     await db.exec("update public.comments set text='履歴の本文編集' where id='visible'");
     await assert.rejects(db.exec("update public.comments set vote=2 where id='visible'"), /採点値/);
     await db.exec("update public.comments set vote=-500 where id='visible'");
+    // Earlier assertions deliberately re-granted DML to exercise RLS itself.
+    await db.exec(await sqlFile(migrationPath));
+    const attestation = await sqlFile('./supabase/migrations/20261022_security_attestation.sql');
+    await db.exec(attestation);
+    await db.exec(attestation);
     await db.exec(await sqlFile('./supabase/verify-hardening.sql'));
+    const healthy = async () => (await rows('select public.security_health() as healthy'))[0].healthy;
+    assert.equal(await healthy(), true);
+    await db.exec("begin; delete from private.app_migrations where version='20261022_security_attestation'");
+    assert.equal(await healthy(), false, 'Missing migration history must fail closed');
+    await db.exec('rollback');
+    for (const drift of [
+      'alter table public.novels disable row level security',
+      'grant update on public.novels to anon',
+      'drop policy novels_visibility_guard on public.novels',
+      'alter table public.comments disable trigger guard_public_post',
+      `create or replace function private.guard_public_post() returns trigger language plpgsql security definer set search_path='' as $$ begin return new; end $$`,
+      'grant insert on public.admin_users to authenticated',
+    ]) {
+      await db.exec('begin');
+      await db.exec(drift);
+      assert.equal(await healthy(), false, drift);
+      await assert.rejects(db.exec(attestation), /baseline|hardening/);
+      await db.exec('rollback');
+      assert.equal(await healthy(), true);
+    }
+    await db.exec('set role anon');
+    assert.equal(await healthy(), true);
+    await assert.rejects(db.exec('select * from private.security_baseline'), /permission denied/);
   });
 }

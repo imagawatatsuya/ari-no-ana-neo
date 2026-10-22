@@ -1,4 +1,6 @@
 -- Read-only checks for SQL Editor, run as the DB owner after migration.
+-- Apply security_attestation as well before running this complete verification.
+select public.security_health() as must_be_true;
 select version, applied_at from private.app_migrations order by version;
 
 select c.relname, c.relrowsecurity as must_be_true
