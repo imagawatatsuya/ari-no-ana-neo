@@ -26,6 +26,8 @@ ViteがHTML先頭にCSPを挿入する。製品ビルドのスクリプトは同
 
 Cloudflareのプロキシが無効なDNSレコードではTransform Ruleは反映されない。プロキシ化する場合は既存の証明書・SSLモード・他のルールを先に確認し、ホストを `ari.denmei.org` に限定する。TLS検証を弱めず、他ホストのルールやキャッシュ設定を変更しない。新規契約や有料プランが必要なら先に構成と料金を提示する。
 
+2026-10-22、既存Freeプランの設定枠内で両ルールを有効化し、ariのCNAMEのみプロキシ化した。ゾーン全体のFlexible設定には触れず、`deploy/cloudflare-tls-rule.json` のホスト限定Strict設定を先に適用した。既存のUniversal証明書が有効であることを確認し、切替後もHTTPS 200と5つの保護ヘッダーを確認した。CNAMEの宛先は `imagawatatsuya.github.io`。DNS onlyへ戻すとHTTPヘッダーの保護が失われるため、障害時にもこの点を確認する。
+
 公開後はHTTPSでレスポンスヘッダー、トップ・作品の直接URL、管理ログイン・投稿・フォントを確認する。CSPのインライン実行と未許可接続の遮断はChromium/WebKitのE2Eで検証する。
 
 参考: [Supabase APIの保護](https://supabase.com/docs/guides/api/securing-your-api)、[Cloudflare Response Header Transform Rules](https://developers.cloudflare.com/rules/transform/response-header-modification/)。
