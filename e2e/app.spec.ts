@@ -142,6 +142,7 @@ test.describe('アリの穴NEO - 投稿画面', () => {
           decoration: style.textDecorationLine,
           width: element.getBoundingClientRect().width,
           length: element.textContent!.length,
+          devicePixelRatio,
           fontLoaded: document.fonts.check(`${style.fontSize} "Ari Novel Dash"`, element.textContent!),
         };
       });
@@ -151,8 +152,9 @@ test.describe('アリの穴NEO - 投稿画面', () => {
       expect(run.fontLoaded).toBe(true);
       expect(run.decoration).toBe('none');
       expect(run.fontSize).toBe(run.parentFontSize);
-      expect(run.width).toBeGreaterThanOrEqual(run.fontSize * run.length * 0.995);
-      expect(run.width).toBeLessThanOrEqual(run.fontSize * run.length * 1.005);
+      // Font advance widths may round to device pixels on Linux. Permit one
+      // physical pixel per glyph while still rejecting the old ~15% shrinkage.
+      expect(Math.abs(run.width - run.fontSize * run.length)).toBeLessThanOrEqual(run.length / run.devicePixelRatio);
     }
   });
 
