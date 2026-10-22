@@ -1,0 +1,15 @@
+{
+  "description": "ari.denmei.org security response headers",
+  "expression": "(http.host eq \"ari.denmei.org\")",
+  "action": "rewrite",
+  "action_parameters": {
+    "headers": {
+      "content-security-policy": { "operation": "set", "value": "frame-ancestors 'none'" },
+      "x-frame-options": { "operation": "set", "value": "DENY" },
+      "x-content-type-options": { "operation": "set", "value": "nosniff" },
+      "referrer-policy": { "operation": "set", "value": "strict-origin-when-cross-origin" },
+      "permissions-policy": { "operation": "set", "value": "camera=(), microphone=(), geolocation=()" }
+    }
+  },
+  "enabled": true
+}

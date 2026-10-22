@@ -11,6 +11,9 @@
 3. `20260813_author_message.sql`
 4. `20260821_comment_vote_nullable.sql`
 5. `20261022_public_access_hardening.sql`
+6. `20261022_security_attestation.sql`
+
+新規DBでも最後に `20261022_security_attestation.sql` を実行する。保護設定の基準を記録し、公開前の `security_health()` 検査を有効にする。以降は意図したスキーマ変更も基準との差異になる。[セキュリティ運用](SECURITY.md)に従ってレビュー済みの移行で更新する。
 
 **`20260821_comment_vote_nullable.sql` はデータ変換を伴う一度限りの移行。** 既存の0点を未採点へ変換するため、適用済みDBや新規DBでは再実行しない。適用済みか不明な場合は `comments.vote` のNOT NULL、`list_public_novels` の `vote_count` 戻り値、過去の適用記録を確認し、不明のまま実行しない。
 
