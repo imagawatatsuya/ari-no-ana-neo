@@ -38,6 +38,7 @@ test('online admin checks membership and clears hidden reads after logout', asyn
   // Change route without reloading the application, so the cache stays in scope.
   await page.evaluate(() => { history.pushState({}, '', '/read/hidden-1'); window.dispatchEvent(new PopStateEvent('popstate')); });
   await expect(page.locator('.article-title')).toHaveText('管理者だけの作品');
+  await expect(page.locator('link[rel="canonical"], #seo-jsonld')).toHaveCount(0);
   const otherTab = await page.context().newPage();
   await otherTab.goto('/');
   await otherTab.getByRole('button', { name: '>>ログアウト', exact: true }).click();
@@ -52,11 +53,12 @@ test('online reader revalidates edits, comments and visibility across visits', a
   await page.clock.install();
   let title = '公開作品';
   let hidden = false;
+  let isRyuseigai = false;
   let comments: Array<Record<string, unknown>> = [];
   let reads = 0;
   await page.route('http://127.0.0.1:54329/**', async (route) => {
     const url = new URL(route.request().url());
-    const novel = { id: 'online-1', title, author: '作者', body: '公開本文です。', date: '2026-01-01T00:00:00Z', view_count: 0, is_hidden: false, is_ryuseigai: false, author_indent_mode: 'raw', author_message: null, description: null, trip: null };
+    const novel = { id: 'online-1', title, author: '作者', body: '公開本文です。', date: '2026-01-01T00:00:00Z', view_count: 0, is_hidden: false, is_ryuseigai: isRyuseigai, author_indent_mode: 'raw', author_message: null, description: null, trip: null };
     if (url.pathname.endsWith('/rpc/list_public_novels')) {
       await route.fulfill({ json: hidden ? [] : [{ ...novel, total_count: 1, comment_count: comments.length, vote_count: 0, vote_sum: 0 }] });
     } else if (url.pathname.endsWith('/rpc/increment_novel_view')) {
@@ -70,11 +72,19 @@ test('online reader revalidates edits, comments and visibility across visits', a
       await route.fulfill({ json: [] });
     }
   });
-  await page.goto('/read/online-1');
+  const directRead = await page.goto('/read/online-1?source=test');
+  expect(await directRead!.text()).not.toContain('rel="canonical"');
+  const canonical = page.locator('link[rel="canonical"]');
+  const workUrl = 'https://ari.denmei.org/read/online-1';
   await expect(page.locator('.article-title')).toHaveText(title);
+  await expect(canonical).toHaveAttribute('href', workUrl);
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', workUrl);
+  const article = JSON.parse((await page.locator('#seo-jsonld').textContent())!);
+  expect(article.mainEntityOfPage['@id']).toBe(workUrl);
   await expect.poll(() => reads).toBeGreaterThan(0);
   await page.locator('.back-link').first().click();
   await expect(page.locator('.entry-title-link').first()).toBeVisible();
+  await expect(canonical).toHaveAttribute('href', 'https://ari.denmei.org/');
   title = '他端末で編集した作品';
   comments = [{ id: 'new-comment', novel_id: 'online-1', name: '読者', text: '別の端末からの感想', date: '2026-01-02T00:00:00Z', vote: null }];
   await page.locator('.entry-title-link').first().click();
@@ -88,4 +98,10 @@ test('online reader revalidates edits, comments and visibility across visits', a
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(page.locator('.article-title')).toHaveCount(0);
   await expect(page.getByText('投稿が見つからないか、非表示に設定されています。', { exact: false })).toBeVisible();
+  await expect(canonical).toHaveCount(0);
+
+  hidden = false;
+  isRyuseigai = true;
+  await page.goto('/ryuseigai/read/online-1');
+  await expect(canonical).toHaveAttribute('href', 'https://ari.denmei.org/ryuseigai/read/online-1');
 });

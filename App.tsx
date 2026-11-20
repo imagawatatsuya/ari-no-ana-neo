@@ -789,7 +789,7 @@ const App: React.FC = () => {
     ? (readNovel?.id === activeNovelId ? readComments : [])
     : offlineRyuseigaiComments.filter((c) => c.novelId === activeNovelId);
 
-  // SEO: document.title / meta / favicon / JSON-LD を動的切替
+  // SEO: document.title / meta / canonical / favicon / JSON-LD を動的切替
   useEffect(() => {
     const SITE_NAME = '文章アリの穴NEO';
     const BASE_URL = 'https://ari.denmei.org/';
@@ -804,6 +804,15 @@ const App: React.FC = () => {
     // 現在閲覧中の作品（通常 or 流星垓）
     const readingNovel = view === 'read' ? activeNovel : view === 'ryuseigai-read' ? activeRyuseigaiNovel : null;
     const isRyuseigaiView = view === 'ryuseigai' || view === 'ryuseigai-read';
+    let canonicalUrl: string | undefined;
+    if (readingNovel && !readingNovel.isHidden) {
+      const collectionPath = readingNovel.isRyuseigai ? 'ryuseigai/' : '';
+      canonicalUrl = `${BASE_URL}${collectionPath}read/${encodeURIComponent(readingNovel.id)}`;
+    } else if (view === 'list' && currentPage === 1) {
+      canonicalUrl = BASE_URL;
+    } else if (view === 'ryuseigai') {
+      canonicalUrl = `${BASE_URL}ryuseigai`;
+    }
 
     let title: string;
     let desc: string;
@@ -842,6 +851,19 @@ const App: React.FC = () => {
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute('content', desc);
 
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', canonicalUrl ?? BASE_URL);
+
+    const existingCanonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (canonicalUrl) {
+      const canonical = existingCanonical ?? document.createElement('link');
+      canonical.rel = 'canonical';
+      canonical.href = canonicalUrl;
+      if (!existingCanonical) document.head.appendChild(canonical);
+    } else {
+      existingCanonical?.remove();
+    }
+
     const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null;
     if (favicon) favicon.href = icon;
 
@@ -849,7 +871,7 @@ const App: React.FC = () => {
     const existingLd = document.getElementById('seo-jsonld');
     if (existingLd) existingLd.remove();
 
-    if (readingNovel) {
+    if (readingNovel && canonicalUrl) {
       const ld = {
         '@context': 'https://schema.org',
         '@type': 'Article',
@@ -857,7 +879,7 @@ const App: React.FC = () => {
         author: { '@type': 'Person', name: readingNovel.author || '名無し' },
         datePublished: readingNovel.date ? readingNovel.date.slice(0, 10) : undefined,
         description: desc,
-        mainEntityOfPage: { '@type': 'WebPage', '@id': BASE_URL },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
         publisher: { '@type': 'Organization', name: SITE_NAME },
       };
       const script = document.createElement('script');
@@ -866,7 +888,7 @@ const App: React.FC = () => {
       script.textContent = JSON.stringify(ld);
       document.head.appendChild(script);
     }
-  }, [view, activeNovel, activeRyuseigaiNovel]);
+  }, [view, currentPage, activeNovel, activeRyuseigaiNovel]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
