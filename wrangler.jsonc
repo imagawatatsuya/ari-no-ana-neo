@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ari-no-ana-neo",
+  "compatibility_date": "2026-11-21",
+  // Custom Domains are managed in the dashboard so deployments cannot change DNS.
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

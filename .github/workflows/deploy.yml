@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy production site
 
 on:
   push:
@@ -22,8 +22,8 @@ jobs:
   deploy:
     needs: validate
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: ${{ vars.ARI_DEPLOY_TARGET == 'workers' && 'cloudflare-workers' || 'github-pages' }}
+      url: ${{ vars.ARI_DEPLOY_TARGET == 'workers' && 'https://ari.denmei.org/' || steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -68,12 +68,23 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           
       - name: Setup Pages
+        if: vars.ARI_DEPLOY_TARGET != 'workers'
         uses: actions/configure-pages@v5
         
       - name: Upload artifact
+        if: vars.ARI_DEPLOY_TARGET != 'workers'
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
           
       - name: Deploy to GitHub Pages
+        if: vars.ARI_DEPLOY_TARGET != 'workers'
+        id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Deploy to Cloudflare Workers
+        if: vars.ARI_DEPLOY_TARGET == 'workers'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --no-install wrangler deploy

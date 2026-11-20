@@ -35,7 +35,7 @@
 
 - **Frontend:** React 18 + TypeScript 5.5
 - **Backend:** Supabase (PostgreSQL + Auth + RLS)
-- **Deployment:** GitHub Pages (GitHub Actions)
+- **Deployment:** GitHub Actions → Cloudflare Workers Static Assets または GitHub Pages
 - **Build Tool:** Vite 7.3 / Node.js 22.12以上（CIは22系）
 - **Routing:** History APIベースのクライアントルーティング（`/`、`/read/:id`、`/ryuseigai`、`/ryuseigai/read/:id`、`/post`、`/admin`、`/page/:n`）。旧hash形式（`#read/:id`、`#post`、`#admin`、`#page/:n` など）はHistory API URLへ互換変換します。
 
@@ -91,7 +91,7 @@ npm run dev
 
 ## デプロイ
 
-このプロジェクトはGitHub Actionsを使用してGitHub Pagesへ自動デプロイされます。PR時とデプロイ前にLinux / Windowsの単体・DBテスト、ビルド、Chromium / WebKitのE2Eと依存監査を実行し、失敗時はデプロイしません。
+このプロジェクトはGitHub Actionsで自動デプロイします。PR時とデプロイ前にLinux / Windowsの単体・DBテスト、ビルド、Chromium / WebKitのE2Eと依存監査を実行し、失敗時はデプロイしません。公開先の設定と切り戻しは [運用手順](docs/OPERATIONS.md#cloudflare-workers-への切り替え) を参照してください。
 
 ```bash
 npm test
@@ -107,7 +107,7 @@ DBテストはPGlite内のPostgreSQLでRLS・トリガー・既存DB移行を検
 
 Viteのビルドは独自ドメインのroot deployment向けに絶対アセットパス（`base: '/'`）を使います。`router.ts` はViteのbase、生成されたasset path、現在のpathnameからproject pathを検出し、History APIのURLに適用します。GitHub Pagesのdeep linkは `public/404.html` が一時保存してアプリへ引き渡します。
 
-正式URL、canonical、OG URL、sitemap、robotsのSitemap URLは `https://ari.denmei.org/` に統一しています。GitHub PagesのCustom domain設定とDNSはこのドメインを指すように構成します。
+正式URL、canonical、OG URL、sitemap、robotsのSitemap URLは `https://ari.denmei.org/` に統一しています。
 
 ### デプロイ設定
 
