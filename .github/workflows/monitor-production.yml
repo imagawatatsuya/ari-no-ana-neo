@@ -1,0 +1,35 @@
+name: Check production site
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '13,43 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: HTTPS and app shell
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Fetch the published app shell
+        run: |
+          curl --fail --silent --show-error --retry 2 --max-time 15 \
+            --location --max-redirs 0 https://ari.denmei.org/ --output "$RUNNER_TEMP/ari-index.html"
+          grep -Fq '<div id="root"></div>' "$RUNNER_TEMP/ari-index.html"
+  data:
+    name: Public works API
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read one public work via the list RPC
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: node scripts/check-supabase.mjs

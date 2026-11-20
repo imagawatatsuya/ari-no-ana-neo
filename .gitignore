@@ -30,6 +30,7 @@ playwright-report/
 .playwright-cli/
 .e2e/
 .vite
+.wrangler/
 .turbo
 .cache
 

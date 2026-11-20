@@ -4,10 +4,18 @@
 
 1. Node.js 22.12以上で `npm ci`。`npm test`、`npm run build`、`npm run test:e2e`、`npm audit --audit-level=moderate` を通す。ブラウザ未導入時は `npx playwright install chromium webkit`。
 2. DBは本番相当のステージングで [移行手順](SUPABASE_MIGRATIONS.md) と適用確認SQLを実行する。本番適用前にDBバックアップと取得時刻を記録する。
-3. PRのCIで Linux / Windows の検証を確認してからマージする。`deploy.yml` は同じCIを再利用し、成功した場合のみPagesへデプロイする。
+3. PRのCIで Linux / Windows の検証を確認してからマージする。`deploy.yml` は同じCIを再利用し、成功した場合のみ本番へデプロイする。
    デプロイ前には公開キーを使って実際の一覧RPCを1件だけ読み取る。DNS・接続・認証・RPCのいずれかが失敗した場合もデプロイを止める。作品投稿や閲覧数加算は行わない。
    続けて `security_health()` でRLS・権限・ポリシー・トリガー等と適用履歴を検査し、基準不一致・未適用でも公開を止める。復元確認とHTTPヘッダー設定は [セキュリティ運用](SECURITY.md)を参照。
 4. 公開後にトップ、作品URLへの直接アクセス、通常投稿・未採点感想、管理ログイン、非表示作品の匿名アクセス拒否を確認する。投稿確認には専用テスト作品を用意し、実データを上書きしない。
+
+## Cloudflare Workers への切り替え
+
+- `wrangler.jsonc` は `dist/` を静的配信する。作品URLを直接開くと `index.html` が返る。`public/_headers` で埋め込みを禁止し、`workers.dev` の検証用URLを検索対象から外す。既存の GitHub Pages 向け `404.html` は切り戻し用に保持する。
+- 検証環境は、公開APIとDBの基準チェックを実行し、`npm run build` のあと `npx wrangler deploy` で公開する。CLI が表示する `workers.dev` のURLでトップ・作品URLの再読み込み・投稿・管理ログイン・保護ヘッダーを確認する。運用版と同じ Supabase に接続するので、書き込み確認は専用テスト作品に限る。
+- GitHub の本番自動デプロイにはリポジトリ変数 `CLOUDFLARE_ACCOUNT_ID` と、`cloudflare-workers` 環境のシークレット `CLOUDFLARE_API_TOKEN` を使う。トークンは対象 Worker の編集に絞り、環境のデプロイ対象ブランチを `main` に設定する。リポジトリ変数 `ARI_DEPLOY_TARGET=workers` で CI の公開先が切り替わる。未設定時は GitHub Pages に公開する。
+- 本番ドメインは Cloudflare ダッシュボードで管理する。旧 `ari` CNAME の値 `imagawatatsuya.github.io` と `Proxied` を記録し、対象 Worker に `ari.denmei.org` を Custom Domain として追加する。HTTPS・作品の直リンク・保護ヘッダーを確認する。切り戻すときは Worker の `ari.denmei.org` の関連付けを外して旧 CNAME を戻し、`ARI_DEPLOY_TARGET` を解除する。GitHub Pages の独自ドメイン設定と公開済み成果物は切り戻せる間は維持する。
+- `Check production site` は公開トップの HTTPS 応答と Supabase の作品一覧取得を別ジョブで確認する。GitHub Actions から手動で実行でき、既定ブランチでは約30分ごとに実行される。障害通知は GitHub の Actions 通知設定に従う。
 
 ## GitHubのマージ制御
 
