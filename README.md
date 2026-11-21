@@ -89,6 +89,8 @@ npm run dev
 
 ブラウザで http://localhost:5173 にアクセスして実行を確認できます。
 
+流星垓を Codex やローカルブラウザで開発するときは `npm run dev:ryuseigai` を使います。サンプルURLと管理画面の使い方は [流星垓のローカル開発](docs/OPERATIONS.md#流星垓のローカル開発) を参照してください。
+
 ## デプロイ
 
 このプロジェクトはGitHub Actionsで自動デプロイします。PR時とデプロイ前にLinux / Windowsの単体・DBテスト、ビルド、Chromium / WebKitのE2Eと依存監査を実行し、失敗時はデプロイしません。公開先の設定と切り戻しは [運用手順](docs/OPERATIONS.md#cloudflare-workers-への切り替え) を参照してください。

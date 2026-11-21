@@ -66,6 +66,20 @@ const HIDDEN_IDS_STORAGE_KEY = 'bunsho_hidden_novel_ids_v1';
 const ADMIN_AUTH_STORAGE_KEY = 'bunsho_admin_auth_v1';
 const ADMIN_AUTH_TTL_MS = 1000 * 60 * 30;
 const localAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD?.trim() || '';
+const localSeedNovels: Novel[] = import.meta.env.DEV && import.meta.env.MODE === 'ryuseigai-dev'
+  ? [...SEED_NOVELS, {
+    id: 'ryuseigai-dev-sample',
+    title: '流星垓の開発用サンプル',
+    author: 'テスト作者',
+    body: 'これは流星垓での直リンク閲覧を確認するためのサンプル本文です。',
+    date: '2026-01-01T00:00:00Z',
+    viewCount: 0,
+    commentCount: 0,
+    voteCount: 0,
+    voteSum: 0,
+    isRyuseigai: true,
+  }]
+  : SEED_NOVELS;
 
 const App: React.FC = () => {
   const isSupabaseMode = !!supabase;
@@ -334,7 +348,7 @@ const App: React.FC = () => {
   const loadFromLocalStorage = () => {
     const savedNovels = localStorage.getItem('bunsho_novels_v2');
     const savedComments = localStorage.getItem('bunsho_comments_v2');
-    setNovels(savedNovels ? JSON.parse(savedNovels) : SEED_NOVELS);
+    setNovels(savedNovels ? JSON.parse(savedNovels) : localSeedNovels);
     setComments(savedComments ? JSON.parse(savedComments) : SEED_COMMENTS);
   };
 
@@ -620,9 +634,9 @@ const App: React.FC = () => {
       return;
     }
 
-    if (!window.confirm('テスト用ダミーデータ（5件）に戻します。現在のローカルデータは上書きされます。よろしいですか？')) return;
+    if (!window.confirm(`テスト用ダミーデータ（${localSeedNovels.length}件）に戻します。現在のローカルデータは上書きされます。よろしいですか？`)) return;
 
-    setNovels(SEED_NOVELS);
+    setNovels(localSeedNovels);
     setComments(SEED_COMMENTS);
     setHiddenNovelIds([]);
     alert('ダミーデータを再投入しました。');

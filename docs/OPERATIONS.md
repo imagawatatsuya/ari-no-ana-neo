@@ -1,5 +1,15 @@
 # 検証・リリース・復旧
 
+## 流星垓のローカル開発
+
+1. リポジトリで `npm ci` を実行し、`npm run dev:ryuseigai` で起動する。Codex やローカルブラウザから [流星垓の一覧](http://127.0.0.1:5190/ryuseigai) を開く。
+2. [サンプルの旧URL](http://127.0.0.1:5190/read/ryuseigai-dev-sample) を開き、[流星垓の作品URL](http://127.0.0.1:5190/ryuseigai/read/ryuseigai-dev-sample) に移動して本文が読めること、感想フォームや反応数が表示されないことを確認する。
+3. 移動操作の確認には [管理画面](http://127.0.0.1:5190/admin) を開き、ローカル専用パスワード `ryuseigai-local-only` でログインする。通常のサンプル作品を流星垓へ移して、一覧と直リンクを確認できる。
+
+サーバーは `127.0.0.1:5190` で待ち受け、`.env.local` や環境変数から本番の Supabase 設定を読み込まない。試した操作は、このURLを開いたブラウザの保存領域に残る。初期状態を再現するには新しいブラウザプロファイルかシークレットウィンドウを使う。
+
+ホスト型の ChatGPT からこのPCのローカルURLにはアクセスできない。Cloudflare の配信ヘッダーやWAF、Supabase の権限は、配信環境の応答とDBテストで確認する。
+
 ## リリース前
 
 1. Node.js 22.12以上で `npm ci`。`npm test`、`npm run build`、`npm run test:e2e`、`npm audit --audit-level=moderate` を通す。ブラウザ未導入時は `npx playwright install chromium webkit`。
