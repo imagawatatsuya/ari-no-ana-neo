@@ -1,101 +1,29 @@
-import React, { useMemo, useState } from 'react';
-import { Novel, Comment, ReaderIndentMode } from '../types';
-import { formatDate, formatManuscriptPages, isCountedVote, resolveAuthorName, getCooldownRemainSec, markCooldown, cooldownErrorText, LAST_COMMENT_KEY } from '../utils';
+import React, { useMemo } from 'react';
+import { Novel, ReaderIndentMode } from '../types';
+import { formatDate, formatManuscriptPages } from '../utils';
 import { FootnoteRenderer, FootnoteMode } from './FootnoteRenderer';
 import { IndentModeControl } from './IndentModeControl';
 import { formatReaderBody } from '../services/jisageAdapter';
 import { BASE_PATH, navigate } from '../router';
-import { useCommentPostFeedback } from '../features/comments/useCommentPostFeedback';
 
 interface RyuseigaiReaderProps {
   novel: Novel;
-  comments: Comment[];
-  onComment: (comment: Comment) => Promise<boolean>;
   footnoteMode?: FootnoteMode;
   indentMode: ReaderIndentMode;
   onIndentModeChange: (mode: ReaderIndentMode) => void;
   onOpenReaderSettings: () => void;
 }
 
-const MAX_COMMENT_LENGTH = 500;
-
-/** 流星垓の初期ポイント */
-const RYUSEIGAI_BASE_SCORE = -300;
-
 export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
   novel,
-  comments,
-  onComment,
   footnoteMode,
   indentMode,
   onIndentModeChange,
   onOpenReaderSettings,
 }) => {
-  const [commentText, setCommentText] = useState('');
-  const [commentName, setCommentName] = useState('');
-  const [vote, setVote] = useState(-500);
-  const [formError, setFormError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { highlightedId, successMessage, onPostSuccess } = useCommentPostFeedback(comments);
   const subtitle = novel.description?.trim() ?? '';
   const authorMessage = novel.authorMessage?.trim() ?? '';
   const pageCountLabel = useMemo(() => formatManuscriptPages(novel.body), [novel.body]);
-
-  const { voteSum, countWhy, countNotExist } = useMemo(() => {
-    let sum = 0;
-    let why = 0;
-    let notExist = 0;
-    for (const comment of comments) {
-      if (!isCountedVote(comment.vote)) continue;
-      sum += comment.vote;
-      if (comment.vote === -500) why += 1;
-      else if (comment.vote === -1000) notExist += 1;
-    }
-    return { voteSum: sum, countWhy: why, countNotExist: notExist };
-  }, [comments]);
-  const totalScore = RYUSEIGAI_BASE_SCORE + voteSum;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-    if (!commentText.trim()) {
-      setFormError('声を入力してください。');
-      return;
-    }
-    const remainSec = getCooldownRemainSec(LAST_COMMENT_KEY);
-    if (remainSec > 0) {
-      setFormError(cooldownErrorText(remainSec));
-      return;
-    }
-    if (commentText.length > MAX_COMMENT_LENGTH) {
-      setFormError(`コメントが長すぎます (${commentText.length}/${MAX_COMMENT_LENGTH})`);
-      return;
-    }
-
-    setFormError('');
-    const commentId = Date.now().toString();
-    setIsSubmitting(true);
-    const ok = await onComment({
-      id: commentId,
-      novelId: novel.id,
-      name: resolveAuthorName(commentName),
-      text: commentText,
-      date: new Date().toISOString(),
-      vote,
-    });
-    setIsSubmitting(false);
-
-    if (!ok) {
-      setFormError('刻むことに失敗した。しばらくしてから再度試せ。');
-      return;
-    }
-
-    setCommentText('');
-    setCommentName('');
-    setVote(-500);
-    markCooldown(LAST_COMMENT_KEY);
-    onPostSuccess(commentId, '刻んだ。');
-  };
 
   return (
     <div className="ryuseigai-shell ryuseigai-reader-shell">
@@ -160,107 +88,6 @@ export const RyuseigaiReader: React.FC<RyuseigaiReaderProps> = React.memo(({
             <div className="ryuseigai-author-message-text">{authorMessage}</div>
           </div>
         )}
-      </div>
-
-      {/* 存在価値（流星垓独自） */}
-      <div className="ryuseigai-point-box">
-        <div className="ryuseigai-point-label">存在価値</div>
-        <div className="ryuseigai-point-value">{totalScore}</div>
-        <div className="ryuseigai-point-breakdown">
-          「なぜ生まれてきた？」 [{countWhy}] ／ 「おまえは存在しない」 [{countNotExist}]
-        </div>
-      </div>
-
-      {/* 声（コメント一覧） */}
-      <div className="ryuseigai-section-title" id="comments-section">声</div>
-      {comments.length === 0 ? (
-        <div className="ryuseigai-no-comments">まだ誰も何も言っていない。沈黙だけがここにある。</div>
-      ) : (
-        <div>
-          {[...comments].reverse().map((c, idx) => (
-            <div
-              className={`comment-block${c.id === highlightedId ? ' comment-block--new' : ''}`}
-              id={`comment-${c.id}`}
-              key={c.id}
-            >
-              <div className="comment-text">{c.text}</div>
-              <div className="comment-footer">
-                <span className="comment-number">{comments.length - idx}:</span>{' '}
-                <span className="comment-name">{c.name.trim() || '名無し'}</span>{' '}
-                <span className="ryuseigai-comment-vote">
-                  {c.vote === -1000 ? 'おまえは存在しない' : 'なぜ生まれてきた？'}
-                </span>{' '}
-                <span className="comment-date">{formatDate(c.date)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 声を刻むフォーム（流星垓独自） */}
-      <div className="comment-form ryuseigai-comment-form">
-        <form onSubmit={handleSubmit} className="ryuseigai-form">
-          {successMessage && (
-            <div className="comment-post-success comment-post-success--ryuseigai" role="status" aria-live="polite">
-              {successMessage}
-            </div>
-          )}
-          <div className="ryuseigai-form-title">■ 声を刻む</div>
-          <textarea
-            value={commentText}
-            onChange={(e) => {
-              setCommentText(e.target.value);
-              if (formError) setFormError('');
-            }}
-            className="ryuseigai-textarea"
-            maxLength={MAX_COMMENT_LENGTH}
-            aria-invalid={!!formError}
-            aria-describedby={formError ? 'ryuseigai-comment-error' : 'ryuseigai-comment-count'}
-          />
-          <div id="ryuseigai-comment-count" className="comment-form-count">
-            {commentText.length.toLocaleString()} / {MAX_COMMENT_LENGTH} 文字
-          </div>
-          {formError && (
-            <div id="ryuseigai-comment-error" className="form-field-error" role="alert">{formError}</div>
-          )}
-          <div className="ryuseigai-form-row">
-            <b>■ 名</b>{' '}
-            <input
-              type="text"
-              value={commentName}
-              onChange={(e) => setCommentName(e.target.value)}
-              maxLength={100}
-              placeholder="名無し"
-              className="ryuseigai-input"
-            />
-            <div className="comment-form-count">{commentName.length.toLocaleString()} / 100</div>
-          </div>
-          <div className="ryuseigai-form-row">
-            <b>■ 断罪</b>{' '}
-            <select value={vote} onChange={(e) => setVote(Number(e.target.value))} className="ryuseigai-select">
-              <option value={-500}>なぜ生まれてきた？ (-500)</option>
-              <option value={-1000}>おまえは存在しない (-1000)</option>
-            </select>
-          </div>
-          <div className="comment-form-actions">
-            <button type="submit" className="ryuseigai-button comment-form-action-primary" disabled={isSubmitting}>
-              {isSubmitting ? '刻み中...' : '刻む'}
-            </button>
-            <button
-              type="button"
-              className="ryuseigai-button"
-              disabled={isSubmitting}
-              onClick={() => {
-                setCommentText('');
-                setCommentName('');
-                setVote(-500);
-                setFormError('');
-              }}
-            >
-              クリア
-            </button>
-          </div>
-        </form>
       </div>
 
       {/* 戻る */}

@@ -32,6 +32,8 @@ Cloudflareのプロキシが無効なDNSレコードではTransform Ruleは反�
 
 同じホスト限定ルールでRUMを抑止し、プロキシ化に伴うCloudflare解析スクリプトの新規挿入を止めた。CSPのスクリプト許可先を増やさずに配信する。
 
+流星垓の一覧と作品の応答に `X-Robots-Tag: noindex, nosnippet` を付ける。通常の検索クローラーにはこの指定を読み取れるようにし、AI向けの `robots.txt` では流星垓を除外する。Cloudflare のカスタムルール `deploy/cloudflare-ryuseigai-ai-block.json` を `denmei.org` に適用すると、`ari.denmei.org` の流星垓パスへの識別可能なAIクローラーのアクセスを拒否できる。作品は引き続き公開APIで取得可能なため、識別できないクローラーや公開APIからの取得は防げない。
+
 公開後はHTTPSでレスポンスヘッダー、トップ・作品の直接URL、管理ログイン・投稿・フォントを確認する。CSPのインライン実行と未許可接続の遮断はChromium/WebKitのE2Eで検証する。
 
 参考: [Supabase APIの保護](https://supabase.com/docs/guides/api/securing-your-api)、[Cloudflare Response Header Transform Rules](https://developers.cloudflare.com/rules/transform/response-header-modification/)。
