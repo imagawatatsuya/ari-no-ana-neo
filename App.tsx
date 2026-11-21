@@ -318,7 +318,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if ((view === 'read' || view === 'ryuseigai-read') && activeNovelId) {
-      incrementViewCount(activeNovelId);
       window.scrollTo(0, 0);
     }
   }, [activeNovelId, view]);
@@ -730,12 +729,6 @@ const App: React.FC = () => {
     return novels.filter((n) => n.isRyuseigai && !hiddenNovelIds.includes(n.id));
   }, [novels, hiddenNovelIds, isSupabaseMode]);
 
-  const offlineRyuseigaiComments = useMemo(() => {
-    if (isSupabaseMode) return [];
-    const ids = new Set(offlineRyuseigaiNovels.map((n) => n.id));
-    return comments.filter((c) => ids.has(c.novelId));
-  }, [comments, offlineRyuseigaiNovels, isSupabaseMode]);
-
   const totalNovelCount = isSupabaseMode ? supabaseTotalCount : visibleNovels.length;
 
   // Supabaseモード: サーバーが総件数を返す / オフライン: クライアント計算
@@ -765,10 +758,10 @@ const App: React.FC = () => {
     }
     return {
       status: 'success',
-      items: novelsToSummaries(offlineRyuseigaiNovels, offlineRyuseigaiComments),
+      items: novelsToSummaries(offlineRyuseigaiNovels, []),
       totalCount: offlineRyuseigaiNovels.length,
     };
-  }, [offlineRyuseigaiNovels, offlineRyuseigaiComments]);
+  }, [offlineRyuseigaiNovels]);
 
   const listStateForView = isSupabaseMode ? supabaseListState : offlineListState;
   const ryuseigaiListStateForView = isSupabaseMode ? supabaseRyuseigaiListState : offlineRyuseigaiListState;
@@ -781,13 +774,20 @@ const App: React.FC = () => {
     ? (readNovel?.id === activeNovelId ? readComments : [])
     : comments.filter((c) => c.novelId === activeNovelId);
 
-  // 流星垓作品閲覧: 共通 readNovel/readComments を使用（オフラインのみ独自フィルタ）
+  // 流星垓作品閲覧: 本文を共通キャッシュから取得する。
   const activeRyuseigaiNovel = isSupabaseMode
-    ? (readNovel?.id === activeNovelId ? readNovel : null)
+    ? (readNovel?.id === activeNovelId && readNovel.isRyuseigai ? readNovel : null)
     : offlineRyuseigaiNovels.find((n) => n.id === activeNovelId) ?? null;
-  const activeRyuseigaiComments = isSupabaseMode
-    ? (readNovel?.id === activeNovelId ? readComments : [])
-    : offlineRyuseigaiComments.filter((c) => c.novelId === activeNovelId);
+  const movedNovelId = view === 'read' ? activeRyuseigaiNovel?.id : undefined;
+  const countedNovelId = view === 'read' && activeNovel && !activeNovel.isRyuseigai ? activeNovel.id : null;
+
+  useLayoutEffect(() => {
+    if (movedNovelId) navigate(`/ryuseigai/read/${encodeURIComponent(movedNovelId)}`, { replace: true });
+  }, [movedNovelId]);
+
+  useEffect(() => {
+    if (countedNovelId) void incrementViewCount(countedNovelId);
+  }, [countedNovelId]);
 
   // SEO: document.title / meta / canonical / favicon / JSON-LD を動的切替
   useEffect(() => {
@@ -803,15 +803,12 @@ const App: React.FC = () => {
 
     // 現在閲覧中の作品（通常 or 流星垓）
     const readingNovel = view === 'read' ? activeNovel : view === 'ryuseigai-read' ? activeRyuseigaiNovel : null;
-    const isRyuseigaiView = view === 'ryuseigai' || view === 'ryuseigai-read';
+    const isRyuseigaiView = view === 'ryuseigai' || view === 'ryuseigai-read' || !!movedNovelId;
     let canonicalUrl: string | undefined;
-    if (readingNovel && !readingNovel.isHidden) {
-      const collectionPath = readingNovel.isRyuseigai ? 'ryuseigai/' : '';
-      canonicalUrl = `${BASE_URL}${collectionPath}read/${encodeURIComponent(readingNovel.id)}`;
+    if (readingNovel && !readingNovel.isHidden && !isRyuseigaiView) {
+      canonicalUrl = `${BASE_URL}read/${encodeURIComponent(readingNovel.id)}`;
     } else if (view === 'list' && currentPage === 1) {
       canonicalUrl = BASE_URL;
-    } else if (view === 'ryuseigai') {
-      canonicalUrl = `${BASE_URL}ryuseigai`;
     }
 
     let title: string;
@@ -846,13 +843,23 @@ const App: React.FC = () => {
     if (metaDesc) metaDesc.setAttribute('content', desc);
 
     const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogTitle) ogTitle.setAttribute('content', isRyuseigaiView ? ryuseigaiTitle : title);
 
     const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) ogDesc.setAttribute('content', desc);
+    if (ogDesc) ogDesc.setAttribute('content', isRyuseigaiView ? ryuseigaiDesc : desc);
 
     const ogUrl = document.querySelector('meta[property="og:url"]');
     if (ogUrl) ogUrl.setAttribute('content', canonicalUrl ?? BASE_URL);
+
+    const existingRobots = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (isRyuseigaiView) {
+      const robots = existingRobots ?? document.createElement('meta');
+      robots.name = 'robots';
+      robots.content = 'noindex, nosnippet';
+      if (!existingRobots) document.head.appendChild(robots);
+    } else {
+      existingRobots?.remove();
+    }
 
     const existingCanonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (canonicalUrl) {
@@ -888,7 +895,7 @@ const App: React.FC = () => {
       script.textContent = JSON.stringify(ld);
       document.head.appendChild(script);
     }
-  }, [view, currentPage, activeNovel, activeRyuseigaiNovel]);
+  }, [view, currentPage, activeNovel, activeRyuseigaiNovel, movedNovelId]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1094,7 +1101,7 @@ const App: React.FC = () => {
             />
           </Suspense>
         )}
-        {view === 'read' && activeNovel && (
+        {view === 'read' && activeNovel && !movedNovelId && (
           <>
             {readCommentsLoadFailed && (
               <div className="list-status-message list-status-error" role="status">
@@ -1122,24 +1129,15 @@ const App: React.FC = () => {
           <RyuseigaiList state={ryuseigaiListStateForView} onPrefetch={isSupabaseMode ? prefetchNovel : undefined} />
         )}
         {view === 'ryuseigai-read' && activeRyuseigaiNovel && (
-          <>
-            {readCommentsLoadFailed && (
-              <div className="list-status-message list-status-error" role="status">
-                声の読み込みに失敗しました。一覧から開き直すと再取得されます。
-              </div>
-            )}
-            <Suspense fallback={<ViewFallback />}>
-              <RyuseigaiReader
-                novel={activeRyuseigaiNovel}
-                comments={activeRyuseigaiComments}
-                onComment={handleComment}
-                footnoteMode={footnoteMode}
-                indentMode={readerIndentMode}
-                onIndentModeChange={setReaderIndentMode}
-                onOpenReaderSettings={openReaderSettings}
-              />
-            </Suspense>
-          </>
+          <Suspense fallback={<ViewFallback />}>
+            <RyuseigaiReader
+              novel={activeRyuseigaiNovel}
+              footnoteMode={footnoteMode}
+              indentMode={readerIndentMode}
+              onIndentModeChange={setReaderIndentMode}
+              onOpenReaderSettings={openReaderSettings}
+            />
+          </Suspense>
         )}
         {view === 'ryuseigai-read' && !activeRyuseigaiNovel && !isLoading && (
           <div className="ryuseigai-shell"><div className="ryuseigai-panel" style={{ padding: 18, textAlign: 'center' }}>ここには何もない。あるいは、まだ誰も辿り着いていない。</div></div>

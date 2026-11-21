@@ -102,6 +102,16 @@ test('online reader revalidates edits, comments and visibility across visits', a
 
   hidden = false;
   isRyuseigai = true;
-  await page.goto('/ryuseigai/read/online-1');
-  await expect(canonical).toHaveAttribute('href', 'https://ari.denmei.org/ryuseigai/read/online-1');
+  await page.goto('/read/online-1');
+  await expect(page).toHaveURL(/\/ryuseigai\/read\/online-1$/);
+  await expect(page.locator('.article-title')).toHaveText(title);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nosnippet');
+  await expect(page.locator('link[rel="canonical"], #seo-jsonld')).toHaveCount(0);
+  await expect(page.locator('textarea')).toHaveCount(0);
+  await expect(page.getByText('存在価値', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('別の端末からの感想', { exact: true })).toHaveCount(0);
+  await page.getByRole('link', { name: '← 流星垓へ戻る' }).first().click();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nosnippet');
+  await expect(page.locator('.ryuseigai-entry')).toHaveCount(1);
+  await expect(page.locator('.ryuseigai-entry-score')).toHaveCount(0);
 });

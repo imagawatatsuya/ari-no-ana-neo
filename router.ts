@@ -99,8 +99,9 @@ export const BASE_PATH =
     : '';
 
 /** ルート遷移（pushState + popstate イベント発火） */
-export const navigate = (route: string) => {
+export const navigate = (route: string, { replace = false } = {}) => {
   const url = BASE_PATH + (route === '/' ? '/' : route);
-  window.history.pushState({}, '', url);
+  if (replace) window.history.replaceState({}, '', url);
+  else window.history.pushState({}, '', url);
   window.dispatchEvent(new PopStateEvent('popstate'));
 };

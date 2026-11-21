@@ -138,5 +138,31 @@ for (const mode of ['fresh', 'upgrade', 'legacy-production']) {
     await db.exec('set role anon');
     assert.equal(await healthy(), true);
     await assert.rejects(db.exec('select * from private.security_baseline'), /permission denied/);
+
+    await db.exec('reset role');
+    const readOnly = await sqlFile('./supabase/migrations/20261121055457_ryuseigai_read_only.sql');
+    await db.exec(readOnly);
+    await db.exec(readOnly);
+    assert.equal(await healthy(), true);
+    await db.exec("begin; delete from private.app_migrations where version='20261121055457_ryuseigai_read_only'");
+    assert.equal(await healthy(), false);
+    await db.exec('rollback');
+
+    await db.exec('set role anon');
+    assert.equal((await rows("select id from public.novels where id='ryuseigai'")).length, 1);
+    assert.equal((await rows("select id from public.comments where novel_id='ryuseigai'")).length, 0);
+    await assert.rejects(comment('read-only-guest-vote', 'ryuseigai', -500), /流星垓の作品/);
+    await assert.rejects(comment('read-only-guest-comment', 'ryuseigai', 'null'), /流星垓の作品/);
+    await db.exec("select public.increment_novel_view('ryuseigai'); reset role;");
+    assert.equal(Number((await rows("select view_count from public.novels where id='ryuseigai'"))[0].view_count), 0);
+    await db.exec("set role authenticated; select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false)");
+    assert.equal((await rows("select id from public.comments where novel_id='ryuseigai'")).length, 0);
+    await assert.rejects(comment('read-only-user-comment', 'ryuseigai', 'null'), /流星垓の作品/);
+    await db.exec("select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false)");
+    assert.equal((await rows("select vote from public.comments where id='ryuseigai-vote'"))[0].vote, -1000);
+    await db.exec("update public.novels set is_ryuseigai=false where id='public'; reset role; select set_config('request.jwt.claim.sub','',false); set role anon;");
+    await comment('restored-work-comment', 'public', 'null');
+    await db.exec("select public.increment_novel_view('public'); reset role;");
+    assert.equal(Number((await rows("select view_count from public.novels where id='public'"))[0].view_count), 2);
   });
 }

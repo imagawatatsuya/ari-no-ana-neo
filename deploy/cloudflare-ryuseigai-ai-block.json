@@ -1,0 +1,6 @@
+{
+  "description": "Block AI crawlers on ari.denmei.org Ryuseigai",
+  "expression": "(http.host eq \"ari.denmei.org\" and (http.request.uri.path eq \"/ryuseigai\" or starts_with(http.request.uri.path, \"/ryuseigai/\")) and (cf.verified_bot_category in {\"AI Crawler\" \"AI Assistant\" \"AI Search\"} or lower(http.user_agent) contains \"gptbot\" or lower(http.user_agent) contains \"oai-searchbot\" or lower(http.user_agent) contains \"chatgpt-user\" or lower(http.user_agent) contains \"claudebot\" or lower(http.user_agent) contains \"claude-searchbot\" or lower(http.user_agent) contains \"claude-user\" or lower(http.user_agent) contains \"perplexitybot\" or lower(http.user_agent) contains \"perplexity-user\"))",
+  "action": "block",
+  "enabled": true
+}

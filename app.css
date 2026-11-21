@@ -1325,31 +1325,18 @@ select:focus-visible {
   }
 
   .ryuseigai-entry-meta,
-  .ryuseigai-footer,
-  .ryuseigai-point-label,
-  .ryuseigai-point-breakdown,
-  .ryuseigai-badge,
-  .ryuseigai-comment-form .comment-form-count,
-  .ryuseigai-comment-form .form-field-error {
+  .ryuseigai-footer {
     font-size: 0.875rem;
   }
 
   .ryuseigai-epigraph,
-  .ryuseigai-no-comments,
   .ryuseigai-back-link,
-  .ryuseigai-entry-score,
-  .ryuseigai-shell .comment-footer,
   .ryuseigai-subtitle,
   .ryuseigai-empty,
-  .ryuseigai-entry-link,
-  .ryuseigai-section-title,
-  .ryuseigai-form-title {
+  .ryuseigai-entry-link {
     font-size: 0.9375rem;
   }
 
-  .ryuseigai-point-value {
-    font-size: 2.25rem;
-  }
 }
 
 /* === Responsive (mobile only — desktop はオリジナル CGI デザインを維持) === */
@@ -1493,12 +1480,6 @@ select:focus-visible {
     border-top: 1px solid var(--table-border);
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
   }
-  .ryuseigai-comment-form .comment-form-actions {
-    background: #0a0a0a;
-    border-top-color: #3a3a3a;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
-  }
-
   /* --- 入力要素: iOSズーム防止 & 幅統一 --- */
   input[type='text'],
   input[type='email'],
@@ -1675,46 +1656,6 @@ select:focus-visible {
   padding: 10px 14px !important;
   text-align: left;
 }
-.ryuseigai-shell .comment-block {
-  border-bottom: 1px solid #2a2a2a;
-}
-
-.comment-post-success--ryuseigai {
-  background: #1a1510;
-  border-color: #4a3a30;
-  color: #c99a9a;
-}
-
-.ryuseigai-shell .comment-block--new {
-  animation-name: comment-highlight-ryuseigai;
-}
-
-@keyframes comment-highlight-ryuseigai {
-  0%, 20% {
-    background: #2a2018;
-    box-shadow: inset 0 0 0 1px #6a4a40;
-  }
-  100% {
-    background: transparent;
-    box-shadow: none;
-  }
-}
-.ryuseigai-shell .comment-text {
-  color: #b8b2a6;
-}
-.ryuseigai-shell .comment-footer {
-  color: #9a9488;
-}
-.ryuseigai-shell .comment-number {
-  color: #9a9488;
-}
-.ryuseigai-shell .comment-host {
-  color: #a8a296;
-}
-.ryuseigai-shell .comment-date {
-  color: #8a8478;
-}
-
 /* 流星垓: 脚注セクション視認性確保（暗色背景固定） */
 .ryuseigai-shell .footnote-section {
   border-top-color: #4a4440;
@@ -1807,12 +1748,7 @@ select:focus-visible {
 
 .ryuseigai-entry {
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "title score"
-    "meta meta";
-  align-items: start;
-  gap: 0 12px;
+  grid-template-columns: minmax(0, 1fr);
   padding: 14px 10px;
   border-bottom: 1px solid #333;
   cursor: pointer;
@@ -1827,7 +1763,6 @@ select:focus-visible {
 }
 
 .ryuseigai-entry-link {
-  grid-area: title;
   color: #c99a9a;
   text-decoration: underline;
   text-decoration-color: #6a4a4a;
@@ -1839,20 +1774,7 @@ select:focus-visible {
   text-decoration-color: #c99a9a;
 }
 
-.ryuseigai-entry-score {
-  grid-area: score;
-  color: #c08080;
-  font-size: 0.8125rem;
-  font-weight: bold;
-  font-variant-numeric: tabular-nums;
-  background: #1a1510;
-  border: 1px solid #4a3535;
-  padding: 2px 8px;
-  white-space: nowrap;
-}
-
 .ryuseigai-entry-meta {
-  grid-area: meta;
   font-size: 0.8125rem;
   color: #a8a296;
   margin-top: 6px;
@@ -1914,137 +1836,6 @@ select:focus-visible {
 }
 
 /* 流星垓: ポイントボックス */
-.ryuseigai-point-box {
-  border: 1px solid #4a3535;
-  background: #1a0f0f;
-  padding: 12px;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-.ryuseigai-point-label {
-  font-size: 0.75rem;
-  color: #a89a9a;
-  letter-spacing: 0.15em;
-}
-
-.ryuseigai-point-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #d05050;
-  margin: 4px 0;
-  text-shadow: 0 0 6px rgba(180, 50, 50, 0.5);
-}
-
-.ryuseigai-point-breakdown {
-  font-size: 0.75rem;
-  color: #a89a9a;
-}
-
-/* 流星垓: コメント */
-.ryuseigai-section-title {
-  font-size: 0.9375rem;
-  font-weight: bold;
-  color: #c99a9a;
-  border-bottom: 1px solid #3a3a3a;
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-}
-
-.ryuseigai-no-comments {
-  font-size: 0.8125rem;
-  color: #9a9488;
-  padding: 12px 0;
-  text-align: center;
-}
-
-.ryuseigai-comment-vote {
-  color: #d08080;
-  font-weight: bold;
-}
-
-/* 流星垓: フォーム */
-.ryuseigai-form {
-  border: 1px solid #3a3a3a;
-  padding: 12px;
-  background: #0d0d0d;
-}
-
-.ryuseigai-form-title {
-  font-size: 0.9375rem;
-  font-weight: bold;
-  color: #c99a9a;
-  margin-bottom: 8px;
-}
-
-.ryuseigai-textarea {
-  width: 100%;
-  min-height: 6.25rem;
-  background: #1a1a1a;
-  border: 1px solid #444;
-  color: #c8c2b6;
-  font-family: inherit;
-  font-size: 1rem;
-  line-height: var(--line-height-ui);
-  padding: 8px;
-  resize: vertical;
-}
-.ryuseigai-textarea:focus {
-  outline: 2px solid #c99a9a;
-  outline-offset: 1px;
-}
-
-.ryuseigai-input {
-  background: #1a1a1a;
-  border: 1px solid #444;
-  color: #c8c2b6;
-  font-size: 1rem;
-  padding: 4px 8px;
-  width: 15rem;
-  max-width: 100%;
-}
-.ryuseigai-input:focus {
-  outline: 2px solid #c99a9a;
-  outline-offset: 1px;
-}
-
-.ryuseigai-select {
-  background: #1a1a1a;
-  border: 1px solid #444;
-  color: #c99a9a;
-  font-size: 1rem;
-  padding: 4px 8px;
-}
-.ryuseigai-select:focus {
-  outline: 2px solid #c99a9a;
-  outline-offset: 1px;
-}
-
-.ryuseigai-button {
-  background: #2a1a1a;
-  border: 1px solid #5a3a3a;
-  color: #c99a9a;
-  font-size: 1rem;
-  padding: 6px 24px;
-  cursor: pointer;
-  font-family: inherit;
-}
-.ryuseigai-button:hover {
-  background: #3a2020;
-  color: #e0b0b0;
-}
-.ryuseigai-button:focus {
-  outline: 2px solid #c99a9a;
-  outline-offset: 2px;
-}
-
-/* 管理画面: 流星垓バッジ */
-.ryuseigai-badge {
-  color: #6b4c4c;
-  font-weight: bold;
-  font-size: 0.75rem;
-}
-
 .ryuseigai-author-block {
   margin-top: 18px;
   padding: 14px 16px;
@@ -2084,20 +1875,10 @@ select:focus-visible {
   white-space: pre-wrap;
 }
 
-.ryuseigai-form-row {
-  margin-top: 6px;
-  font-size: 1rem;
-}
-
 .ryuseigai-nav-top {
   margin-bottom: 6px;
 }
 
 .ryuseigai-nav-bottom {
   margin-top: 12px;
-}
-
-.ryuseigai-comment-form .comment-form-count,
-.ryuseigai-comment-form .form-field-error {
-  font-size: 0.8125rem;
 }

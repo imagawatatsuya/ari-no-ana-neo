@@ -17,9 +17,6 @@ interface RyuseigaiListProps {
   onPrefetch?: (id: string) => void;
 }
 
-/** 流星垓の初期ポイント */
-const RYUSEIGAI_BASE_SCORE = -300;
-
 /** Fisher-Yates シャッフル（アクセスごとにランダム順） */
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr];
@@ -78,28 +75,24 @@ export const RyuseigaiList: React.FC<RyuseigaiListProps> = ({ state, onPrefetch 
           </div>
         ) : (
           <div className="ryuseigai-entries">
-            {shuffled.map((novel) => {
-              const score = RYUSEIGAI_BASE_SCORE + novel.voteSum;
-              return (
-                <div
-                  className="ryuseigai-entry"
-                  key={novel.id}
-                  role="link"
-                  tabIndex={0}
-                  aria-label={`${novel.title}を読む`}
-                  onClick={() => openNovel(novel.id)}
-                  onPointerEnter={() => onPrefetch?.(novel.id)}
-                  onFocus={() => onPrefetch?.(novel.id)}
-                  onKeyDown={(e) => handleEntryKeyDown(novel.id, e)}
-                >
-                  <span className="ryuseigai-entry-link">{novel.title}</span>
-                  <span className="ryuseigai-entry-score">{score}</span>
-                  <div className="ryuseigai-entry-meta">
-                    {novel.author} ／ {formatDate(novel.date)} ／ 声 {novel.commentCount}
-                  </div>
+            {shuffled.map((novel) => (
+              <div
+                className="ryuseigai-entry"
+                key={novel.id}
+                role="link"
+                tabIndex={0}
+                aria-label={`${novel.title}を読む`}
+                onClick={() => openNovel(novel.id)}
+                onPointerEnter={() => onPrefetch?.(novel.id)}
+                onFocus={() => onPrefetch?.(novel.id)}
+                onKeyDown={(e) => handleEntryKeyDown(novel.id, e)}
+              >
+                <span className="ryuseigai-entry-link">{novel.title}</span>
+                <div className="ryuseigai-entry-meta">
+                  {novel.author} ／ {formatDate(novel.date)}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
 
